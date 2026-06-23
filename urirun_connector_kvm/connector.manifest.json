@@ -1,0 +1,20 @@
+{
+  "id": "kvm",
+  "name": "KVM",
+  "status": "available",
+  "category": "Remote",
+  "summary": "Send keyboard/mouse input and capture the screen through kvm:// URI routes.",
+  "description": "KVM is an external urirun connector that drives keyboard/mouse input and screen capture as kvm:// routes. Input and capture touch a real display, so routes default to dry-run; pass --execute (or mode=execute) to act via optional host tools (xdotool, scrot).",
+  "useCases": [
+    "Drive a remote desktop's keyboard/mouse from a URI flow.",
+    "Capture a screenshot of a host as part of an automation.",
+    "Project KVM control to MCP/A2A so agents can operate a desktop."
+  ],
+  "flowExample": ["kvm://host/screen/query/capture", "kvm://host/input/command/key"],
+  "requires": ["python>=3.10"],
+  "install": {"mode": "urirun-extra", "pipSpec": "urirun-connector-kvm @ git+https://github.com/if-uri/urirun-connector-kvm.git@v0.1.0"},
+  "provenance": "community",
+  "publisher": {"name": "if-uri", "url": "https://ifuri.com", "github": "https://github.com/if-uri"},
+  "docsUrl": "https://github.com/if-uri/urirun-connector-kvm",
+  "keywords": ["kvm", "remote", "input", "screenshot", "connector"]
+}
