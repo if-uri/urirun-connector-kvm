@@ -10,11 +10,40 @@
     "Capture a screenshot of a host as part of an automation.",
     "Project KVM control to MCP/A2A so agents can operate a desktop."
   ],
-  "flowExample": ["kvm://host/screen/query/capture", "kvm://host/input/command/key"],
-  "requires": ["python>=3.10"],
-  "install": {"mode": "urirun-extra", "pipSpec": "urirun-connector-kvm @ git+https://github.com/if-uri/urirun-connector-kvm.git@v0.1.0"},
+  "flowExample": [
+    "kvm://host/screen/query/capture",
+    "kvm://host/input/command/key"
+  ],
+  "requires": [
+    "python>=3.10"
+  ],
+  "install": {
+    "mode": "urirun-extra",
+    "pipSpec": "urirun-connector-kvm @ git+https://github.com/if-uri/urirun-connector-kvm.git@v0.1.0"
+  },
   "provenance": "community",
-  "publisher": {"name": "if-uri", "url": "https://ifuri.com", "github": "https://github.com/if-uri"},
+  "publisher": {
+    "name": "if-uri",
+    "url": "https://ifuri.com",
+    "github": "https://github.com/if-uri"
+  },
   "docsUrl": "https://github.com/if-uri/urirun-connector-kvm",
-  "keywords": ["kvm", "remote", "input", "screenshot", "connector"]
+  "keywords": [
+    "kvm",
+    "remote",
+    "input",
+    "screenshot",
+    "connector"
+  ],
+  "routes": [
+    "kvm://host/input/command/key",
+    "kvm://host/input/command/move",
+    "kvm://host/screen/query/capture"
+  ],
+  "uriSchemes": [
+    "kvm"
+  ],
+  "adapterKinds": [
+    "local-function"
+  ]
 }
