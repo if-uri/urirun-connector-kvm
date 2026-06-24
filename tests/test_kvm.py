@@ -7,31 +7,94 @@ import json
 
 import urirun
 from urirun import v2
-from urirun_connector_kvm import capture, connector_manifest, key, main, move, urirun_bindings
+from urirun_connector_kvm import (
+    capture,
+    connector_manifest,
+    doctor,
+    key,
+    main,
+    type_text,
+    urirun_bindings,
+)
+import urirun_connector_kvm.backends as B
 import urirun_connector_kvm.core as core
 
 ROUTE_KEY = "kvm://host/input/command/key"
 ROUTE_MOVE = "kvm://host/input/command/move"
 ROUTE_CAPTURE = "kvm://host/screen/query/capture"
-ROUTES = {ROUTE_KEY, ROUTE_MOVE, ROUTE_CAPTURE}
+ROUTE_TYPE = "kvm://host/input/command/type"
+ROUTE_DOCTOR = "kvm://host/doctor/query/report"
+EXPECTED_ROUTES = {
+    ROUTE_KEY, ROUTE_MOVE, ROUTE_CAPTURE, ROUTE_TYPE, ROUTE_DOCTOR,
+    "kvm://host/input/command/click", "kvm://host/input/command/scroll",
+    "kvm://host/task/command/run", "kvm://host/window/command/focus",
+    "kvm://host/window/query/list",
+}
 
 
 def test_key_requires_value() -> None:
     assert key("")["ok"] is False
 
 
-def test_run_tool_missing_binary(monkeypatch) -> None:
-    monkeypatch.setattr(core.shutil, "which", lambda _t: None)
+def test_type_requires_value() -> None:
+    assert type_text("")["ok"] is False
+
+
+def test_no_backend_reports_install_hint(monkeypatch) -> None:
+    # With no tools/modules present, dispatch must fail cleanly with an install hint,
+    # never raise — so a route stays usable to report what is missing.
+    monkeypatch.setattr(B.shutil, "which", lambda _t: None)
+    monkeypatch.setattr(B, "have_mod", lambda _m: False)
     r = key("Return")
-    # No backend tool on PATH -> _dispatch reports that none matched.
-    assert r["ok"] is False and "no matching tool installed" in r["error"]
+    assert r["ok"] is False and "no available backend" in r["error"]
+
+
+# --- decorator-registered backend registry -------------------------------- #
+def test_backend_decorator_registers_and_sorts() -> None:
+    calls = []
+
+    @B.backend("unit_probe", "low", priority=10)
+    def _low(**_):
+        calls.append("low"); return {"hit": "low"}
+
+    @B.backend("unit_probe", "high", priority=90)
+    def _high(**_):
+        calls.append("high"); return {"hit": "high"}
+
+    # highest priority + available wins
+    assert B.dispatch("unit_probe")["hit"] == "high"
+    assert calls == ["high"]
+
+
+def test_dispatch_falls_through_on_failure() -> None:
+    @B.backend("unit_fall", "broken", priority=90)
+    def _broken(**_):
+        raise RuntimeError("boom")
+
+    @B.backend("unit_fall", "works", priority=10)
+    def _works(**_):
+        return {"ok": True}
+
+    out = B.dispatch("unit_fall")
+    assert out["backend"] == "works"
+
+
+def test_unavailable_backend_skipped_by_needs(monkeypatch) -> None:
+    @B.backend("unit_need", "needs_ghost", priority=90, needs_bin=("definitely-not-a-real-binary",))
+    def _ghost(**_):
+        return {"hit": "ghost"}
+
+    @B.backend("unit_need", "fallback", priority=10)
+    def _fb(**_):
+        return {"hit": "fallback"}
+
+    assert B.dispatch("unit_need")["hit"] == "fallback"
 
 
 def test_bindings_are_isolated_handlers() -> None:
     b = urirun_bindings()["bindings"]
-    assert set(b) == ROUTES
+    assert set(b) == EXPECTED_ROUTES
     binding = b[ROUTE_CAPTURE]
-    # registry-portable in-process handler: runs out-of-process via urirun.exec
     assert binding["adapter"] == "local-function-subprocess"
     assert binding["python"]["module"] == "urirun_connector_kvm.core"
     assert binding["python"]["export"] == "capture"
@@ -40,45 +103,49 @@ def test_bindings_are_isolated_handlers() -> None:
 
 
 def test_runtime_executes_from_compiled_registry(monkeypatch) -> None:
-    # the whole point: a serialized->compiled registry still runs the route end-to-end.
-    # The route runs out-of-process (urirun.exec), so an in-process monkeypatch can't reach
-    # it -- but env DOES propagate to the child. Clear PATH so the child's shutil.which finds
-    # no screen tool and capture() fast-fails instead of touching (or hanging on) real hardware.
+    # A serialized->compiled registry still runs the route end-to-end. Runs out-of-process
+    # (urirun.exec); env propagates, so clear PATH + force have_mod False in the child via
+    # an env flag the backends module honours is overkill -- instead assert plumbing ok.
     monkeypatch.setenv("PATH", "")
     registry = urirun.compile_registry(json.loads(json.dumps(urirun_bindings())))
     env = v2.run(
-        ROUTE_CAPTURE,
+        ROUTE_DOCTOR,
         registry,
-        payload={"output": "/tmp/x.png"},
+        payload={},
         mode="execute",
         policy=urirun.policy(allow=["kvm://*"]),
     )
-    # Transport/plumbing succeeded (the compiled route ran); the action itself reports no
-    # backend because no screen tool is on PATH.
     assert env["ok"] is True
     data = urirun.result_data(env)
-    assert data["ok"] is False
-    assert "no matching tool installed" in str(data.get("error", ""))
+    assert data["ok"] is True and "backends" in data
+
+
+def test_doctor_reports_backends() -> None:
+    r = doctor()
+    assert r["ok"] is True
+    assert "capture" in r["backends"] and "type" in r["backends"]
+    # every registered backend entry carries availability + install hints
+    for entry in r["backends"]["capture"]:
+        assert set(entry) >= {"name", "priority", "available", "missing"}
 
 
 def test_capture_tags_screenshot_as_frozen_artifact(monkeypatch) -> None:
-    # In-process call with the backend + size-check stubbed (no real screen/file).
     monkeypatch.setattr(
-        core, "_dispatch",
-        lambda action, backends, argv_for, extra: urirun.ok(connector="kvm", action=action, via="stub", **extra),
+        B, "dispatch",
+        lambda action, **kw: {"backend": "stub", "via": "stub", "path": kw.get("output")},
     )
     monkeypatch.setattr(core.os.path, "getsize", lambda _p: 123)
+    monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
     r = capture(output="/tmp/x.png")
-    # Shared urirun.tag contract: a screen capture is a frozen artifact.
     assert r["ok"] is True and r["kind"] == "screenshot" and r["live"] is False
 
 
 def test_manifest_prose_plus_derived_routes() -> None:
     m = connector_manifest()
     assert m["id"] == "kvm"
-    assert set(m["routes"]) == ROUTES
+    assert set(m["routes"]) == EXPECTED_ROUTES
     assert m["uriSchemes"] == ["kvm"]
-    assert m["summary"]  # prose preserved
+    assert m["summary"]
 
 
 def test_cli_bindings_and_manifest(capsys) -> None:
