@@ -167,6 +167,8 @@ def capture(output: str = "screen.png") -> dict[str, Any]:
             return urirun.fail(f"{result.get('via')} produced no image at {output}",
                                connector=CONNECTOR_ID, action="capture", wayland=_is_wayland())
         result["bytes"] = size
+        # A screen capture is a frozen artifact (shared urirun.tag contract).
+        return urirun.tag(result, "screenshot")
     return result
 
 

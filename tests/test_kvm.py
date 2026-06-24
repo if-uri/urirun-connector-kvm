@@ -61,6 +61,18 @@ def test_runtime_executes_from_compiled_registry(monkeypatch) -> None:
     assert "no matching tool installed" in str(data.get("error", ""))
 
 
+def test_capture_tags_screenshot_as_frozen_artifact(monkeypatch) -> None:
+    # In-process call with the backend + size-check stubbed (no real screen/file).
+    monkeypatch.setattr(
+        core, "_dispatch",
+        lambda action, backends, argv_for, extra: urirun.ok(connector="kvm", action=action, via="stub", **extra),
+    )
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 123)
+    r = capture(output="/tmp/x.png")
+    # Shared urirun.tag contract: a screen capture is a frozen artifact.
+    assert r["ok"] is True and r["kind"] == "screenshot" and r["live"] is False
+
+
 def test_manifest_prose_plus_derived_routes() -> None:
     m = connector_manifest()
     assert m["id"] == "kvm"
