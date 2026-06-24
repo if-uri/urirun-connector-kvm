@@ -23,7 +23,8 @@ def test_key_requires_value() -> None:
 def test_run_tool_missing_binary(monkeypatch) -> None:
     monkeypatch.setattr(core.shutil, "which", lambda _t: None)
     r = key("Return")
-    assert r["ok"] is False and "not installed" in r["error"]
+    # No backend tool on PATH -> _dispatch reports that none matched.
+    assert r["ok"] is False and "no matching tool installed" in r["error"]
 
 
 def test_bindings_are_isolated_handlers() -> None:
@@ -39,14 +40,11 @@ def test_bindings_are_isolated_handlers() -> None:
 
 
 def test_runtime_executes_from_compiled_registry(monkeypatch) -> None:
-    # the whole point: a serialized->compiled registry still runs the route.
-    # monkeypatch so no real hardware/screen side effects.
-    monkeypatch.setattr(core.shutil, "which", lambda _t: None)
-    monkeypatch.setattr(
-        core,
-        "_run_tool",
-        lambda argv, action, extra: urirun.ok(connector="kvm", action=action, executed=True, **extra),
-    )
+    # the whole point: a serialized->compiled registry still runs the route end-to-end.
+    # The route runs out-of-process (urirun.exec), so an in-process monkeypatch can't reach
+    # it -- but env DOES propagate to the child. Clear PATH so the child's shutil.which finds
+    # no screen tool and capture() fast-fails instead of touching (or hanging on) real hardware.
+    monkeypatch.setenv("PATH", "")
     registry = urirun.compile_registry(json.loads(json.dumps(urirun_bindings())))
     env = v2.run(
         ROUTE_CAPTURE,
@@ -55,9 +53,12 @@ def test_runtime_executes_from_compiled_registry(monkeypatch) -> None:
         mode="execute",
         policy=urirun.policy(allow=["kvm://*"]),
     )
+    # Transport/plumbing succeeded (the compiled route ran); the action itself reports no
+    # backend because no screen tool is on PATH.
     assert env["ok"] is True
     data = urirun.result_data(env)
-    assert data["ok"] is True and data["output"] == "/tmp/x.png"
+    assert data["ok"] is False
+    assert "no matching tool installed" in str(data.get("error", ""))
 
 
 def test_manifest_prose_plus_derived_routes() -> None:
