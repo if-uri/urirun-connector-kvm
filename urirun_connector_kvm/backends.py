@@ -302,9 +302,36 @@ def _yd_keyseq(combo: str) -> list[str]:
 
 
 # ---- type ----
+def _clipboard_set(text: str) -> str:
+    """Put UTF-8 ``text`` on the system clipboard via the first available tool, so it can be
+    pasted (Ctrl+V) verbatim. This is the only reliable way to enter non-ASCII on this stack:
+    ydotool types through the kernel keymap and SILENTLY DROPS characters it can't map (Polish
+    ł ą ę ż ó, accents, CJK, emoji). Returns the tool name, or raises so the caller fails
+    loudly instead of publishing corrupted text."""
+    for argv, name in (
+        (["wl-copy"], "wl-copy"),                          # Wayland
+        (["xclip", "-selection", "clipboard"], "xclip"),   # X11
+        (["xsel", "--clipboard", "--input"], "xsel"),      # X11
+    ):
+        if have_bin(argv[0]):
+            p = subprocess.run(argv, input=text.encode(), capture_output=True, env=_yd_env(), timeout=10)
+            if p.returncode == 0:
+                return name
+            raise BackendError(f"{name} failed: {(p.stderr or b'').decode(errors='replace')[:120]}")
+    raise BackendError("non-ASCII text needs a clipboard tool (wl-clipboard / xclip / xsel) or the "
+                       "browser-cdp surface — none installed on this node; ydotool cannot type it")
+
+
 @backend("type", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
 def _type_ydotool(text: str, **_) -> dict:
-    _run(["ydotool", "type", "--", text], env=_yd_env()); return {"via": "ydotool", "chars": len(text)}
+    # Non-ASCII: ydotool drops it, so set the clipboard and paste it verbatim instead — or fail
+    # loudly (no clipboard tool) rather than silently corrupt the string.
+    if not text.isascii():
+        tool = _clipboard_set(text)
+        _run(["ydotool", "key", *_yd_keyseq("ctrl+v")], env=_yd_env())
+        return {"via": f"clipboard:{tool}+ctrl+v", "chars": len(text), "method": "paste"}
+    _run(["ydotool", "type", "--", text], env=_yd_env())
+    return {"via": "ydotool", "chars": len(text), "method": "keymap"}
 
 
 @backend("type", "wtype", priority=60, platforms=("linux-wayland",), needs_bin=("wtype",))
@@ -661,13 +688,14 @@ def _tsv_lines(tsv: str, min_conf: float) -> list[dict]:
 
 @backend("locate", "tesseract", priority=65, needs_bin=("tesseract",))
 def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: str = "",
-                      min_conf: float = 40, **_) -> dict:
+                      name: str = "", min_conf: float = 40, **_) -> dict:
     """OCR-locate on-screen text. Unlike a saliency detector this GENUINELY matches the
     query against recognised text, so it is preferred (priority 65 > imgl 60) for text
     targets. Returns the unified ``found``/``bbox``/``center`` schema AND the full
     ``matches`` list; ``found: false`` (honestly) when the text is not on screen — never
-    a bogus hit. Captures its own screenshot when no ``image`` is supplied."""
-    q = (query or text or "").strip()
+    a bogus hit. Captures its own screenshot when no ``image`` is supplied. ``name`` (the
+    accessibility name an LLM planner emits for textboxes) is accepted as a query alias."""
+    q = (query or text or name or "").strip()
     full = None
     if not image or not os.path.exists(image):
         cap = _capture_tmp()           # find/click handlers call us without an image
@@ -691,7 +719,10 @@ def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: st
             if t and conf >= float(min_conf):
                 words.setdefault((c[1], c[2], c[3], c[4]), []).append(
                     {"text": t, "conf": conf, "box": [left, top, w, h]})
-        terms = ql.split()
+        # Drop 1-2 char tokens ("a", "to", ...): substring-matching them ("a" in
+        # "Today's") pulls unrelated words into the span and drifts the click centre off
+        # target. Keep them only if the query is ENTIRELY short tokens.
+        terms = [t for t in ql.split() if len(t) >= 3] or ql.split()
         matches = []
         for ws in words.values():
             if ql not in " ".join(x["text"] for x in ws).lower():
@@ -706,12 +737,17 @@ def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: st
         matches.sort(key=lambda m: -m["conf"])
     out = {"via": "tesseract", "source": "tesseract", "coord_space": "image-px",
            "query": q, "count": len(matches), "matches": matches, "fullSize": full}
-    if matches:
+    if matches and ql:
         best = matches[0]
         out.update({"found": True, "bbox": best["box"], "center": best["center"],
                     "text": best["text"], "candidates": len(matches), "actionable": False})
     else:
+        # Empty query is NOT a located hit: returning the highest-confidence arbitrary
+        # glyph as found:true makes wait/fill/click act on garbage (e.g. "©"). Keep
+        # `matches` for the ui_locate text-dump, but report found:false so callers that
+        # need a target fail honestly instead of clicking nowhere.
         out["found"] = False           # honest miss — do NOT fall through to a guesser
+        out["candidates"] = len(matches)
     return out
 
 

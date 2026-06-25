@@ -357,15 +357,16 @@ def _click_hit(hit: dict, app: str, role: str, text: str) -> dict:
 
 
 @conn.handler("ui/query/find", isolated=True, meta={"label": "Locate a UI element by text/role (AT-SPI→imgl→vql)"})
-def ui_find(text: str = "", role: str = "", app: str = "", nth: int = 0) -> dict[str, Any]:
+def ui_find(text: str = "", role: str = "", app: str = "", nth: int = 0, name: str = "") -> dict[str, Any]:
     try:
-        return _ok(action="find", **B.dispatch("locate", text=text, role=role, app=app, nth=int(nth)))
+        return _ok(action="find", **B.dispatch("locate", text=text or name, role=role, app=app, nth=int(nth)))
     except B.BackendError as exc:
         return _fail_from("locate", exc)
 
 
 @conn.handler("ui/command/click", isolated=True, meta={"label": "Find a target and click it (a11y action or centre click)"})
-def ui_click(text: str = "", role: str = "", app: str = "") -> dict[str, Any]:
+def ui_click(text: str = "", role: str = "", app: str = "", name: str = "") -> dict[str, Any]:
+    text = text or name
     try:
         hit = B.dispatch("locate", text=text, role=role, app=app)
         return _ok(action="ui-click", target={"text": text, "role": role}, hit=hit,
@@ -375,9 +376,13 @@ def ui_click(text: str = "", role: str = "", app: str = "") -> dict[str, Any]:
 
 
 @conn.handler("ui/command/fill", isolated=True, meta={"label": "Find a field, focus it and type a value (+verify)"})
-def ui_fill(text: str = "", role: str = "entry", app: str = "", value: str = "", verify: bool = False) -> dict[str, Any]:
-    """Locate a field by ``text``/``role``, focus it (AT-SPI grab or centre click), type
-    ``value``, and optionally verify the value landed."""
+def ui_fill(text: str = "", role: str = "entry", app: str = "", value: str = "",
+            verify: bool = True, name: str = "") -> dict[str, Any]:
+    """Locate a field by ``text``/``role``/``name``, focus it (AT-SPI grab or centre
+    click), type ``value``, then verify the value actually landed. ``verify`` defaults
+    to True: if the typed text is NOT found on screen afterwards the fill is reported as a
+    FAILURE (it focused the wrong element / the field never opened) instead of a false ok."""
+    text = text or name
     if not value:
         return urirun.fail("value is required", connector=CONNECTOR_ID)
     try:
@@ -388,15 +393,23 @@ def ui_fill(text: str = "", role: str = "entry", app: str = "", value: str = "",
         typed = B.dispatch("type", text=value)
         out = {"action": "ui-fill", "hit": hit, "focused": focused, "typed": typed}
         if verify:
-            v = B.dispatch("locate", text=value[:24], app=app)
+            time.sleep(0.4)
+            probe = "".join(ch for ch in value[:24] if ord(ch) < 128).strip() or value[:24]
+            v = B.dispatch("locate", text=probe, app=app)
             out["verified"] = bool(v.get("found"))
+            if not out["verified"]:
+                return urirun.fail(
+                    f"value not visible after typing (focused the wrong element? probe={probe!r})",
+                    connector=CONNECTOR_ID, action="ui-fill", **out)
         return _ok(**out)
     except B.BackendError as exc:
         return _fail_from("ui-fill", exc)
 
 
 @conn.handler("ui/query/wait", isolated=True, meta={"label": "Poll until a target appears (or timeout)"})
-def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0, interval: float = 0.7) -> dict[str, Any]:
+def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0,
+            interval: float = 0.7, name: str = "") -> dict[str, Any]:
+    text = text or name
     deadline = float(timeout)
     waited = 0.0
     while waited <= deadline:
