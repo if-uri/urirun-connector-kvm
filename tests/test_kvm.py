@@ -38,7 +38,7 @@ EXPECTED_ROUTES = {
     "kvm://host/ui/query/wait", "kvm://host/ui/query/verify", "kvm://host/ui/query/strategies",
     "kvm://host/cdp/session/command/ensure", "kvm://host/cdp/session/query/status",
     "kvm://host/cdp/page/command/navigate", "kvm://host/cdp/page/query/ready",
-    "kvm://host/ui/command/act",
+    "kvm://host/ui/command/act", "kvm://host/env/query/profile", "kvm://host/surface/query/current", "kvm://host/display/query/info",
     "app://host/desktop/command/launch", "app://host/desktop/query/list",
 }
 
@@ -215,10 +215,148 @@ def test_ui_act_retries_then_succeeds(monkeypatch) -> None:
         return {"ok": True, "strategy": "cdp", "clicked": True}
     monkeypatch.setattr(core.C, "route", _route)
     monkeypatch.setattr(core.time, "sleep", lambda *_a: None)
-    r = core.ui_act(do="click", text="Post", retries=3)
+    r = core.ui_act(do="click", text="Compose", retries=3)
     assert r["ok"] is True and r["do"] == "click"
     assert len(r["tries"]) == 2 and r["tries"][-1]["ok"] is True
 
 
 def test_ui_act_rejects_bad_verb() -> None:
     assert core.ui_act(do="frobnicate", text="x")["ok"] is False
+
+
+# --------------------------------------------------------------------------- #
+# Wayland/session detection + session env (the linux-x11 misreport fix)
+# --------------------------------------------------------------------------- #
+def test_is_wayland_detects_via_socket_when_env_absent(monkeypatch) -> None:
+    # A node process spawned without graphical session vars must still detect Wayland
+    # from the live compositor socket -- else the box mis-tags as linux-x11 and drops
+    # grim/portal from the capture candidates.
+    monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    monkeypatch.delenv("XDG_SESSION_TYPE", raising=False)
+    monkeypatch.setattr(B, "_wayland_socket", lambda: "wayland-1")
+    assert B.is_wayland() is True
+    monkeypatch.setattr(B, "_wayland_socket", lambda: None)
+    assert B.is_wayland() is False
+
+
+def test_platform_tag_wayland_via_socket(monkeypatch) -> None:
+    monkeypatch.setattr(B.sys, "platform", "linux")
+    monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    monkeypatch.delenv("XDG_SESSION_TYPE", raising=False)
+    monkeypatch.setattr(B, "_wayland_socket", lambda: "wayland-0")
+    assert B.platform_tag() == "linux-wayland"
+    monkeypatch.setattr(B, "_wayland_socket", lambda: None)
+    monkeypatch.setattr(B, "_x_display", lambda: None)
+    assert B.platform_tag() == "linux-x11"
+
+
+def test_session_env_fills_display_and_bus(monkeypatch, tmp_path) -> None:
+    (tmp_path / "wayland-0").write_text("")
+    (tmp_path / "bus").write_text("")
+    monkeypatch.setattr(B, "_runtime_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(B, "_x_display", lambda: ":7")
+    for v in ("WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "DISPLAY"):
+        monkeypatch.delenv(v, raising=False)
+    env = B.session_env()
+    assert env["XDG_RUNTIME_DIR"] == str(tmp_path)
+    assert env["WAYLAND_DISPLAY"] == "wayland-0"
+    assert env["DBUS_SESSION_BUS_ADDRESS"] == f"unix:path={tmp_path}/bus"
+    assert env["DISPLAY"] == ":7"
+
+
+def test_session_env_preserves_existing_vars(monkeypatch) -> None:
+    monkeypatch.setenv("WAYLAND_DISPLAY", "wayland-9")
+    monkeypatch.setenv("DISPLAY", ":3")
+    env = B.session_env()
+    assert env["WAYLAND_DISPLAY"] == "wayland-9" and env["DISPLAY"] == ":3"
+
+
+# --------------------------------------------------------------------------- #
+# chrome launch: dedicated profile + debug port (the "debugger did not come up" fix)
+# --------------------------------------------------------------------------- #
+import urirun_connector_kvm.launch_backends as LB  # noqa: E402
+
+
+def test_chrome_launch_injects_dedicated_profile_and_debug_port(monkeypatch) -> None:
+    captured = {}
+
+    class _Proc:
+        pid = 4321
+
+    monkeypatch.setattr(LB, "_find_app", lambda app: None)
+    monkeypatch.setattr(LB.shutil, "which", lambda b: "/usr/bin/google-chrome" if "chrome" in b else None)
+    monkeypatch.setattr(LB, "session_env", lambda: {})
+    monkeypatch.setattr(LB, "_cdp_wait", lambda port, wait: {"ready": False, "port": port})
+    monkeypatch.setattr(LB.subprocess, "Popen",
+                        lambda argv, **kw: (captured.__setitem__("argv", argv), _Proc())[1])
+    monkeypatch.delenv("URIRUN_KVM_NO_A11Y", raising=False)
+    monkeypatch.delenv("URIRUN_KVM_CDP_PROFILE", raising=False)
+
+    res = LB._launch_xdg(app="google-chrome", settle=0)
+    argv = captured["argv"]
+    # a bare --remote-debugging-port is dropped when the user's default-profile chrome is
+    # already up; the dedicated --user-data-dir forces a separate instance that binds it.
+    assert any(a.startswith("--remote-debugging-port=") for a in argv)
+    assert any(a.startswith("--user-data-dir=") for a in argv)
+    assert "--no-first-run" in argv and "--no-default-browser-check" in argv
+    assert res["cdp"]["ready"] is False   # readiness is probed + reported, not assumed
+
+
+def test_non_chrome_launch_skips_cdp(monkeypatch) -> None:
+    captured = {}
+
+    class _Proc:
+        pid = 11
+
+    monkeypatch.setattr(LB, "_find_app", lambda app: None)
+    monkeypatch.setattr(LB.shutil, "which", lambda b: "/usr/bin/gedit")
+    monkeypatch.setattr(LB, "session_env", lambda: {})
+    monkeypatch.setattr(LB.time, "sleep", lambda *_a: None)
+    monkeypatch.setattr(LB.subprocess, "Popen",
+                        lambda argv, **kw: (captured.__setitem__("argv", argv), _Proc())[1])
+
+    res = LB._launch_xdg(app="gedit", settle=0)
+    assert not any("remote-debugging-port" in a for a in captured["argv"])
+    assert "cdp" not in res
+
+
+# --------------------------------------------------------------------------- #
+# environment-adapted routing (vision is gated on real OCR + input capability)
+# --------------------------------------------------------------------------- #
+import urirun_connector_kvm.strategies as S  # noqa: E402
+import urirun_connector_kvm.environment as E  # noqa: E402
+
+
+def test_vision_strategy_is_environment_gated(monkeypatch) -> None:
+    monkeypatch.setattr(E, "profile", lambda: {"controlStrategies": {"vision": False}})
+    assert S.VisionStrategy().available("") is False        # no tesseract / no uinput -> off
+    monkeypatch.setattr(E, "profile", lambda: {"controlStrategies": {"vision": True}})
+    assert S.VisionStrategy().available("") is True
+
+
+def test_environment_profile_shape() -> None:
+    p = E.profile()
+    assert set(p) >= {"platform", "display", "cdp", "ocr", "input", "controlStrategies", "best", "controllable"}
+    assert set(p["controlStrategies"]) == {"cdp", "atspi", "vision"}
+    # best is one of the strategies or None, and controllable agrees
+    assert p["best"] in (None, "cdp", "atspi", "vision")
+    assert p["controllable"] is (p["best"] is not None)
+
+
+def test_report_includes_environment() -> None:
+    import urirun_connector_kvm.control as Ctl
+    rep = Ctl.report()
+    assert "environment" in rep and "strategies" in rep
+    assert {s["name"] for s in rep["strategies"]} == {"cdp", "atspi", "vision"}
+
+
+def test_cdp_port_prefers_client_url(monkeypatch) -> None:
+    # launch must bind the port the cdp client/readiness poll use (URIRUN_KVM_CDP_URL),
+    # not a divergent URIRUN_KVM_CDP_PORT — else Chrome binds a port nothing watches.
+    monkeypatch.setenv("URIRUN_KVM_CDP_URL", "http://127.0.0.1:9222")
+    monkeypatch.setenv("URIRUN_KVM_CDP_PORT", "9333")
+    assert LB._cdp_port() == "9222"
+    monkeypatch.delenv("URIRUN_KVM_CDP_URL", raising=False)
+    assert LB._cdp_port() == "9333"
+    monkeypatch.delenv("URIRUN_KVM_CDP_PORT", raising=False)
+    assert LB._cdp_port() == "9222"

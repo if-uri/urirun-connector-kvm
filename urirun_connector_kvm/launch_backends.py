@@ -23,6 +23,20 @@ except ImportError:  # flat-module deploy (node `host deploy --code backends.py 
     from backends import BackendError, _run, backend, session_env  # type: ignore
 
 
+def _cdp_port() -> str:
+    """The debug port to launch Chrome on — derived from the SAME source the CDP client
+    (cdp.endpoint) and the readiness poll use, so all three agree. URIRUN_KVM_CDP_URL is
+    authoritative (that's what the `cdp` strategy connects to); URIRUN_KVM_CDP_PORT is a
+    fallback. Binding a different port than the client polls is why a launch could bind
+    9333 while the client looked at 9222 — Chrome was up but invisible to the strategy."""
+    url = os.environ.get("URIRUN_KVM_CDP_URL")
+    if url:
+        tail = url.rstrip("/").rsplit(":", 1)[-1].split("/")[0]
+        if tail.isdigit():
+            return tail
+    return os.environ.get("URIRUN_KVM_CDP_PORT", "9222")
+
+
 def _cdp_wait(port: str, wait: float) -> dict:
     """Poll the CDP debug endpoint until it is reachable (early-exit) so a chrome launch
     can honestly report whether the debug socket actually bound — instead of assuming the
@@ -150,7 +164,7 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     cdp_port = ""
     if not os.environ.get("URIRUN_KVM_NO_A11Y") and any(
             b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge")):
-        cdp_port = os.environ.get("URIRUN_KVM_CDP_PORT", "9222")
+        cdp_port = _cdp_port()
         if not any("remote-debugging-port" in a for a in argv):
             argv.insert(1, f"--remote-debugging-port={cdp_port}")
         # A bare --remote-debugging-port is SILENTLY DROPPED when a Chrome on the default

@@ -206,8 +206,13 @@ bus = dbus.SessionBus(); token = "urisys_portal"
 sender = bus.get_unique_name()[1:].replace(".", "_")
 rp = f"/org/freedesktop/portal/desktop/request/{sender}/{token}"
 state = {"uri": None, "error": None}
+_CODES = {1: "portal cancelled (code 1)",
+          2: "portal denied (code 2) — capture needs a one-time screenshot permission grant "
+             "for this app (accept the portal dialog once, or grant it in the desktop's "
+             "Privacy/Screenshot settings); on locked-down GNOME the shell may block it entirely"}
 def _r(resp, res):
-    state["error"] = (f"portal code {resp}" if int(resp) else (None if "uri" in res else "missing uri"))
+    state["error"] = (_CODES.get(int(resp), f"portal code {resp}") if int(resp)
+                      else (None if "uri" in res else "missing uri"))
     state["uri"] = str(res.get("uri")) if "uri" in res else None; loop.quit()
 bus.add_signal_receiver(_r, dbus_interface="org.freedesktop.portal.Request", path=rp, signal_name="Response")
 proxy = bus.get_object("org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop")
@@ -716,8 +721,16 @@ def _a11y_atspi(app: str = "", role: str = "", name: str = "", op: str = "focus"
         raise BackendError("AT-SPI needs python3 with gi + Atspi (install python3-gobject + gnome a11y)")
     import json as _json
     # AT-SPI talks over the session bus — session_env() supplies DBUS_SESSION_BUS_ADDRESS.
+    # Bound the tree walk: on a busy desktop a MISS walks the whole a11y tree, and the
+    # router runs locate twice (atspi strategy + vision strategy each dispatch locate), so a
+    # long timeout stacks past the node's exec cap and hangs. Keep it short → fall through to
+    # OCR fast. Tune with URIRUN_KVM_ATSPI_TIMEOUT.
     cmd = _json.dumps({"app": app, "role": role, "name": name, "op": op, "text": text, "nth": nth})
-    p = _run([py, "-c", _ATSPI_ACT_SCRIPT, cmd], env=session_env(), timeout=15)
+    timeout = float(os.environ.get("URIRUN_KVM_ATSPI_TIMEOUT", "5"))
+    try:
+        p = _run([py, "-c", _ATSPI_ACT_SCRIPT, cmd], env=session_env(), timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        raise BackendError(f"atspi: tree walk exceeded {timeout}s (name~{name or text!r}) — falling through") from exc
     res = _json.loads((p.stdout or "{}").strip() or "{}")
     res["via"] = "atspi"
     return res

@@ -37,6 +37,16 @@ try:
 except ImportError:  # pragma: no cover
     import cdp as _cdp  # type: ignore
 
+try:
+    from . import environment as _env
+except ImportError:  # pragma: no cover
+    import environment as _env  # type: ignore
+
+try:  # the strategy classes live in their own module; the router just registers + dispatches
+    from . import strategies as _strategies
+except ImportError:  # pragma: no cover
+    import strategies as _strategies  # type: ignore
+
 
 # --------------------------------------------------------------------------- #
 # strategy registry
@@ -50,107 +60,9 @@ def strategy(cls):
     return cls
 
 
-def _is_browser(app: str) -> bool:
-    a = (app or "").lower()
-    return (not a) or any(b in a for b in ("chrome", "chromium", "brave", "edge", "browser"))
-
-
-# --------------------------------------------------------------------------- #
-# 1) CDP — browser DOM, coordinate-free, role/name exact
-# --------------------------------------------------------------------------- #
-@strategy
-class CdpStrategy:
-    name = "cdp"
-    priority = 95
-    confidence = 0.95
-
-    def available(self, app: str) -> bool:
-        return _is_browser(app) and _cdp.reachable()
-
-    def locate(self, t: dict) -> dict:
-        return _cdp.find(t.get("text", ""), t.get("role", ""), t.get("name", ""))
-
-    def click(self, t: dict) -> dict:
-        return _cdp.act("click", t.get("text", ""), t.get("role", ""), t.get("name", ""))
-
-    def fill(self, t: dict) -> dict:
-        return _cdp.act("fill", t.get("text", ""), t.get("role", ""), t.get("name", ""),
-                        value=t.get("value", ""))
-
-
-# --------------------------------------------------------------------------- #
-# 2) AT-SPI — native / Chrome-a11y accessibility tree (coordinate-free)
-# --------------------------------------------------------------------------- #
-@strategy
-class AtspiStrategy:
-    name = "atspi"
-    priority = 85
-    confidence = 0.85
-
-    def available(self, app: str) -> bool:
-        # only worth trying when the locate registry actually has an a11y backend that
-        # produces ACTIONABLE hits (Chrome a11y on / native apps). Cheap probe via locate.
-        try:
-            hit = B.dispatch("locate", text="", role="", app=app)
-            return bool(hit.get("source") == "atspi")
-        except Exception:  # noqa: BLE001
-            return False
-
-    def locate(self, t: dict) -> dict:
-        hit = B.dispatch("locate", text=t.get("text") or t.get("name", ""),
-                         role=t.get("role", ""), app=t.get("app", ""))
-        return hit
-
-    def click(self, t: dict) -> dict:
-        hit = self.locate(t)
-        if hit.get("source") == "atspi" and hit.get("actionable"):
-            return {"ok": True, "how": "atspi-action",
-                    **B.dispatch("a11y", app=t.get("app", ""), role=t.get("role", ""),
-                                 name=t.get("text") or t.get("name", ""), op="click")}
-        raise B.BackendError("atspi: target not actionable")
-
-    def fill(self, t: dict) -> dict:
-        self.click(t)
-        time.sleep(0.2)
-        typed = B.dispatch("type", text=t.get("value", ""))
-        return {"ok": True, "how": "atspi-fill", "typed": typed}
-
-
-# --------------------------------------------------------------------------- #
-# 3) vision — OCR locate + uinput-absolute click (universal pixel fallback)
-# --------------------------------------------------------------------------- #
-@strategy
-class VisionStrategy:
-    name = "vision"
-    priority = 50
-
-    def available(self, app: str) -> bool:
-        return True  # always available as the last resort
-
-    def locate(self, t: dict) -> dict:
-        return B.dispatch("locate", text=t.get("text") or t.get("name", ""),
-                          role=t.get("role", ""), app=t.get("app", ""))
-
-    def _click_xy(self, hit: dict, button: str = "left", clicks: int = 1) -> dict:
-        c = hit.get("center")
-        if not (hit.get("found") and c):
-            raise B.BackendError("vision: target not located")
-        return {"ok": True, "how": "uinput-abs", "at": c,
-                **B.uinput_abs_click(int(c[0]), int(c[1]), 0, 0, button=button,
-                                     do_click=True, clicks=clicks)}
-
-    def click(self, t: dict) -> dict:
-        hit = self.locate(t)
-        r = self._click_xy(hit)
-        r["confidence"] = round(float(hit.get("matches", [{}])[0].get("conf", 0)) / 100, 2)
-        return r
-
-    def fill(self, t: dict) -> dict:
-        hit = self.locate(t)
-        focused = self._click_xy(hit)
-        time.sleep(0.3)
-        typed = B.dispatch("type", text=t.get("value", ""))
-        return {"ok": True, "how": "vision-fill", "focused": focused, "typed": typed}
+# register the extracted strategies in capability order (cdp > atspi > vision)
+for _cls in _strategies.ALL:
+    strategy(_cls)
 
 
 # --------------------------------------------------------------------------- #
@@ -182,7 +94,11 @@ def route(op: str, text: str = "", role: str = "", app: str = "", name: str = ""
             if op == "locate":
                 hit = st.locate(target)
                 if hit.get("found"):
-                    return {"ok": True, "strategy": st.name, "attempts": attempts, **hit}
+                    # unify the hit schema: always carry strategy + a confidence, even for
+                    # cdp/atspi whose raw hits omit it (callers branch on confidence).
+                    return {"ok": True, "strategy": st.name,
+                            "confidence": hit.get("confidence", getattr(st, "confidence", None)),
+                            "attempts": attempts, **hit}
                 attempts.append({"strategy": st.name, "found": False})
                 continue
             res = st.click(target) if op == "click" else st.fill(target)
@@ -205,6 +121,46 @@ def route(op: str, text: str = "", role: str = "", app: str = "", name: str = ""
                      f"(text={text!r} role={role!r} name={name!r})"}
 
 
+def act(op: str = "click", text: str = "", role: str = "", app: str = "", name: str = "",
+        value: str = "", expect: str = "", gone: bool = False, retries: int = 2,
+        settle: float = 0.6, safe: bool = True) -> dict[str, Any]:
+    """Orchestrated perceive→act→verify→retry over ``route()`` — the closed loop the bare
+    router lacks. Runs the op, waits ``settle``, then VERIFIES a post-condition and retries
+    (escalating through the strategy chain again) until it holds or ``retries`` is spent:
+      - ``expect``: this text/label must be present after the act (e.g. composer opened),
+      - ``gone=True``: the target must be GONE after the act (e.g. a dialog dismissed).
+    With neither, it cannot confirm an effect and returns ``verified: null`` (one-shot).
+    ``safe=True`` (default) refuses irreversible labels (Post/Send/Publish/Buy/Delete…) so an
+    autonomous caller must pass ``safe=false`` to fire them — the human-in-the-loop gate."""
+    label = (text or name or "").strip().lower()
+    if safe and op in ("click", "fill") and any(w in label for w in _IRREVERSIBLE):
+        return {"ok": False, "blocked": "irreversible",
+                "error": f"refusing to {op} {label!r} with safe=true (pass safe=false to allow)"}
+    last = {}
+    for attempt in range(int(retries) + 1):
+        last = route(op, text=text, role=role, app=app, name=name, value=value, verify=False)
+        last["attempt"] = attempt + 1
+        if not last.get("ok"):
+            time.sleep(float(settle))
+            continue
+        time.sleep(float(settle))
+        if not (expect or gone):
+            last["verified"] = None          # nothing to check against — trust the act
+            return last
+        probe = route("locate", text=expect or text or name, app=app, cheap=True)
+        present = bool(probe.get("ok"))
+        verified = (not present) if gone else present
+        last["verified"] = verified
+        if verified:
+            return last
+        last["error"] = f"post-condition not met (expect={expect!r} gone={gone})"
+    return {**last, "ok": False}
+
+
+_IRREVERSIBLE = ("post", "publish", "opublikuj", "send", "wyślij", "buy", "kup", "pay",
+                 "delete", "usuń", "remove", "submit", "confirm", "potwierdź")
+
+
 def _verify_value(value: str, app: str) -> bool:
     if not value:
         return True
@@ -217,9 +173,11 @@ def _verify_value(value: str, app: str) -> bool:
 
 
 def report() -> dict:
-    """Diagnostics: which control strategies exist and are available right now."""
+    """Diagnostics: which control strategies exist + are available, alongside the live
+    environment profile they fit (so a caller sees WHY a strategy is on/off)."""
     return {"strategies": [{"name": s.name, "priority": s.priority,
-                            "available": _safe_avail(s)} for s in _STRATEGIES]}
+                            "available": _safe_avail(s)} for s in _STRATEGIES],
+            "environment": _env.profile()}
 
 
 def _safe_avail(s) -> Any:

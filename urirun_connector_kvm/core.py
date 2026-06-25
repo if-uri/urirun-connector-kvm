@@ -131,6 +131,29 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
 
 
 # --------------------------------------------------------------------------- #
+# display geometry — a first-class query (callers hit a missing display/query/info
+# 374x to get screen size; capture only returned it as a side effect)
+# --------------------------------------------------------------------------- #
+@conn.handler("display/query/info", isolated=True, meta={"label": "Screen size, monitors, scale (the capture/action coordinate space)"})
+def display_info() -> dict[str, Any]:
+    """The display geometry callers need without taking a screenshot: full pixel size (the
+    space capture and click coordinates live in), per-monitor geometry+scale, and whether
+    OS-level pixel input is trustworthy here. Cheap — no capture unless size is uncached."""
+    try:
+        w, h = B._screen_wh()
+        surf = B.surface_report()
+        mons = B._gnome_monitors() or surf.get("monitors") or []
+        return _ok(action="display-info", fullSize=[w, h], width=w, height=h,
+                   monitors=mons, monitorCount=len(mons), platform=B.platform_tag(),
+                   wayland=surf.get("wayland"), multiMonitor=surf.get("multiMonitor"),
+                   fractionalHiDPI=surf.get("fractionalHiDPI"),
+                   osLevelReliable=surf.get("osLevelReliable"),
+                   recommendedSurfaces=surf.get("recommendedSurfaces"))
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("display-info", exc)
+
+
+# --------------------------------------------------------------------------- #
 # input
 # --------------------------------------------------------------------------- #
 @conn.handler("input/command/type", isolated=True, meta={"label": "Type a whole string"})
@@ -439,6 +462,36 @@ def ui_strategies() -> dict[str, Any]:
     return _ok(action="strategies", **C.report())
 
 
+@conn.handler("env/query/profile", isolated=True,
+              meta={"label": "Live capability profile of this session (cdp/atspi/ocr/input/display)"})
+def env_profile() -> dict[str, Any]:
+    """What UI control ACTUALLY works here — so the router fits the machine and the
+    diagnostics layer recommends only feasible remediation. ``controlStrategies`` says which
+    of cdp/atspi/vision can run; ``best`` is the preferred one; ``controllable`` is the
+    honest top-line (false ⇒ install tesseract / grant /dev/uinput / launch a CDP Chrome)."""
+    try:
+        from . import environment as _env
+    except ImportError:
+        import environment as _env  # type: ignore
+    return _ok(action="env-profile", **_env.profile())
+
+
+def _surface_mod():
+    try:
+        from . import surface as _s
+    except ImportError:
+        import surface as _s  # type: ignore
+    return _s
+
+
+@conn.handler("surface/query/current", isolated=True,
+              meta={"label": "What UI surface is in the foreground (browser via CDP, or desktop)"})
+def surface_current() -> dict[str, Any]:
+    """Foreground surface so a flow need not name ``app``: a reachable CDP page ⇒ browser
+    (router uses the DOM path); otherwise a desktop surface + the env's best strategy."""
+    return _ok(action="surface", **_surface_mod().current())
+
+
 @conn.handler("cdp/session/command/ensure", isolated=True,
               meta={"label": "Reuse or launch a dedicated-profile CDP Chrome (so the router's cdp strategy is available)"})
 def cdp_ensure(url: str = "", user_data_dir: str = "", copy_from: str = "",
@@ -489,7 +542,8 @@ def cdp_ready(timeout: float = 8.0) -> dict[str, Any]:
 @conn.handler("ui/command/act", isolated=True,
               meta={"label": "Self-orchestrating UI action: wait-ready → route → retry → verify"})
 def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", value: str = "",
-           app: str = "", retries: int = 3, settle: float = 0.7, ready_timeout: float = 6.0) -> dict[str, Any]:
+           app: str = "", retries: int = 3, settle: float = 0.7, ready_timeout: float = 6.0,
+           safe: bool = True) -> dict[str, Any]:
     """ONE high-level URI an LLM planner can target instead of hand-assembling
     wait+find+click+verify (which it gets wrong: dumb sleeps, OCR label guesses, no verify).
     Internally: (1) if a CDP page is reachable, wait for it to finish loading; (2) route the
@@ -501,27 +555,51 @@ def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", va
         return urirun.fail("do must be click|fill|find|wait", connector=CONNECTOR_ID)
     if do == "fill" and not value:
         return urirun.fail("value is required for fill", connector=CONNECTOR_ID)
+    # Human-in-the-loop gate: refuse to fire an irreversible label (Post/Publish/Send/Delete…)
+    # unless the caller explicitly drops safe — so an autonomous planner can't publish on its own.
+    label = (text or name or "").strip().lower()
+    if safe and do in ("click", "fill") and any(w in label for w in C._IRREVERSIBLE):
+        return urirun.fail(f"refusing to {do} {label!r} with safe=true (pass safe=false to allow)",
+                           connector=CONNECTOR_ID, action="act", blocked="irreversible", do=do)
+    # Resolve the foreground surface when the flow didn't name an app, so CDP engages on a
+    # browser without the planner having to know — the router only probes CDP for a browser app.
+    surface = None
+    if not app:
+        try:
+            surface = _surface_mod().current()
+            if surface.get("app"):
+                app = surface["app"]
+        except Exception:  # noqa: BLE001
+            surface = None
+    # Bound the WHOLE orchestration (ready-wait + every retry) under the node's ~30s
+    # subprocess cap — ready_timeout + N×(cdp+OCR) trivially exceeds it otherwise.
+    budget = 25.0
+    start = time.monotonic()
     cdp = _cdp_mod()
     ready = None
     if cdp.reachable():
         try:
-            ready = cdp.page_ready(timeout=float(ready_timeout))
+            ready = cdp.page_ready(timeout=min(float(ready_timeout), 8.0))
         except Exception:  # noqa: BLE001
             ready = {"ok": False}
     op = "locate" if do in ("find", "wait") else do
+    cheap = do in ("find", "wait")   # presence checks use cdp/atspi only — never the slow OCR
     tries = []
     last: dict[str, Any] = {}
     for attempt in range(max(1, int(retries))):
-        last = C.route(op, text=text, role=role, app=app, name=name, value=value)
+        last = C.route(op, text=text, role=role, app=app, name=name, value=value, cheap=cheap)
         ok = last.get("ok") or last.get("found")
         tries.append({"attempt": attempt + 1, "ok": bool(ok), "strategy": last.get("strategy")})
         if ok:
             body = {k: v for k, v in last.items() if k not in ("ok", "error", "attempts")}
-            return _ok(action="act", do=do, ready=ready, tries=tries,
+            return _ok(action="act", do=do, app=app, surface=surface, ready=ready, tries=tries,
                        strategyAttempts=last.get("attempts"), **body)
+        if time.monotonic() - start + float(settle) >= budget:
+            break                                   # stop before the node kills us
         time.sleep(float(settle))
-    return urirun.fail(last.get("error", f"act:{do} failed after {retries} tries"),
-                       connector=CONNECTOR_ID, action="act", do=do, ready=ready, tries=tries,
+    return urirun.fail(last.get("error", f"act:{do} failed after {len(tries)} tries"),
+                       connector=CONNECTOR_ID, action="act", do=do, app=app, surface=surface,
+                       ready=ready, tries=tries, waited=round(time.monotonic() - start, 1),
                        strategyAttempts=last.get("attempts"))
 
 
