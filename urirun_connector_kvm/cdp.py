@@ -1,87 +1,54 @@
 # Author: Tom Sapletta · https://tom.sapletta.com
 # Part of the ifURI solution.
 #
-# Minimal stdlib Chrome DevTools Protocol client + DOM element finder/actuator, used by
-# the `cdp` control strategy (control.py). No third-party deps: a hand-rolled WebSocket
-# client (client-masked text frames) speaks Runtime.evaluate to the active page, and ALL
-# element finding + acting happens IN-PAGE via JavaScript — so targeting is by DOM role /
-# accessible-name / visible-text and acting is el.click() / focus+insertText. This is
-# coordinate-free and role-exact (immune to OCR misreads and label/button ambiguity).
+# KVM CDP shim: re-exports the generic protocol surface from urirun.connectors.surfaces.cdp
+# and adds only what is kvm-specific — endpoint wired to URIRUN_KVM_CDP_URL, launch that
+# uses kvm's session_env(), and the DOM find/act UI contract (text/role/name semantics).
 #
-# Requires Chrome launched with --remote-debugging-port (the kvm `launch` backend adds it
-# for chrome/chromium). Endpoint via URIRUN_KVM_CDP_URL (default http://127.0.0.1:9222).
+# Protocol, transport, discovery, snapshot primitives and launch helper live in the generic
+# surface so browser-debug / webpage / chrome-plugin connectors share a single CDP client.
 from __future__ import annotations
 
-import base64
 import json
 import os
-import socket
-import struct
-import urllib.request
-from typing import Any
+import subprocess
 
 try:
     from .backends import BackendError
 except ImportError:  # pragma: no cover - flat deploy
     from backends import BackendError  # type: ignore
 
+from urirun.connectors.surfaces import cdp as _surface
 
-_WS_LEN_EXT16 = 126    # RFC 6455: payload >= 126 bytes uses 16-bit extended length field
-_WS_LEN_EXT64 = 127    # RFC 6455: payload >= 65536 bytes uses 64-bit extended length field
-_WS_MAX_LEN16 = 65536  # RFC 6455: maximum payload size for the 16-bit extended form
-
-
-def endpoint() -> str:
+# wire kvm-specific endpoint resolver (reads URIRUN_KVM_CDP_URL / URIRUN_KVM_CDP_PORT)
+# and session env (display-aware env for the Chrome subprocess)
+def _kvm_endpoint() -> str:
     return (os.environ.get("URIRUN_KVM_CDP_URL") or "http://127.0.0.1:9222").rstrip("/")
 
+try:
+    from .backends import session_env as _session_env
+except ImportError:  # pragma: no cover - flat deploy
+    from backends import session_env as _session_env  # type: ignore
 
-_TIMEOUT = float(os.environ.get("URIRUN_KVM_CDP_TIMEOUT", "4"))  # keep a single CDP call snappy
+_surface.configure(endpoint=_kvm_endpoint, env=_session_env)
 
+# --------------------------------------------------------------------------- #
+# re-exports — same function objects as the generic surface; monkeypatch on this
+# module's namespace (cdp.reachable, cdp.navigate, …) reaches the router because
+# control.py / core.py call these qualified (cdp.reachable()) not as bare imports.
+# --------------------------------------------------------------------------- #
+endpoint = _surface.endpoint
+reachable = _surface.reachable
+navigate = _surface.navigate
+page_ready = _surface.page_ready
 
-def _pages() -> list:
-    with urllib.request.urlopen(f"{endpoint()}/json", timeout=min(_TIMEOUT, 2.5)) as r:
-        data = json.loads(r.read() or "[]")
-    pages = [p for p in data if p.get("type") == "page" and p.get("webSocketDebuggerUrl")]
-    # prefer a real http(s) page over about:blank/devtools (the active tab is usually first)
-    real = [p for p in pages if (p.get("url", "").startswith(("http://", "https://")))]
-    return real or pages
-
-
-def reachable() -> bool:
-    try:
-        return bool(_pages())
-    except Exception:  # noqa: BLE001
-        return False
-
-
-def navigate(url: str) -> dict:
-    """Point the active page at ``url`` via the DOM (no Page domain enable needed)."""
-    _evaluate(f"(location.href={json.dumps(url)}, 'ok')")
-    return {"ok": True, "url": url}
-
-
-def page_ready(timeout: float = 8.0) -> dict:
-    """Poll until the active page finishes loading (``document.readyState==='complete'``).
-    Lets a caller wait for load DETERMINISTICALLY instead of a blind sleep — and avoids the
-    CDP-eval-on-a-navigating-page flakiness (a find issued mid-navigation can throw)."""
-    import time as _t
-    deadline = _t.monotonic() + max(0.0, float(timeout))
-    state = None
-    while _t.monotonic() < deadline:
-        try:
-            state = _evaluate("document.readyState")
-            if state == "complete":
-                return {"ok": True, "readyState": state, "waited": round(_t.monotonic() - (deadline - timeout), 1)}
-        except Exception:  # noqa: BLE001 - page mid-navigation; keep polling
-            state = "navigating"
-        _t.sleep(0.4)
-    return {"ok": False, "readyState": state}
-
-
+# --------------------------------------------------------------------------- #
+# launch — kept here (not re-exported) because tests patch cdp._find_chrome and
+# cdp.os.makedirs through this module's namespace, and because start_session calls
+# reachable() / navigate() / session_env() all kvm-qualified.
+# --------------------------------------------------------------------------- #
 _CHROME_CANDIDATES = ("google-chrome-stable", "google-chrome", "chromium-browser",
                       "chromium", "brave-browser", "microsoft-edge")
-# auth files copied to make a dedicated-profile CDP Chrome inherit a logged-in session
-# (the persistent-context trick); kept minimal so we never duplicate the whole profile.
 _AUTH_FILES = ("Local State", "Default/Cookies", "Default/Network/Cookies",
                "Default/Login Data", "Default/Preferences", "Default/Web Data")
 
@@ -95,14 +62,11 @@ def _find_chrome() -> str:
 
 
 def _copy_auth(src: str, dst: str) -> list:
-    """Copy the minimal auth files from a real Chrome profile dir into the dedicated CDP
-    profile so it opens already logged in. Best-effort per file."""
     import shutil
     copied = []
     src = os.path.expanduser(src)
     for rel in _AUTH_FILES:
-        s = os.path.join(src, rel)
-        d = os.path.join(dst, rel)
+        s, d = os.path.join(src, rel), os.path.join(dst, rel)
         if os.path.exists(s):
             os.makedirs(os.path.dirname(d), exist_ok=True)
             try:
@@ -117,18 +81,12 @@ def start_session(url: str = "", user_data_dir: str = "", copy_from: str = "") -
     """Reuse a live CDP endpoint, or LAUNCH a dedicated-profile debug Chrome and return
     IMMEDIATELY — does NOT block on the debug port binding.
 
-    Chrome's headful cold-start to bind the port can exceed a node handler's exec cap
-    (~30s observed), so awaiting readiness *inside* the launch call is what made the launch
-    look like it failed ('debugger did not come up') while Chrome was in fact still coming up.
-    Split it: this fires the launch and returns ``launching: True``; poll with
-    :func:`await_ready` (the ``cdp/session/query/ready`` route) on its OWN budget.
-
-    Spawns AT MOST one instance: if already reachable it REUSES. Callers must poll readiness
-    rather than re-calling start — re-calling spawns competing instances that fight over the
-    profile dir's SingletonLock and then none bind. ``copy_from`` clones auth files first."""
-    import subprocess
+    Spawns AT MOST one instance: if already reachable it REUSES. Callers must poll
+    readiness with await_ready rather than re-calling (re-calling spawns competing
+    Chrome instances that fight over the profile SingletonLock). ``copy_from`` clones
+    auth files first so the debug profile opens already logged in."""
     base = endpoint()
-    if reachable():                                   # already up — reuse, just navigate
+    if reachable():
         nav = None
         if url:
             try:
@@ -144,21 +102,15 @@ def start_session(url: str = "", user_data_dir: str = "", copy_from: str = "") -
             "--no-first-run", "--no-default-browser-check", "--force-renderer-accessibility"]
     if url:
         argv.append(url)
-    try:
-        from .backends import session_env
-    except ImportError:  # pragma: no cover - flat deploy
-        from backends import session_env  # type: ignore
     proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                            start_new_session=True, env=session_env())
+                            start_new_session=True, env=_session_env())
     return {"ok": True, "reused": False, "launching": True, "endpoint": base, "pid": proc.pid,
             "userDataDir": ddir, "authCopied": copied}
 
 
 def await_ready(timeout: float = 12.0) -> dict:
-    """Poll until the CDP debug endpoint is reachable, WITHOUT launching anything — the
-    readiness half of the launch/probe split. Repeatable and idempotent: keep ``timeout``
-    under the node handler's exec cap and call again if not ready yet (each call is a pure
-    probe, so it never spawns a competing Chrome)."""
+    """Poll until the CDP debug endpoint is reachable, WITHOUT launching anything.
+    Idempotent; safe to call repeatedly (never spawns a competing Chrome)."""
     import time as _t
     base = endpoint()
     deadline = _t.monotonic() + max(0.0, float(timeout))
@@ -173,8 +125,8 @@ def await_ready(timeout: float = 12.0) -> dict:
 
 def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
                    wait: float = 14.0) -> dict:
-    """Back-compat one-shot: :func:`start_session` then :func:`await_ready`. Prefer the split
-    in handlers (start returns fast; readiness polls on its own budget) so Chrome's cold-start
+    """Back-compat one-shot: start_session then await_ready. Prefer the split in handlers
+    (start returns fast; readiness polls on its own budget) so Chrome's cold-start
     can't blow the node handler's exec cap."""
     r = start_session(url=url, user_data_dir=user_data_dir, copy_from=copy_from)
     if r.get("reused"):
@@ -187,96 +139,10 @@ def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
     return r
 
 
-# ---- websocket (stdlib, client frames are masked) ------------------------- #
-def _ws_connect(ws_url: str, timeout: float | None = None) -> socket.socket:
-    timeout = _TIMEOUT if timeout is None else timeout
-    if not ws_url.startswith("ws://"):
-        raise BackendError(f"unsupported cdp ws url: {ws_url}")
-    hostport, _, path = ws_url[5:].partition("/")
-    host, _, port = hostport.partition(":")
-    s = socket.create_connection((host, int(port or 80)), timeout=timeout)
-    s.settimeout(timeout)  # bound every recv so a stalled eval can't hang the node subprocess
-    key = base64.b64encode(os.urandom(16)).decode()
-    s.sendall((f"GET /{path} HTTP/1.1\r\nHost: {hostport}\r\nUpgrade: websocket\r\n"
-               f"Connection: Upgrade\r\nSec-WebSocket-Key: {key}\r\n"
-               f"Sec-WebSocket-Version: 13\r\n\r\n").encode())
-    buf = b""
-    while b"\r\n\r\n" not in buf:
-        chunk = s.recv(4096)
-        if not chunk:
-            raise BackendError("cdp ws handshake failed")
-        buf += chunk
-    return s
-
-
-def _ws_send(s: socket.socket, data: str) -> None:
-    payload = data.encode()
-    n = len(payload)
-    header = bytearray([0x81])  # FIN + text
-    if n < _WS_LEN_EXT16:
-        header.append(0x80 | n)
-    elif n < _WS_MAX_LEN16:
-        header.append(0x80 | _WS_LEN_EXT16)
-        header += struct.pack(">H", n)
-    else:
-        header.append(0x80 | _WS_LEN_EXT64)
-        header += struct.pack(">Q", n)
-    mask = os.urandom(4)
-    header += mask
-    s.sendall(bytes(header) + bytes(b ^ mask[i % 4] for i, b in enumerate(payload)))
-
-
-def _ws_recv(s: socket.socket) -> str:
-    def rd(n: int) -> bytes:
-        b = b""
-        while len(b) < n:
-            c = s.recv(n - len(b))
-            if not c:
-                raise BackendError("cdp ws closed")
-            b += c
-        return b
-    out = b""
-    while True:
-        h = rd(2)
-        fin, ln = h[0] & 0x80, h[1] & 0x7F
-        if ln == _WS_LEN_EXT16:
-            ln = struct.unpack(">H", rd(2))[0]
-        elif ln == _WS_LEN_EXT64:
-            ln = struct.unpack(">Q", rd(8))[0]
-        out += rd(ln) if ln else b""
-        if fin:
-            return out.decode("utf-8", "replace")
-
-
-def _call(s: socket.socket, _id: int, method: str, params: dict | None = None) -> dict:
-    _ws_send(s, json.dumps({"id": _id, "method": method, "params": params or {}}))
-    for _ in range(300):                       # skip async events until our reply
-        msg = json.loads(_ws_recv(s))
-        if msg.get("id") == _id:
-            return msg
-    raise BackendError("no cdp response")
-
-
-def _evaluate(expr: str) -> Any:
-    pages = _pages()
-    if not pages:
-        raise BackendError("no CDP page (launch chrome with --remote-debugging-port)")
-    s = _ws_connect(pages[0]["webSocketDebuggerUrl"])
-    try:
-        r = _call(s, 1, "Runtime.evaluate",
-                  {"expression": expr, "returnByValue": True, "awaitPromise": True})
-        err = r.get("result", {}).get("exceptionDetails")
-        if err:
-            raise BackendError(f"cdp eval error: {err.get('text', err)}")
-        return r.get("result", {}).get("result", {}).get("value")
-    finally:
-        try:
-            s.close()
-        except Exception:  # noqa: BLE001
-            pass
-
-
-# ---- in-page element finder + actuator (one JS, parameterised by op) ------- #
+# --------------------------------------------------------------------------- #
+# DOM find / act — kvm UI contract (text / role / name semantics over CDP).
+# These call _surface.evaluate() so transport lives in the generic surface.
+# --------------------------------------------------------------------------- #
 _JS = r"""
 (function(q){
   function roleOf(el){
@@ -327,12 +193,15 @@ _JS = r"""
 
 def _run(op: str, text: str, role: str, name: str, value: str = "") -> dict:
     arg = json.dumps({"op": op, "text": text, "role": role, "name": name, "value": value})
-    res = _evaluate(_JS.replace("__ARG__", arg))
+    try:
+        res = _surface.evaluate(_JS.replace("__ARG__", arg))
+    except _surface.CdpError as exc:
+        raise BackendError(str(exc)) from exc
     if not isinstance(res, dict):
         raise BackendError(f"cdp: unexpected eval result {res!r}")
     res.setdefault("found", False)
     res["via"] = "cdp"
-    res["coord_space"] = "viewport-css"   # DOM coords; acting was done in-page, no OS input
+    res["coord_space"] = "viewport-css"
     return res
 
 
