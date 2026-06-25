@@ -321,6 +321,26 @@ def window_list() -> dict[str, Any]:
         return _fail_from("window_list", exc)
 
 
+@conn.handler("proc/command/kill", isolated=True, meta={"label": "Terminate a process by PID (node lifecycle control)"})
+def proc_kill(pid: int = 0, signal: str = "TERM") -> dict[str, Any]:
+    """Send a signal to a process so process lifecycle is controllable *via a URI*, not a
+    side-channel shell — e.g. close a stray CDP/headless browser the agent launched. Defaults
+    to SIGTERM (graceful); pass ``signal="KILL"`` to force. Refuses pid<=1."""
+    import os as _os
+    import signal as _sig
+    pid = int(pid)
+    if pid <= 1:
+        return urirun.fail("pid must be > 1", connector=CONNECTOR_ID, action="kill")
+    sig = getattr(_sig, signal if signal.startswith("SIG") else f"SIG{signal.upper()}", _sig.SIGTERM)
+    try:
+        _os.kill(pid, sig)
+        return _ok(action="kill", pid=pid, signal=sig.name)
+    except ProcessLookupError:
+        return urirun.fail(f"no such process {pid}", connector=CONNECTOR_ID, action="kill")
+    except PermissionError:
+        return urirun.fail(f"not permitted to signal {pid}", connector=CONNECTOR_ID, action="kill")
+
+
 @conn.handler("a11y/command/act", isolated=True, meta={"label": "Find a UI element by role/name and focus/click/set-text it (AT-SPI)"})
 def a11y_act(app: str = "", role: str = "", name: str = "", action: str = "focus",
              text: str = "", nth: int = 0) -> dict[str, Any]:
