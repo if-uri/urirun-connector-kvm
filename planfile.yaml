@@ -186,3 +186,731 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-79eaa6e7
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in computer-use-preview/computers/browserbase/browserbase.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/browserbase/browserbase.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ce81629f
+    name: Fix magic-numbers issues
+    description: Resolve 3 magic-numbers issues in computer-use-preview/computers/browserbase/browserbase.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/browserbase/browserbase.py
+    rule_id: magic-numbers
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e2651440
+    name: Fix llm-generated-code issues
+    description: Resolve 2 llm-generated-code issues in computer-use-preview/computers/browserbase/browserbase.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/browserbase/browserbase.py
+    rule_id: llm-generated-code
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c368fb94
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in computer-use-preview/computers/browserbase/browserbase.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/browserbase/browserbase.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-43e12f56
+    name: Fix relative-imports issues
+    description: Resolve 8 relative-imports issues in computer-use-preview/computers/__init__.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - computer-use-preview/computers/__init__.py
+    rule_id: relative-imports
+    count: 8
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-807f8586
+    name: Fix llm-generated-code issues
+    description: Resolve 3 llm-generated-code issues in computer-use-preview/computers/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/__init__.py
+    rule_id: llm-generated-code
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b5820d19
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in computer-use-preview/computers/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/__init__.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9455ee3a
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in computer-use-preview/computers/kvm/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/kvm/__init__.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d92105df
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in computer-use-preview/computers/kvm/kvm.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/kvm/kvm.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-58b1e102
+    name: Fix unused-imports issues
+    description: Resolve 4 unused-imports issues in computer-use-preview/computers/kvm/kvm.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - computer-use-preview/computers/kvm/kvm.py
+    rule_id: unused-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-659b4d9c
+    name: Fix magic-numbers issues
+    description: Resolve 4 magic-numbers issues in computer-use-preview/computers/kvm/kvm.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - computer-use-preview/computers/kvm/kvm.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-984142d3
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in computer-use-preview/computers/playwright/playwright.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/playwright/playwright.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6ebfaa23
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in computer-use-preview/computers/playwright/playwright.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/playwright/playwright.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8b959f92
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in computer-use-preview/computers/playwright/playwright.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/playwright/playwright.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-33ae3754
+    name: Fix unused-imports issues
+    description: Resolve 4 unused-imports issues in computer-use-preview/computers/playwright/playwright.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - computer-use-preview/computers/playwright/playwright.py
+    rule_id: unused-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3ef7f0c8
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in computer-use-preview/computers/playwright/playwright.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/playwright/playwright.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1152a366
+    name: Fix llm-generated-code issues
+    description: Resolve 2 llm-generated-code issues in computer-use-preview/computers/playwright/playwright.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/playwright/playwright.py
+    rule_id: llm-generated-code
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b2674c4f
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in computer-use-preview/computers/playwright/playwright.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/playwright/playwright.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8e71108a
+    name: Fix unused-imports issues
+    description: Resolve 4 unused-imports issues in computer-use-preview/main.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - computer-use-preview/main.py
+    rule_id: unused-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-459ae995
+    name: Fix magic-numbers issues
+    description: Resolve 2 magic-numbers issues in computer-use-preview/main.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/main.py
+    rule_id: magic-numbers
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f86f0238
+    name: Fix llm-generated-code issues
+    description: Resolve 2 llm-generated-code issues in computer-use-preview/main.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/main.py
+    rule_id: llm-generated-code
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6365edd1
+    name: Fix ai-boilerplate issues
+    description: Resolve 3 ai-boilerplate issues in computer-use-preview/main.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/main.py
+    rule_id: ai-boilerplate
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-361c9e4b
+    name: Fix llm-generated-code issues
+    description: Resolve 2 llm-generated-code issues in computer-use-preview/computers/computer.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/computer.py
+    rule_id: llm-generated-code
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-994bf414
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in computer-use-preview/computers/computer.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/computers/computer.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5484e752
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in computer-use-preview/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/agent.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-118e21a5
+    name: Fix string-concat issues
+    description: Resolve 3 string-concat issues in computer-use-preview/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/agent.py
+    rule_id: string-concat
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-27af1b78
+    name: Fix magic-numbers issues
+    description: Resolve 3 magic-numbers issues in computer-use-preview/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/agent.py
+    rule_id: magic-numbers
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6e100258
+    name: Fix llm-generated-code issues
+    description: Resolve 3 llm-generated-code issues in computer-use-preview/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/agent.py
+    rule_id: llm-generated-code
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4f89c7f7
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in computer-use-preview/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/agent.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6852a5d1
+    name: Fix smart-return-type issues
+    description: Resolve 12 smart-return-type issues in computer-use-preview/test_agent.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - computer-use-preview/test_agent.py
+    rule_id: smart-return-type
+    count: 12
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-55f807b0
+    name: Fix llm-hallucinations issues
+    description: Resolve 3 llm-hallucinations issues in computer-use-preview/test_agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/test_agent.py
+    rule_id: llm-hallucinations
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9a5c8198
+    name: Fix llm-generated-code issues
+    description: Resolve 2 llm-generated-code issues in computer-use-preview/test_agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/test_agent.py
+    rule_id: llm-generated-code
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c381e28f
+    name: Fix ai-boilerplate issues
+    description: Resolve 3 ai-boilerplate issues in computer-use-preview/test_agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/test_agent.py
+    rule_id: ai-boilerplate
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-88d28c9e
+    name: Fix smart-return-type issues
+    description: Resolve 2 smart-return-type issues in computer-use-preview/test_main.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/test_main.py
+    rule_id: smart-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-44a6c129
+    name: Fix llm-generated-code issues
+    description: Resolve 2 llm-generated-code issues in computer-use-preview/test_main.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/test_main.py
+    rule_id: llm-generated-code
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7978a82d
+    name: Fix ai-boilerplate issues
+    description: Resolve 3 ai-boilerplate issues in computer-use-preview/test_main.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - computer-use-preview/test_main.py
+    rule_id: ai-boilerplate
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-224cf91b
+    name: Fix relative-imports issues
+    description: Resolve 8 relative-imports issues in urirun_connector_kvm/control.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/control.py
+    rule_id: relative-imports
+    count: 8
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e343a07a
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in urirun_connector_kvm/control.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/control.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-debb4ef4
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in urirun_connector_kvm/control.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/control.py
+    rule_id: string-concat
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c5240c81
+    name: Fix unused-imports issues
+    description: Resolve 6 unused-imports issues in urirun_connector_kvm/control.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/control.py
+    rule_id: unused-imports
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5be5bd29
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in urirun_connector_kvm/cdp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/cdp.py
+    rule_id: relative-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2857dbae
+    name: Fix string-concat issues
+    description: Resolve 4 string-concat issues in urirun_connector_kvm/cdp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/cdp.py
+    rule_id: string-concat
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a96c49cd
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in urirun_connector_kvm/cdp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/cdp.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-35879577
+    name: Fix magic-numbers issues
+    description: Resolve 13 magic-numbers issues in urirun_connector_kvm/cdp.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - urirun_connector_kvm/cdp.py
+    rule_id: magic-numbers
+    count: 13
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0c933642
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in urirun_connector_kvm/environment.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/environment.py
+    rule_id: relative-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-95db4a94
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in urirun_connector_kvm/environment.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/environment.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-35f56b66
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in urirun_connector_kvm/launch_backends.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/launch_backends.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8a0b977d
+    name: Fix string-concat issues
+    description: Resolve 4 string-concat issues in urirun_connector_kvm/launch_backends.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/launch_backends.py
+    rule_id: string-concat
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-90029d07
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in urirun_connector_kvm/launch_backends.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/launch_backends.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cabe7ec1
+    name: Fix magic-numbers issues
+    description: Resolve 10 magic-numbers issues in urirun_connector_kvm/launch_backends.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/launch_backends.py
+    rule_id: magic-numbers
+    count: 10
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d24b0cfc
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in urirun_connector_kvm/backends.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/backends.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-16dba733
+    name: Fix relative-imports issues
+    description: Resolve 6 relative-imports issues in urirun_connector_kvm/strategies.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/strategies.py
+    rule_id: relative-imports
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4ecdb092
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in urirun_connector_kvm/strategies.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/strategies.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e98e3056
+    name: Fix magic-numbers issues
+    description: Resolve 3 magic-numbers issues in urirun_connector_kvm/strategies.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/strategies.py
+    rule_id: magic-numbers
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9c829c22
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in urirun_connector_kvm/surface.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - urirun_connector_kvm/surface.py
+    rule_id: relative-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-811cf512
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in urirun_connector_kvm/surface.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/surface.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced

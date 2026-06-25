@@ -1,14 +1,13 @@
 source: code2llm
-# generated in 0.02s
+# generated in 0.09s
 schema: code2llm.planfile_tickets.v1
 project_root: /home/tom/github/if-uri/urirun-connector-kvm
 tickets:
 - signal: code2llm_cc
-  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.backends._locate_tesseract
-    (CC=26)'
-  description: 'code2llm reports `urirun_connector_kvm.backends._locate_tesseract`
-    at `urirun_connector_kvm/backends.py:805` with cyclomatic complexity 26 (limit
-    15).
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.backends.surface_report
+    (CC=28)'
+  description: 'code2llm reports `urirun_connector_kvm.backends.surface_report` at
+    `urirun_connector_kvm/backends.py:1171` with cyclomatic complexity 28 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -21,10 +20,10 @@ tickets:
   - refactor
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: code2llm:cc:urirun_connector_kvm/backends.py:urirun_connector_kvm.backends._locate_tesseract
+  dedupe_key: code2llm:cc:urirun_connector_kvm/backends.py:urirun_connector_kvm.backends.surface_report
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_easyocr'
-  description: 'code2llm reports `God Function: _locate_easyocr` in `urirun_connector_kvm/backends.py:875`.
+  description: 'code2llm reports `God Function: _locate_easyocr` in `urirun_connector_kvm/backends.py:860`.
 
 
     Function ''_locate_easyocr'' is oversized: CC=14, fan-out=19, mutations=27.
@@ -39,11 +38,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:875:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:860:God
     Function: _locate_easyocr'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _tsv_lines'
-  description: 'code2llm reports `God Function: _tsv_lines` in `urirun_connector_kvm/backends.py:771`.
+  description: 'code2llm reports `God Function: _tsv_lines` in `urirun_connector_kvm/backends.py:744`.
 
 
     Function ''_tsv_lines'' is oversized: CC=8, fan-out=15, mutations=36.
@@ -58,14 +57,14 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:771:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:744:God
     Function: _tsv_lines'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: env'
-  description: 'code2llm reports `Shotgun Surgery: env` in `urirun_connector_kvm/backends.py:751`.
+  description: 'code2llm reports `Shotgun Surgery: env` in `urirun_connector_kvm/backends.py:1123`.
 
 
-    Mutation of variable ''env'' spans 6 functions. Changing this logic requires work
+    Mutation of variable ''env'' spans 7 functions. Changing this logic requires work
     in many places.
 
 
@@ -78,14 +77,14 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:751:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1123:Shotgun
     Surgery: env'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: h'
-  description: 'code2llm reports `Shotgun Surgery: h` in `urirun_connector_kvm/backends.py:922`.
+  description: 'code2llm reports `Shotgun Surgery: h` in `urirun_connector_kvm/backends.py:907`.
 
 
-    Mutation of variable ''h'' spans 5 functions. Changing this logic requires work
+    Mutation of variable ''h'' spans 8 functions. Changing this logic requires work
     in many places.
 
 
@@ -98,11 +97,11 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:922:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:907:Shotgun
     Surgery: h'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: hit'
-  description: 'code2llm reports `Shotgun Surgery: hit` in `urirun_connector_kvm/core.py:304`.
+  description: 'code2llm reports `Shotgun Surgery: hit` in `urirun_connector_kvm/core.py:658`.
 
 
     Mutation of variable ''hit'' spans 5 functions. Changing this logic requires work
@@ -118,14 +117,14 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:304:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:658:Shotgun
     Surgery: hit'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: out'
-  description: 'code2llm reports `Shotgun Surgery: out` in `urirun_connector_kvm/backends.py:489`.
+  title: 'Address code smell: Shotgun Surgery: last'
+  description: 'code2llm reports `Shotgun Surgery: last` in `urirun_connector_kvm/backends.py:500`.
 
 
-    Mutation of variable ''out'' spans 12 functions. Changing this logic requires
+    Mutation of variable ''last'' spans 5 functions. Changing this logic requires
     work in many places.
 
 
@@ -138,14 +137,34 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:489:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:500:Shotgun
+    Surgery: last'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: out'
+  description: 'code2llm reports `Shotgun Surgery: out` in `urirun_connector_kvm/backends.py:1123`.
+
+
+    Mutation of variable ''out'' spans 15 functions. Changing this logic requires
+    work in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1123:Shotgun
     Surgery: out'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: p'
-  description: 'code2llm reports `Shotgun Surgery: p` in `urirun_connector_kvm/backends.py:949`.
+  description: 'code2llm reports `Shotgun Surgery: p` in `urirun_connector_kvm/backends.py:242`.
 
 
-    Mutation of variable ''p'' spans 9 functions. Changing this logic requires work
+    Mutation of variable ''p'' spans 10 functions. Changing this logic requires work
     in many places.
 
 
@@ -158,11 +177,11 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:949:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:242:Shotgun
     Surgery: p'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: q'
-  description: 'code2llm reports `Shotgun Surgery: q` in `urirun_connector_kvm/backends.py:805`.
+  description: 'code2llm reports `Shotgun Surgery: q` in `urirun_connector_kvm/backends.py:860`.
 
 
     Mutation of variable ''q'' spans 5 functions. Changing this logic requires work
@@ -178,14 +197,34 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:805:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:860:Shotgun
     Surgery: q'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: res'
-  description: 'code2llm reports `Shotgun Surgery: res` in `urirun_connector_kvm/backends.py:751`.
+  title: 'Address code smell: Shotgun Surgery: r'
+  description: 'code2llm reports `Shotgun Surgery: r` in `examples/calibrate_abs.py:27`.
 
 
-    Mutation of variable ''res'' spans 5 functions. Changing this logic requires work
+    Mutation of variable ''r'' spans 8 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - examples/calibrate_abs.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:examples/calibrate_abs.py:27:Shotgun
+    Surgery: r'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: w'
+  description: 'code2llm reports `Shotgun Surgery: w` in `urirun_connector_kvm/backends.py:907`.
+
+
+    Mutation of variable ''w'' spans 6 functions. Changing this logic requires work
     in many places.
 
 
@@ -198,13 +237,72 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:751:Shotgun
-    Surgery: res'
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:907:Shotgun
+    Surgery: w'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: x'
+  description: 'code2llm reports `Shotgun Surgery: x` in `urirun_connector_kvm/backends.py:1123`.
+
+
+    Mutation of variable ''x'' spans 5 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1123:Shotgun
+    Surgery: x'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: y'
+  description: 'code2llm reports `Shotgun Surgery: y` in `urirun_connector_kvm/backends.py:1123`.
+
+
+    Mutation of variable ''y'' spans 5 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1123:Shotgun
+    Surgery: y'
 - signal: code2llm_cc
-  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.backends._parse_desktop
-    (CC=15)'
-  description: 'code2llm reports `urirun_connector_kvm.backends._parse_desktop` at
-    `urirun_connector_kvm/backends.py:450` with cyclomatic complexity 15 (limit 15).
+  title: 'Reduce cyclomatic complexity: computer-use-preview.agent.BrowserAgent.run_one_iteration
+    (CC=23)'
+  description: 'code2llm reports `computer-use-preview.agent.BrowserAgent.run_one_iteration`
+    at `computer-use-preview/agent.py:373` with cyclomatic complexity 23 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - computer-use-preview/agent.py
+  dedupe_key: code2llm:cc:computer-use-preview/agent.py:computer-use-preview.agent.BrowserAgent.run_one_iteration
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.backends._tesseract_query_matches
+    (CC=23)'
+  description: 'code2llm reports `urirun_connector_kvm.backends._tesseract_query_matches`
+    at `urirun_connector_kvm/backends.py:777` with cyclomatic complexity 23 (limit
+    15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -217,10 +315,63 @@ tickets:
   - refactor
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: code2llm:cc:urirun_connector_kvm/backends.py:urirun_connector_kvm.backends._parse_desktop
+  dedupe_key: code2llm:cc:urirun_connector_kvm/backends.py:urirun_connector_kvm.backends._tesseract_query_matches
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.backends.uinput_abs_click
+    (CC=15)'
+  description: 'code2llm reports `urirun_connector_kvm.backends.uinput_abs_click`
+    at `urirun_connector_kvm/backends.py:1072` with cyclomatic complexity 15 (limit
+    15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/backends.py:urirun_connector_kvm.backends.uinput_abs_click
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.control.act (CC=15)'
+  description: 'code2llm reports `urirun_connector_kvm.control.act` at `urirun_connector_kvm/control.py:124`
+    with cyclomatic complexity 15 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/control.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/control.py:urirun_connector_kvm.control.act
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.control.route (CC=20)'
+  description: 'code2llm reports `urirun_connector_kvm.control.route` at `urirun_connector_kvm/control.py:71`
+    with cyclomatic complexity 20 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/control.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/control.py:urirun_connector_kvm.control.route
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: urirun_connector_kvm.core.capture (CC=15)'
-  description: 'code2llm reports `urirun_connector_kvm.core.capture` at `urirun_connector_kvm/core.py:65`
+  description: 'code2llm reports `urirun_connector_kvm.core.capture` at `urirun_connector_kvm/core.py:100`
     with cyclomatic complexity 15 (limit 15).
 
 
@@ -235,13 +386,68 @@ tickets:
   files:
   - urirun_connector_kvm/core.py
   dedupe_key: code2llm:cc:urirun_connector_kvm/core.py:urirun_connector_kvm.core.capture
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.core.ui_act (CC=22)'
+  description: 'code2llm reports `urirun_connector_kvm.core.ui_act` at `urirun_connector_kvm/core.py:554`
+    with cyclomatic complexity 22 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/core.py:urirun_connector_kvm.core.ui_act
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.launch_backends._launch_xdg
+    (CC=22)'
+  description: 'code2llm reports `urirun_connector_kvm.launch_backends._launch_xdg`
+    at `urirun_connector_kvm/launch_backends.py:145` with cyclomatic complexity 22
+    (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/launch_backends.py:urirun_connector_kvm.launch_backends._launch_xdg
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.launch_backends._parse_desktop
+    (CC=15)'
+  description: 'code2llm reports `urirun_connector_kvm.launch_backends._parse_desktop`
+    at `urirun_connector_kvm/launch_backends.py:78` with cyclomatic complexity 15
+    (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/launch_backends.py:urirun_connector_kvm.launch_backends._parse_desktop
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: args, app, settle'
-  description: 'code2llm reports `Data Clump: args, app, settle` in `urirun_connector_kvm/backends.py:543`.
+  title: 'Address code smell: Data Clump: args, settle, app'
+  description: 'code2llm reports `Data Clump: args, settle, app` in `urirun_connector_kvm/launch_backends.py:207`.
 
 
-    Arguments (args, app, settle) are used together in multiple functions: urirun_connector_kvm.backends._launch_macos,
-    urirun_connector_kvm.backends._launch_windows.
+    Arguments (args, settle, app) are used together in multiple functions: urirun_connector_kvm.launch_backends._launch_macos,
+    urirun_connector_kvm.launch_backends._launch_windows.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -252,16 +458,16 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:543:Data
-    Clump: args, app, settle'
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/launch_backends.py:207:Data
+    Clump: args, settle, app'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: args, app, settle'
-  description: 'code2llm reports `Data Clump: args, app, settle` in `urirun_connector_kvm/backends.py:553`.
+  title: 'Address code smell: Data Clump: args, settle, app'
+  description: 'code2llm reports `Data Clump: args, settle, app` in `urirun_connector_kvm/launch_backends.py:217`.
 
 
-    Arguments (args, app, settle) are used together in multiple functions: urirun_connector_kvm.backends._launch_macos,
-    urirun_connector_kvm.backends._launch_windows.
+    Arguments (args, settle, app) are used together in multiple functions: urirun_connector_kvm.launch_backends._launch_macos,
+    urirun_connector_kvm.launch_backends._launch_windows.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -272,16 +478,18 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:553:Data
-    Clump: args, app, settle'
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/launch_backends.py:217:Data
+    Clump: args, settle, app'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: args, app, settle, compose'
-  description: 'code2llm reports `Data Clump: args, app, settle, compose` in `urirun_connector_kvm/backends.py:517`.
+  title: 'Address code smell: Data Clump: destination_x, destination_y, y, x, self'
+  description: 'code2llm reports `Data Clump: destination_x, destination_y, y, x,
+    self` in `computer-use-preview/computers/computer.py:189`.
 
 
-    Arguments (args, app, settle, compose) are used together in multiple functions:
-    urirun_connector_kvm.backends._launch_xdg, urirun_connector_kvm.core.launch.
+    Arguments (destination_x, destination_y, y, x, self) are used together in multiple
+    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -292,16 +500,324 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:517:Data
-    Clump: args, app, settle, compose'
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:189:Data
+    Clump: destination_x, destination_y, y, x, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: args, app, settle, compose'
-  description: 'code2llm reports `Data Clump: args, app, settle, compose` in `urirun_connector_kvm/core.py:415`.
+  title: 'Address code smell: Data Clump: destination_x, destination_y, y, x, self'
+  description: 'code2llm reports `Data Clump: destination_x, destination_y, y, x,
+    self` in `computer-use-preview/computers/playwright/playwright.py:358`.
 
 
-    Arguments (args, app, settle, compose) are used together in multiple functions:
-    urirun_connector_kvm.backends._launch_xdg, urirun_connector_kvm.core.launch.
+    Arguments (destination_x, destination_y, y, x, self) are used together in multiple
+    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:358:Data
+    Clump: destination_x, destination_y, y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: destination_x, destination_y, y, x, self'
+  description: 'code2llm reports `Data Clump: destination_x, destination_y, y, x,
+    self` in `computer-use-preview/computers/kvm/kvm.py:108`.
+
+
+    Arguments (destination_x, destination_y, y, x, self) are used together in multiple
+    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:108:Data
+    Clump: destination_x, destination_y, y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: exc_val, exc_tb, exc_type, self'
+  description: 'code2llm reports `Data Clump: exc_val, exc_tb, exc_type, self` in
+    `computer-use-preview/computers/playwright/playwright.py:134`.
+
+
+    Arguments (exc_val, exc_tb, exc_type, self) are used together in multiple functions:
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__,
+    computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:134:Data
+    Clump: exc_val, exc_tb, exc_type, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: exc_val, exc_tb, exc_type, self'
+  description: 'code2llm reports `Data Clump: exc_val, exc_tb, exc_type, self` in
+    `computer-use-preview/computers/browserbase/browserbase.py:71`.
+
+
+    Arguments (exc_val, exc_tb, exc_type, self) are used together in multiple functions:
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__,
+    computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/browserbase/browserbase.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/browserbase/browserbase.py:71:Data
+    Clump: exc_val, exc_tb, exc_type, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: magnitude, y, x, self, direction'
+  description: 'code2llm reports `Data Clump: magnitude, y, x, self, direction` in
+    `computer-use-preview/computers/computer.py:130`.
+
+
+    Arguments (magnitude, y, x, self, direction) are used together in multiple functions:
+    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:130:Data
+    Clump: magnitude, y, x, self, direction'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: magnitude, y, x, self, direction'
+  description: 'code2llm reports `Data Clump: magnitude, y, x, self, direction` in
+    `computer-use-preview/computers/playwright/playwright.py:271`.
+
+
+    Arguments (magnitude, y, x, self, direction) are used together in multiple functions:
+    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:271:Data
+    Clump: magnitude, y, x, self, direction'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: magnitude, y, x, self, direction'
+  description: 'code2llm reports `Data Clump: magnitude, y, x, self, direction` in
+    `computer-use-preview/computers/kvm/kvm.py:151`.
+
+
+    Arguments (magnitude, y, x, self, direction) are used together in multiple functions:
+    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:151:Data
+    Clump: magnitude, y, x, self, direction'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: press_enter, text, self'
+  description: 'code2llm reports `Data Clump: press_enter, text, self` in `computer-use-preview/computers/computer.py:86`.
+
+
+    Arguments (press_enter, text, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.type_text.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:86:Data
+    Clump: press_enter, text, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: press_enter, text, self'
+  description: 'code2llm reports `Data Clump: press_enter, text, self` in `computer-use-preview/computers/playwright/playwright.py:197`.
+
+
+    Arguments (press_enter, text, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.type_text.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:197:Data
+    Clump: press_enter, text, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: press_enter, text, self'
+  description: 'code2llm reports `Data Clump: press_enter, text, self` in `computer-use-preview/computers/kvm/kvm.py:116`.
+
+
+    Arguments (press_enter, text, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.type_text.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:116:Data
+    Clump: press_enter, text, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: press_enter, y, x, text, self, clear_before_typing'
+  description: 'code2llm reports `Data Clump: press_enter, y, x, text, self, clear_before_typing`
+    in `computer-use-preview/computers/computer.py:108`.
+
+
+    Arguments (press_enter, y, x, text, self, clear_before_typing) are used together
+    in multiple functions: computer-use-preview.computers.computer.Computer.type_text_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:108:Data
+    Clump: press_enter, y, x, text, self, clear_before_typing'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: press_enter, y, x, text, self, clear_before_typing'
+  description: 'code2llm reports `Data Clump: press_enter, y, x, text, self, clear_before_typing`
+    in `computer-use-preview/computers/playwright/playwright.py:217`.
+
+
+    Arguments (press_enter, y, x, text, self, clear_before_typing) are used together
+    in multiple functions: computer-use-preview.computers.computer.Computer.type_text_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:217:Data
+    Clump: press_enter, y, x, text, self, clear_before_typing'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: press_enter, y, x, text, self, clear_before_typing'
+  description: 'code2llm reports `Data Clump: press_enter, y, x, text, self, clear_before_typing`
+    in `computer-use-preview/computers/kvm/kvm.py:122`.
+
+
+    Arguments (press_enter, y, x, text, self, clear_before_typing) are used together
+    in multiple functions: computer-use-preview.computers.computer.Computer.type_text_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:122:Data
+    Clump: press_enter, y, x, text, self, clear_before_typing'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: url, copy_from, user_data_dir, wait'
+  description: 'code2llm reports `Data Clump: url, copy_from, user_data_dir, wait`
+    in `urirun_connector_kvm/cdp.py:110`.
+
+
+    Arguments (url, copy_from, user_data_dir, wait) are used together in multiple
+    functions: urirun_connector_kvm.cdp.launch_session, urirun_connector_kvm.core.cdp_ensure.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:110:Data Clump:
+    url, copy_from, user_data_dir, wait'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: url, copy_from, user_data_dir, wait'
+  description: 'code2llm reports `Data Clump: url, copy_from, user_data_dir, wait`
+    in `urirun_connector_kvm/core.py:506`.
+
+
+    Arguments (url, copy_from, user_data_dir, wait) are used together in multiple
+    functions: urirun_connector_kvm.cdp.launch_session, urirun_connector_kvm.core.cdp_ensure.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -313,15 +829,15 @@ tickets:
   - data-clump
   files:
   - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/core.py:415:Data Clump:
-    args, app, settle, compose'
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/core.py:506:Data Clump:
+    url, copy_from, user_data_dir, wait'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: nth, app, role, text'
-  description: 'code2llm reports `Data Clump: nth, app, role, text` in `urirun_connector_kvm/backends.py:928`.
+  title: 'Address code smell: Data Clump: value, text, role, op, name'
+  description: 'code2llm reports `Data Clump: value, text, role, op, name` in `urirun_connector_kvm/cdp.py:287`.
 
 
-    Arguments (nth, app, role, text) are used together in multiple functions: urirun_connector_kvm.backends._locate_atspi,
-    urirun_connector_kvm.core.ui_find.
+    Arguments (value, text, role, op, name) are used together in multiple functions:
+    urirun_connector_kvm.cdp._run, urirun_connector_kvm.cdp.act.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -332,16 +848,16 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:928:Data
-    Clump: nth, app, role, text'
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:287:Data Clump:
+    value, text, role, op, name'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: nth, app, role, text'
-  description: 'code2llm reports `Data Clump: nth, app, role, text` in `urirun_connector_kvm/core.py:265`.
+  title: 'Address code smell: Data Clump: value, text, role, op, name'
+  description: 'code2llm reports `Data Clump: value, text, role, op, name` in `urirun_connector_kvm/cdp.py:302`.
 
 
-    Arguments (nth, app, role, text) are used together in multiple functions: urirun_connector_kvm.backends._locate_atspi,
-    urirun_connector_kvm.core.ui_find.
+    Arguments (value, text, role, op, name) are used together in multiple functions:
+    urirun_connector_kvm.cdp._run, urirun_connector_kvm.cdp.act.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -352,17 +868,31 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/core.py:265:Data Clump:
-    nth, app, role, text'
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:302:Data Clump:
+    value, text, role, op, name'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: role, text, image, min_conf, query'
-  description: 'code2llm reports `Data Clump: role, text, image, min_conf, query`
-    in `urirun_connector_kvm/backends.py:805`.
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:37`.
 
 
-    Arguments (role, text, image, min_conf, query) are used together in multiple functions:
-    urirun_connector_kvm.backends._locate_tesseract, urirun_connector_kvm.backends._locate_easyocr.
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -373,17 +903,31 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:805:Data
-    Clump: role, text, image, min_conf, query'
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:37:Data
+    Clump: y, x, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: role, text, image, min_conf, query'
-  description: 'code2llm reports `Data Clump: role, text, image, min_conf, query`
-    in `urirun_connector_kvm/backends.py:875`.
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:44`.
 
 
-    Arguments (role, text, image, min_conf, query) are used together in multiple functions:
-    urirun_connector_kvm.backends._locate_tesseract, urirun_connector_kvm.backends._locate_easyocr.
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -394,15 +938,839 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:875:Data
-    Clump: role, text, image, min_conf, query'
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:44:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:51`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:51:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:58`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:58:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:65`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:65:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:72`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:72:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:79`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:79:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/computer.py:100`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:100:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:153`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:153:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:159`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:159:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:165`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:165:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:171`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:171:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:177`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:177:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:183`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:183:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:190`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:190:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:211`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:211:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/playwright/playwright.py:389`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:389:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:78`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:78:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:81`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:81:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:85`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:85:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:89`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:89:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:93`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:93:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:97`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:97:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:101`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:101:Data
+    Clump: y, x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: y, x, self'
+  description: 'code2llm reports `Data Clump: y, x, self` in `computer-use-preview/computers/kvm/kvm.py:105`.
+
+
+    Arguments (y, x, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
+    computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
+    computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
+    computer-use-preview.computers.computer.Computer.hover_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.double_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.triple_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.middle_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.right_click_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_down,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.mouse_up,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.hover_at,
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.highlight_mouse,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.double_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.triple_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.middle_click_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.right_click_at, computer-use-preview.computers.kvm.kvm.KvmComputer.hover_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_down, computer-use-preview.computers.kvm.kvm.KvmComputer.mouse_up.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:105:Data
+    Clump: y, x, self'
 - signal: code2llm_smell_god_function
-  title: 'Address code smell: God Function: _a11y_atspi'
-  description: 'code2llm reports `God Function: _a11y_atspi` in `urirun_connector_kvm/backends.py:751`.
+  title: 'Address code smell: God Function: __enter__'
+  description: 'code2llm reports `God Function: __enter__` in `computer-use-preview/computers/playwright/playwright.py:100`.
 
 
-    Function ''_a11y_atspi'' is oversized: CC=4, fan-out=10, mutations=7.
+    Function ''__enter__'' is oversized: CC=1, fan-out=11, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:god_function:computer-use-preview/computers/playwright/playwright.py:100:God
+    Function: __enter__'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _calib'
+  description: 'code2llm reports `God Function: _calib` in `urirun_connector_kvm/backends.py:1059`.
+
+
+    Function ''_calib'' is oversized: CC=3, fan-out=3, mutations=8.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -414,14 +1782,14 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:751:God
-    Function: _a11y_atspi'
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1059:God
+    Function: _calib'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _cap_portal'
-  description: 'code2llm reports `God Function: _cap_portal` in `urirun_connector_kvm/backends.py:198`.
+  description: 'code2llm reports `God Function: _cap_portal` in `urirun_connector_kvm/backends.py:242`.
 
 
-    Function ''_cap_portal'' is oversized: CC=2, fan-out=13, mutations=6.
+    Function ''_cap_portal'' is oversized: CC=2, fan-out=11, mutations=4.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -433,14 +1801,71 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:198:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:242:God
     Function: _cap_portal'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _click_hit'
+  description: 'code2llm reports `God Function: _click_hit` in `urirun_connector_kvm/core.py:411`.
+
+
+    Function ''_click_hit'' is oversized: CC=7, fan-out=7, mutations=9.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:411:God Function:
+    _click_hit'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _dispatch_action'
+  description: 'code2llm reports `God Function: _dispatch_action` in `computer-use-preview/agent.py:201`.
+
+
+    Function ''_dispatch_action'' is oversized: CC=11, fan-out=13, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - computer-use-preview/agent.py
+  dedupe_key: 'code2llm:smell:god_function:computer-use-preview/agent.py:201:God Function:
+    _dispatch_action'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _dispatch_legacy_action'
+  description: 'code2llm reports `God Function: _dispatch_legacy_action` in `computer-use-preview/agent.py:229`.
+
+
+    Function ''_dispatch_legacy_action'' is oversized: CC=11, fan-out=15, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - computer-use-preview/agent.py
+  dedupe_key: 'code2llm:smell:god_function:computer-use-preview/agent.py:229:God Function:
+    _dispatch_legacy_action'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _gnome_monitors'
-  description: 'code2llm reports `God Function: _gnome_monitors` in `urirun_connector_kvm/backends.py:1065`.
+  description: 'code2llm reports `God Function: _gnome_monitors` in `urirun_connector_kvm/backends.py:1123`.
 
 
-    Function ''_gnome_monitors'' is oversized: CC=4, fan-out=8, mutations=11.
+    Function ''_gnome_monitors'' is oversized: CC=5, fan-out=12, mutations=14.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -452,30 +1877,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1065:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1123:God
     Function: _gnome_monitors'
 - signal: code2llm_smell_god_function
-  title: 'Address code smell: God Function: _launch_xdg'
-  description: 'code2llm reports `God Function: _launch_xdg` in `urirun_connector_kvm/backends.py:517`.
-
-
-    Function ''_launch_xdg'' is oversized: CC=7, fan-out=14, mutations=12.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - god-function
-  files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:517:God
-    Function: _launch_xdg'
-- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_atspi'
-  description: 'code2llm reports `God Function: _locate_atspi` in `urirun_connector_kvm/backends.py:928`.
+  description: 'code2llm reports `God Function: _locate_atspi` in `urirun_connector_kvm/backends.py:913`.
 
 
     Function ''_locate_atspi'' is oversized: CC=9, fan-out=5, mutations=9.
@@ -490,11 +1896,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:928:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:913:God
     Function: _locate_atspi'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_imgl'
-  description: 'code2llm reports `God Function: _locate_imgl` in `urirun_connector_kvm/backends.py:949`.
+  description: 'code2llm reports `God Function: _locate_imgl` in `urirun_connector_kvm/backends.py:934`.
 
 
     Function ''_locate_imgl'' is oversized: CC=6, fan-out=9, mutations=8.
@@ -509,11 +1915,30 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:949:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:934:God
     Function: _locate_imgl'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _locate_tesseract'
+  description: 'code2llm reports `God Function: _locate_tesseract` in `urirun_connector_kvm/backends.py:810`.
+
+
+    Function ''_locate_tesseract'' is oversized: CC=9, fan-out=13, mutations=16.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:810:God
+    Function: _locate_tesseract'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_vql'
-  description: 'code2llm reports `God Function: _locate_vql` in `urirun_connector_kvm/backends.py:971`.
+  description: 'code2llm reports `God Function: _locate_vql` in `urirun_connector_kvm/backends.py:956`.
 
 
     Function ''_locate_vql'' is oversized: CC=11, fan-out=14, mutations=6.
@@ -528,11 +1953,68 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:971:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:956:God
     Function: _locate_vql'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _run'
+  description: 'code2llm reports `God Function: _run` in `computer-use-preview/computers/kvm/kvm.py:44`.
+
+
+    Function ''_run'' is oversized: CC=11, fan-out=13, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:god_function:computer-use-preview/computers/kvm/kvm.py:44:God
+    Function: _run'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _screen_wh'
+  description: 'code2llm reports `God Function: _screen_wh` in `urirun_connector_kvm/backends.py:1018`.
+
+
+    Function ''_screen_wh'' is oversized: CC=8, fan-out=11, mutations=10.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1018:God
+    Function: _screen_wh'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _trim_old_screenshots'
+  description: 'code2llm reports `God Function: _trim_old_screenshots` in `computer-use-preview/agent.py:347`.
+
+
+    Function ''_trim_old_screenshots'' is oversized: CC=13, fan-out=2, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - computer-use-preview/agent.py
+  dedupe_key: 'code2llm:smell:god_function:computer-use-preview/agent.py:347:God Function:
+    _trim_old_screenshots'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _uinput_create_abs'
-  description: 'code2llm reports `God Function: _uinput_create_abs` in `urirun_connector_kvm/backends.py:1013`.
+  description: 'code2llm reports `God Function: _uinput_create_abs` in `urirun_connector_kvm/backends.py:998`.
 
 
     Function ''_uinput_create_abs'' is oversized: CC=3, fan-out=4, mutations=8.
@@ -547,11 +2029,87 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1013:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:998:God
     Function: _uinput_create_abs'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _wayland_present'
+  description: 'code2llm reports `God Function: _wayland_present` in `urirun_connector_kvm/backends.py:1147`.
+
+
+    Function ''_wayland_present'' is oversized: CC=13, fan-out=10, mutations=2.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1147:God
+    Function: _wayland_present'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _ws_connect'
+  description: 'code2llm reports `God Function: _ws_connect` in `urirun_connector_kvm/cdp.py:152`.
+
+
+    Function ''_ws_connect'' is oversized: CC=6, fan-out=13, mutations=19.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/cdp.py:152:God Function:
+    _ws_connect'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _ws_recv'
+  description: 'code2llm reports `God Function: _ws_recv` in `urirun_connector_kvm/cdp.py:188`.
+
+
+    Function ''_ws_recv'' is oversized: CC=6, fan-out=6, mutations=9.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/cdp.py:188:God Function:
+    _ws_recv'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _ws_send'
+  description: 'code2llm reports `God Function: _ws_send` in `urirun_connector_kvm/cdp.py:173`.
+
+
+    Function ''_ws_send'' is oversized: CC=4, fan-out=9, mutations=10.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/cdp.py:173:God Function:
+    _ws_send'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _xdg_app_dirs'
-  description: 'code2llm reports `God Function: _xdg_app_dirs` in `urirun_connector_kvm/backends.py:432`.
+  description: 'code2llm reports `God Function: _xdg_app_dirs` in `urirun_connector_kvm/launch_backends.py:60`.
 
 
     Function ''_xdg_app_dirs'' is oversized: CC=8, fan-out=8, mutations=11.
@@ -565,12 +2123,12 @@ tickets:
   - code-smell
   - god-function
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:432:God
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/launch_backends.py:60:God
     Function: _xdg_app_dirs'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: bbox_center'
-  description: 'code2llm reports `God Function: bbox_center` in `urirun_connector_kvm/backends.py:922`.
+  description: 'code2llm reports `God Function: bbox_center` in `urirun_connector_kvm/backends.py:907`.
 
 
     Function ''bbox_center'' is oversized: CC=1, fan-out=1, mutations=8.
@@ -585,11 +2143,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:922:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:907:God
     Function: bbox_center'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: dispatch'
-  description: 'code2llm reports `God Function: dispatch` in `urirun_connector_kvm/backends.py:112`.
+  description: 'code2llm reports `God Function: dispatch` in `urirun_connector_kvm/backends.py:146`.
 
 
     Function ''dispatch'' is oversized: CC=11, fan-out=11, mutations=14.
@@ -604,14 +2162,109 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:112:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:146:God
     Function: dispatch'
 - signal: code2llm_smell_god_function
-  title: 'Address code smell: God Function: surface_report'
-  description: 'code2llm reports `God Function: surface_report` in `urirun_connector_kvm/backends.py:1085`.
+  title: 'Address code smell: God Function: find_box'
+  description: 'code2llm reports `God Function: find_box` in `examples/calibrate_abs.py:31`.
 
 
-    Function ''surface_report'' is oversized: CC=11, fan-out=6, mutations=8.
+    Function ''find_box'' is oversized: CC=2, fan-out=5, mutations=11.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - examples/calibrate_abs.py
+  dedupe_key: 'code2llm:smell:god_function:examples/calibrate_abs.py:31:God Function:
+    find_box'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: launch_session'
+  description: 'code2llm reports `God Function: launch_session` in `urirun_connector_kvm/cdp.py:110`.
+
+
+    Function ''launch_session'' is oversized: CC=10, fan-out=15, mutations=12.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/cdp.py:110:God Function:
+    launch_session'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: main'
+  description: 'code2llm reports `God Function: main` in `computer-use-preview/main.py:27`.
+
+
+    Function ''main'' is oversized: CC=4, fan-out=9, mutations=13.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - computer-use-preview/main.py
+  dedupe_key: 'code2llm:smell:god_function:computer-use-preview/main.py:27:God Function:
+    main'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: proc_kill'
+  description: 'code2llm reports `God Function: proc_kill` in `urirun_connector_kvm/core.py:357`.
+
+
+    Function ''proc_kill'' is oversized: CC=12, fan-out=15, mutations=10.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:357:God Function:
+    proc_kill'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: profile'
+  description: 'code2llm reports `God Function: profile` in `urirun_connector_kvm/environment.py:40`.
+
+
+    Function ''profile'' is oversized: CC=10, fan-out=11, mutations=19.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/environment.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/environment.py:40:God
+    Function: profile'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: session_env'
+  description: 'code2llm reports `God Function: session_env` in `urirun_connector_kvm/backends.py:348`.
+
+
+    Function ''session_env'' is oversized: CC=8, fan-out=6, mutations=8.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -623,11 +2276,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1085:God
-    Function: surface_report'
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:348:God
+    Function: session_env'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: task_run'
-  description: 'code2llm reports `God Function: task_run` in `urirun_connector_kvm/core.py:179`.
+  description: 'code2llm reports `God Function: task_run` in `urirun_connector_kvm/core.py:301`.
 
 
     Function ''task_run'' is oversized: CC=13, fan-out=12, mutations=11.
@@ -642,11 +2295,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:179:God Function:
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:301:God Function:
     task_run'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: ui_click_text'
-  description: 'code2llm reports `God Function: ui_click_text` in `urirun_connector_kvm/core.py:363`.
+  description: 'code2llm reports `God Function: ui_click_text` in `urirun_connector_kvm/core.py:704`.
 
 
     Function ''ui_click_text'' is oversized: CC=8, fan-out=12, mutations=11.
@@ -661,14 +2314,14 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:363:God Function:
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:704:God Function:
     ui_click_text'
 - signal: code2llm_smell_god_function
-  title: 'Address code smell: God Function: uinput_abs_click'
-  description: 'code2llm reports `God Function: uinput_abs_click` in `urirun_connector_kvm/backends.py:1030`.
+  title: 'Address code smell: God Function: ui_wait'
+  description: 'code2llm reports `God Function: ui_wait` in `urirun_connector_kvm/core.py:634`.
 
 
-    Function ''uinput_abs_click'' is oversized: CC=6, fan-out=15, mutations=4.
+    Function ''ui_wait'' is oversized: CC=6, fan-out=12, mutations=5.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -679,15 +2332,15 @@ tickets:
   - code-smell
   - god-function
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1030:God
-    Function: uinput_abs_click'
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:634:God Function:
+    ui_wait'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Module: urirun_connector_kvm.backends'
   description: 'code2llm reports `God Module: urirun_connector_kvm.backends` in `urirun_connector_kvm/backends.py:1`.
 
 
-    Module ''urirun_connector_kvm.backends'' is too large (71 functions, 2 classes).
+    Module ''urirun_connector_kvm.backends'' is too large (72 functions, 2 classes).
     Consider splitting into sub-modules.
 
 
@@ -702,5 +2355,25 @@ tickets:
   - urirun_connector_kvm/backends.py
   dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1:God
     Module: urirun_connector_kvm.backends'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Module: urirun_connector_kvm.core'
+  description: 'code2llm reports `God Module: urirun_connector_kvm.core` in `urirun_connector_kvm/core.py:1`.
+
+
+    Module ''urirun_connector_kvm.core'' is too large (50 functions, 0 classes). Consider
+    splitting into sub-modules.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:1:God Module:
+    urirun_connector_kvm.core'
 applied: []
 skipped: []

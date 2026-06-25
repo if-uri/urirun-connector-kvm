@@ -1,51 +1,53 @@
-# urirun-connector-kvm | 99 func | 2f | 2104L | shell | 2026-06-25
+# urirun-connector-kvm | 294 func | 15f | 5929L | python | 2026-06-25
 # generated in 0.00s
 
 HEALTH:
-  CC̄=3.9  critical=8 (limit:10)  dup=0  cycles=0
+  CC̄=3.4  critical=22 (limit:10)  dup=0  cycles=0
 
-ALERTS[17]:
-  !!! high_fan_out     _locate_tesseract = 28 (limit:10)
-  !!! cc_exceeded      _locate_tesseract = 26 (limit:15)
+ALERTS[20]:
+  !!! cc_exceeded      surface_report = 28 (limit:15)
+  !!! high_fan_out     ui_act = 26 (limit:10)
   !!! high_fan_out     capture = 24 (limit:10)
-  !!  high_fan_out     _locate_easyocr = 19 (limit:10)
-  !!  high_fan_out     _tsv_lines = 15 (limit:10)
-  !!  high_fan_out     uinput_abs_click = 15 (limit:10)
-  !   cc_exceeded      _parse_desktop = 15 (limit:15)
-  !   cc_exceeded      capture = 15 (limit:15)
-  !   high_fan_out     _launch_xdg = 14 (limit:10)
-  !   high_fan_out     _locate_vql = 14 (limit:10)
+  !!! high_fan_out     BrowserAgent.run_one_iteration = 22 (limit:10)
+  !!  cc_exceeded      _tesseract_query_matches = 23 (limit:15)
+  !!  cc_exceeded      BrowserAgent.run_one_iteration = 23 (limit:15)
+  !!  cc_exceeded      _launch_xdg = 22 (limit:15)
+  !!  cc_exceeded      ui_act = 22 (limit:15)
+  !!  cc_exceeded      route = 20 (limit:15)
+  !!  high_fan_out     _launch_xdg = 19 (limit:10)
 
-MODULES[12] (top by size):
-  M[urirun_connector_kvm/backends.py] 1111L C:2 F:71 CC↑26 D:0 (python)
-  M[urirun_connector_kvm/core.py] 457L C:0 F:28 CC↑15 D:0 (python)
-  M[planfile.yaml] 188L C:0 F:0 CC↑0 D:0 (yaml)
+MODULES[29] (top by size):
+  M[urirun_connector_kvm/backends.py] 1243L C:2 F:72 CC↑28 D:2 (python)
+  M[planfile.yaml] 916L C:0 F:0 CC↑0 D:0 (yaml)
+  M[urirun_connector_kvm/core.py] 797L C:0 F:50 CC↑22 D:0 (python)
+  M[computer-use-preview/agent.py] 494L C:1 F:18 CC↑23 D:0 (python)
+  M[computer-use-preview/computers/playwright/playwright.py] 418L C:1 F:33 CC↑5 D:0 (python)
+  M[urirun_connector_kvm/cdp.py] 307L C:0 F:16 CC↑10 D:1 (python)
+  M[urirun_connector_kvm/launch_backends.py] 251L C:0 F:12 CC↑22 D:0 (python)
+  M[computer-use-preview/computers/computer.py] 198L C:2 F:27 CC↑1 D:0 (python)
+  M[computer-use-preview/computers/kvm/kvm.py] 190L C:1 F:33 CC↑11 D:0 (python)
+  M[urirun_connector_kvm/control.py] 187L C:0 F:6 CC↑20 D:0 (python)
+  M[urirun_connector_kvm/strategies.py] 129L C:3 F:14 CC↑4 D:0 (python)
+  M[computer-use-preview/main.py] 101L C:0 F:1 CC↑4 D:0 (python)
   M[prefact.yaml] 94L C:0 F:0 CC↑0 D:0 (yaml)
-  M[urirun_connector_kvm/connector.manifest.json] 75L C:0 F:0 CC↑0 D:0 (json)
-  M[project.sh] 69L C:0 F:0 CC↑0 D:0 (shell)
-  M[pyproject.toml] 38L C:0 F:0 CC↑0 D:0 (toml)
-  M[urirun_connector_kvm/__init__.py] 30L C:0 F:0 CC↑0 D:0 (python)
-  M[testql-scenarios/generated-cli-tests.testql.toon.yaml] 20L C:0 F:0 CC↑0 D:0 (yaml)
-  M[Makefile] 13L C:0 F:0 CC↑0 D:0 ()
-  M[examples/quickstart.sh] 5L C:0 F:0 CC↑0 D:0 (shell)
-  M[tree.sh] 4L C:0 F:0 CC↑0 D:0 (shell)
-  LANGS: python:3/shell:3/yaml:3/other:1/toml:1/json:1
+  M[urirun_connector_kvm/environment.py] 82L C:0 F:3 CC↑10 D:0 (python)
+  M[urirun_connector_kvm/connector.manifest.json] 82L C:0 F:0 CC↑0 D:0 (json)
+  LANGS: python:19/shell:3/yaml:3/other:1/txt:1/toml:1/json:1
 
 HOTSPOTS[10]:
-  ★ _locate_tesseract fan=28  // OCR-locate on-screen text. Unlike a saliency detector this GENUINELY matches the
+  ★ ui_act fan=26  // ONE high-level URI an LLM planner can target instead of hand-assembling
+wait+fin
   ★ capture fan=24  // Capture the live screen via the best available backend. ``max_width`` downscales
-  ★ _locate_easyocr fan=19  // OCR-locate via EasyOCR (CRAFT detector + CRNN) — stronger than tesseract on UI
-f
-  ★ _tsv_lines fan=15  // Aggregate tesseract word rows (level 5) into line boxes so a multi-word label
-li
-  ★ uinput_abs_click fan=15  // Orchestrates 15 calls
+  ★ BrowserAgent.run_one_iteration fan=22  // Orchestrates 22 calls
+  ★ _launch_xdg fan=19  // Orchestrates 19 calls
+  ★ _tesseract_query_matches fan=19  // Find word spans in tesseract TSV output whose line contains ``ql``.
 
-REFACTOR[7]:
-  [1] H/L Split _locate_tesseract (CC=26)
-  [2] H/H Split god module urirun_connector_kvm/backends.py (1111L, 2 classes)
-  [3] M/L Split _parse_desktop (CC=15)
-  [4] M/L Split capture (CC=15)
-  [5] M/M Reduce _locate_tesseract fan-out (currently 28)
+REFACTOR[15]:
+  [1] H/L Split surface_report (CC=28)
+  [2] H/H Split god module urirun_connector_kvm/backends.py (1243L, 2 classes)
+  [3] H/H Split god module urirun_connector_kvm/core.py (797L, 0 classes)
+  [4] H/H Split god module planfile.yaml (916L, 0 classes)
+  [5] M/L Split route (CC=20)
 
 EVOLUTION:
-  2026-06-25 CC̄=3.9 crit=8 2104L // Automated analysis
+  2026-06-25 CC̄=3.4 crit=22 5929L // Automated analysis

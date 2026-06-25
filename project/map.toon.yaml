@@ -1,38 +1,48 @@
-# urirun-connector-kvm | 8f 1902L | python:4,shell:3,less:1 | 2026-06-25
-# stats: 109 func | 2 cls | 8 mod | CC̄=3.8 | critical:8 | cycles:0
-# alerts[5]: CC _locate_tesseract=26; CC _parse_desktop=15; CC capture=15; CC _locate_easyocr=14; CC task_run=13
-# hotspots[5]: _locate_tesseract fan=25; capture fan=23; _locate_easyocr fan=18; uinput_abs_click fan=15; _launch_xdg fan=14
-# evolution: baseline
+# urirun-connector-kvm | 29f 5904L | toml:1,shell:3,yaml:3,python:19,json:1,txt:1 | 2026-06-25
+# generated in 0.01s
+# stats: 294 func | 0 cls | 29 mod | CC̄=3.4 | critical:10 | cycles:0
+# alerts[5]: CC surface_report=28; fan-out ui_act=26; fan-out capture=24; fan-out BrowserAgent.run_one_iteration=22; CC BrowserAgent.run_one_iteration=23
+# hotspots[5]: ui_act fan=26; capture fan=24; BrowserAgent.run_one_iteration fan=22; _launch_xdg fan=19; _tesseract_query_matches fan=19
+# evolution: CC̄ 3.5→3.4 (improved -0.1)
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
-M[8]:
-  app.doql.less,61
-  examples/quickstart.sh,6
+M[29]:
+  Makefile,13
+  computer-use-preview/agent.py,494
+  computer-use-preview/computers/__init__.py,25
+  computer-use-preview/computers/browserbase/browserbase.py,80
+  computer-use-preview/computers/computer.py,198
+  computer-use-preview/computers/kvm/__init__.py,2
+  computer-use-preview/computers/kvm/kvm.py,190
+  computer-use-preview/computers/playwright/__init__.py,0
+  computer-use-preview/computers/playwright/playwright.py,418
+  computer-use-preview/main.py,101
+  computer-use-preview/requirements.txt,8
+  examples/calibrate_abs.py,75
+  examples/quickstart.sh,5
+  planfile.yaml,916
+  prefact.yaml,94
   project.sh,69
-  tests/test_kvm.py,160
-  tree.sh,5
-  urirun_connector_kvm/__init__.py,31
-  urirun_connector_kvm/backends.py,1112
-  urirun_connector_kvm/core.py,458
+  pyproject.toml,41
+  testql-scenarios/generated-cli-tests.testql.toon.yaml,20
+  tree.sh,4
+  urirun_connector_kvm/__init__.py,38
+  urirun_connector_kvm/backends.py,1217
+  urirun_connector_kvm/cdp.py,307
+  urirun_connector_kvm/connector.manifest.json,82
+  urirun_connector_kvm/control.py,187
+  urirun_connector_kvm/core.py,798
+  urirun_connector_kvm/environment.py,82
+  urirun_connector_kvm/launch_backends.py,251
+  urirun_connector_kvm/strategies.py,129
+  urirun_connector_kvm/surface.py,60
 D:
-  tests/test_kvm.py:
-    e: test_key_requires_value,test_type_requires_value,test_no_backend_reports_install_hint,test_backend_decorator_registers_and_sorts,test_dispatch_falls_through_on_failure,test_unavailable_backend_skipped_by_needs,test_bindings_are_isolated_handlers,test_runtime_executes_from_compiled_registry,test_doctor_reports_backends,test_capture_tags_screenshot_as_frozen_artifact,test_manifest_prose_plus_derived_routes,test_cli_bindings_and_manifest
-    test_key_requires_value()
-    test_type_requires_value()
-    test_no_backend_reports_install_hint(monkeypatch)
-    test_backend_decorator_registers_and_sorts()
-    test_dispatch_falls_through_on_failure()
-    test_unavailable_backend_skipped_by_needs(monkeypatch)
-    test_bindings_are_isolated_handlers()
-    test_runtime_executes_from_compiled_registry(monkeypatch)
-    test_doctor_reports_backends()
-    test_capture_tags_screenshot_as_frozen_artifact(monkeypatch)
-    test_manifest_prose_plus_derived_routes()
-    test_cli_bindings_and_manifest(capsys)
-  urirun_connector_kvm/__init__.py:
   urirun_connector_kvm/backends.py:
-    e: is_wayland,is_x11,platform_tag,have_bin,have_mod,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_xdg_app_dirs,_parse_desktop,_desktop_entries,_strip_field_codes,_find_app,_launch_xdg,_launch_macos,_launch_windows,_list_xdg,_list_macos,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,uinput_abs_click,_gnome_monitors,surface_report,Backend,BackendError
+    e: Backend,BackendError,_runtime_dir,_wayland_socket,_x_display,is_wayland,is_x11,platform_tag,have_bin,have_mod,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,session_env,_clipboard_set,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_uinput_abs,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_tesseract_query_matches,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,_screen_wh,_read_text,_calib,uinput_abs_click,_gnome_monitors,_wayland_present,surface_report
     Backend: missing(0),available(0)
-    BackendError:
+    BackendError(RuntimeError):
+    _runtime_dir()
+    _wayland_socket()
+    _x_display()
     is_wayland()
     is_x11()
     platform_tag()
@@ -55,6 +65,8 @@ D:
     ensure_ydotoold()
     _yd_env()
     _yd_keyseq(combo)
+    session_env()
+    _clipboard_set(text)
     _type_ydotool(text)
     _type_wtype(text)
     _type_xdotool(text)
@@ -62,6 +74,7 @@ D:
     _click_ydotool(button)
     _click_xdotool(button)
     _click_pynput(button)
+    _move_uinput_abs(x;y)
     _move_ydotool(x;y)
     _move_xdotool(x;y)
     _move_pynput(x;y)
@@ -73,21 +86,12 @@ D:
     _focus_wmctrl(title)
     _focus_pgw(title)
     _winlist_wmctrl()
-    _xdg_app_dirs()
-    _parse_desktop(path)
-    _desktop_entries()
-    _strip_field_codes(exec_line)
-    _find_app(query)
-    _launch_xdg(app;compose;args;settle)
-    _launch_macos(app;args;settle)
-    _launch_windows(app;args;settle)
-    _list_xdg(filter)
-    _list_macos(filter)
     _atspi_python()
     _focus_atspi(title)
     _a11y_atspi(app;role;name;op;text;nth)
     _tsv_lines(tsv;min_conf)
-    _locate_tesseract(image;query;text;role;min_conf)
+    _tesseract_query_matches(tsv_stdout;ql;min_conf)
+    _locate_tesseract(image;query;text;role;name;min_conf)
     _easyocr_reader()
     _locate_easyocr(image;query;text;role;min_conf)
     bbox_center(bbox)
@@ -99,29 +103,73 @@ D:
     _ui_iow(nr;sz)
     uinput_available()
     _uinput_create_abs()
-    uinput_abs_click(x;y;sw;sh;button;do_click;settle)
+    _screen_wh()
+    _read_text(path)
+    _calib()
+    uinput_abs_click(x;y;sw;sh;button;do_click;settle;clicks)
     _gnome_monitors()
+    _wayland_present()
     surface_report()
+  computer-use-preview/agent.py:
+    e: BrowserAgent,multiply_numbers
+    BrowserAgent: __init__(4),_handle_scroll_at(1),_handle_drag_and_drop(1),_dispatch_action(1),_dispatch_legacy_action(1),handle_action(2),handle_legacy_action(1),get_model_response(2),get_text(1),extract_function_calls(1),_build_function_response(3),_trim_old_screenshots(0),run_one_iteration(0),_get_safety_confirmation(1),agent_loop(0),denormalize_x(1),denormalize_y(1)
+    multiply_numbers(x;y)
+  urirun_connector_kvm/launch_backends.py:
+    e: _cdp_port,_cdp_wait,_xdg_app_dirs,_parse_desktop,_desktop_entries,_strip_field_codes,_find_app,_launch_xdg,_launch_macos,_launch_windows,_list_xdg,_list_macos
+    _cdp_port()
+    _cdp_wait(port;wait)
+    _xdg_app_dirs()
+    _parse_desktop(path)
+    _desktop_entries()
+    _strip_field_codes(exec_line)
+    _find_app(query)
+    _launch_xdg(app;compose;args;settle;debug)
+    _launch_macos(app;args;settle)
+    _launch_windows(app;args;settle)
+    _list_xdg(filter)
+    _list_macos(filter)
   urirun_connector_kvm/core.py:
-    e: _ok,_fail_from,capture,type_text,key,click,move,scroll,click_abs,task_run,focus,window_list,a11y_act,_click_hit,ui_find,ui_click,ui_fill,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
+    e: _ok,_fail_from,_spread,_positioned_click,capture,display_info,type_text,key,click,move,wait,scroll,double_click,triple_click,right_click,middle_click,hover,drag_and_drop,click_abs,task_run,focus,window_list,proc_kill,a11y_act,_click_hit,_router_return,ui_find,ui_click,ui_fill,ui_strategies,env_profile,_surface_mod,surface_current,cdp_ensure,_cdp_mod,cdp_navigate,cdp_ready,ui_act,cdp_status,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
     _ok()
     _fail_from(action;exc)
+    _spread(d)
+    _positioned_click(button;x;y;clicks)
     capture(output;monitor;max_width;base64;cx;cy;zoom;crop_w;crop_h)
+    display_info()
     type_text(text)
     key(key;keys)
     click(button;x;y)
     move(x;y)
+    wait(seconds;ms)
     scroll(dy)
+    double_click(x;y)
+    triple_click(x;y)
+    right_click(x;y)
+    middle_click(x;y)
+    hover(x;y)
+    drag_and_drop(x;y;destination_x;destination_y)
     click_abs(x;y;sw;sh;button;do_click)
     task_run(steps)
     focus(title)
     window_list()
+    proc_kill(pid;name;signal)
     a11y_act(app;role;name;action;text;nth)
     _click_hit(hit;app;role;text)
-    ui_find(text;role;app;nth)
-    ui_click(text;role;app)
-    ui_fill(text;role;app;value;verify)
-    ui_wait(text;role;app;timeout;interval)
+    _router_return(action;r)
+    ui_find(text;role;app;nth;name)
+    ui_click(text;role;app;name)
+    ui_fill(text;role;app;value;verify;name)
+    ui_strategies()
+    env_profile()
+    _surface_mod()
+    surface_current()
+    cdp_ensure(url;user_data_dir;copy_from;wait)
+    _cdp_mod()
+    cdp_navigate(url;ready_timeout)
+    cdp_ready(timeout)
+    ui_act(do;text;role;name;value;app;retries;settle;ready_timeout;safe)
+    cdp_status()
+    ui_wait(text;role;app;timeout;interval;name)
     ui_verify(expect;app)
     _capture_native(monitor)
     ui_locate(query;min_conf;monitor)
@@ -132,3 +180,80 @@ D:
     urirun_bindings()
     connector_manifest()
     main(argv)
+  urirun_connector_kvm/control.py:
+    e: strategy,route,act,_verify_value,report,_safe_avail
+    strategy(cls)
+    route(op;text;role;app;name;value;verify;cheap)
+    act(op;text;role;app;name;value;expect;gone;retries;settle;safe)
+    _verify_value(value;app)
+    report()
+    _safe_avail(s)
+  computer-use-preview/computers/kvm/kvm.py:
+    e: KvmComputer
+    KvmComputer(Computer): __init__(3),__enter__(0),__exit__(0),_run(4),_state(0),screen_size(0),current_state(0),take_screenshot(0),_click(3),click_at(2),double_click_at(2),triple_click_at(2),middle_click_at(2),right_click_at(2),hover_at(2),mouse_down(2),mouse_up(2),drag_and_drop(4),type_text(2),type_text_at(5),key_combination(1),press_key(1),key_down(1),key_up(1),scroll_document(1),scroll_at(4),wait(1),wait_5_seconds(0),open_web_browser(0),navigate(1),search(0),go_back(0),go_forward(0)  # Computer Use executor backed by a urirun node's kvm:// surfa...
+  urirun_connector_kvm/cdp.py:
+    e: endpoint,_pages,reachable,navigate,page_ready,_find_chrome,_copy_auth,launch_session,_ws_connect,_ws_send,_ws_recv,_call,_evaluate,_run,find,act
+    endpoint()
+    _pages()
+    reachable()
+    navigate(url)
+    page_ready(timeout)
+    _find_chrome()
+    _copy_auth(src;dst)
+    launch_session(url;user_data_dir;copy_from;wait)
+    _ws_connect(ws_url;timeout)
+    _ws_send(s;data)
+    _ws_recv(s)
+    _call(s;_id;method;params)
+    _evaluate(expr)
+    _run(op;text;role;name;value)
+    find(text;role;name)
+    act(op;text;role;name;value)
+  urirun_connector_kvm/environment.py:
+    e: _safe,atspi_ready,profile
+    _safe(fn)
+    atspi_ready()
+    profile()
+  urirun_connector_kvm/surface.py:
+    e: _active_window,current
+    _active_window()
+    current()
+  computer-use-preview/computers/playwright/playwright.py:
+    e: PlaywrightComputer
+    PlaywrightComputer(Computer): __init__(4),_handle_new_page(1),__enter__(0),__exit__(3),open_web_browser(0),click_at(2),double_click_at(2),triple_click_at(2),middle_click_at(2),right_click_at(2),mouse_down(2),mouse_up(2),type_text(2),wait(1),hover_at(2),type_text_at(5),_horizontal_document_scroll(1),scroll_document(1),scroll_at(4),wait_5_seconds(0),go_back(0),go_forward(0),search(0),navigate(1),key_combination(1),press_key(1),key_down(1),key_up(1),take_screenshot(0),drag_and_drop(4),current_state(0),screen_size(0),highlight_mouse(2)  # Connects to a local Playwright instance...
+  urirun_connector_kvm/strategies.py:
+    e: CdpStrategy,AtspiStrategy,VisionStrategy,is_browser
+    CdpStrategy: available(1),locate(1),click(1),fill(1)
+    AtspiStrategy: available(1),locate(1),click(1),fill(1)
+    VisionStrategy: available(1),locate(1),_click_xy(3),click(1),fill(1)
+    is_browser(app)
+  computer-use-preview/main.py:
+    e: main
+    main()
+  computer-use-preview/computers/browserbase/browserbase.py:
+    e: BrowserbaseComputer
+    BrowserbaseComputer(PlaywrightComputer): __init__(2),__enter__(0),__exit__(3)
+  examples/calibrate_abs.py:
+    e: run,cap,magenta_frac,find_box
+    run(route;payload)
+    cap()
+    magenta_frac(a)
+    find_box(a)
+  computer-use-preview/computers/computer.py:
+    e: EnvState,Computer
+    EnvState(pydantic.BaseModel):
+    Computer(abc.ABC): screen_size(0),open_web_browser(0),click_at(2),double_click_at(2),triple_click_at(2),middle_click_at(2),right_click_at(2),mouse_down(2),mouse_up(2),type_text(2),wait(1),hover_at(2),type_text_at(5),scroll_document(1),scroll_at(4),wait_5_seconds(0),go_back(0),go_forward(0),search(0),navigate(1),key_combination(1),press_key(1),key_down(1),key_up(1),take_screenshot(0),drag_and_drop(4),current_state(0)  # Defines an interface for environments...
+  Makefile:
+  pyproject.toml:
+  tree.sh:
+  prefact.yaml:
+  project.sh:
+  examples/quickstart.sh:
+  testql-scenarios/generated-cli-tests.testql.toon.yaml:
+  urirun_connector_kvm/connector.manifest.json:
+  urirun_connector_kvm/__init__.py:
+  computer-use-preview/requirements.txt:
+  computer-use-preview/computers/__init__.py:
+  computer-use-preview/computers/playwright/__init__.py:
+  computer-use-preview/computers/kvm/__init__.py:
+  planfile.yaml:

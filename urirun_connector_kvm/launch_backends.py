@@ -142,7 +142,8 @@ def _find_app(query: str):
 
 
 @backend("launch", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
-def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, settle: float = 0, **_) -> dict:
+def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, settle: float = 0,
+                debug: bool = False, **_) -> dict:
     extra = list(args or [])
     if compose:
         extra += ["-compose", compose]
@@ -156,30 +157,32 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     else:
         raise BackendError(f"no .desktop entry or PATH binary matches {app!r} "
                            "(call window/query/list or doctor for what's installed)")
-    # Chrome/Chromium: enable the two control surfaces the universal router prefers —
-    #   --remote-debugging-port  → the `cdp` strategy drives the DOM (role/name exact,
-    #                              coordinate-free), the most reliable control tool;
-    #   --force-renderer-accessibility → the `atspi` strategy can see web elements.
-    # Both are no-ops if the flow already passed them. Off via URIRUN_KVM_NO_A11Y=1.
+    # Chrome/Chromium control surfaces:
+    #   --force-renderer-accessibility → the atspi/OCR strategies can see web elements.
+    #     Harmless and does NOT change which profile opens — applied to every chrome launch.
+    #   --remote-debugging-port + dedicated --user-data-dir → the `cdp` strategy drives the
+    #     DOM. This is OPT-IN (debug=True or URIRUN_KVM_CDP_ON_LAUNCH): a dedicated profile is
+    #     required for the debug port to actually bind (Chrome 136+ blocks it on the default
+    #     profile, and a bare port is swallowed by an already-running default-profile Chrome),
+    #     BUT that profile is UNAUTHENTICATED — forcing it by default would break logged-in
+    #     workflows (e.g. an OCR-driven LinkedIn post). For an authenticated CDP session use
+    #     the cdp/session/command/ensure route (it clones auth via copy_from). Off via
+    #     URIRUN_KVM_NO_A11Y=1.
     cdp_port = ""
-    if not os.environ.get("URIRUN_KVM_NO_A11Y") and any(
-            b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge")):
-        cdp_port = _cdp_port()
-        if not any("remote-debugging-port" in a for a in argv):
-            argv.insert(1, f"--remote-debugging-port={cdp_port}")
-        # A bare --remote-debugging-port is SILENTLY DROPPED when a Chrome on the default
-        # profile is already running: the launch just forwards the URL to the live instance
-        # and no debug socket ever binds ("debugger did not come up"). Force a separate
-        # instance with a dedicated profile so the port actually opens — same recipe as
-        # cdp.launch_session(). Skip if the flow already chose its own profile.
-        if not any("user-data-dir" in a for a in argv):
-            ddir = os.environ.get("URIRUN_KVM_CDP_PROFILE") or f"/tmp/urirun-kvm-cdp-{cdp_port}"
-            argv.insert(1, f"--user-data-dir={ddir}")
-            for flag in ("--no-first-run", "--no-default-browser-check"):
-                if flag not in argv:
-                    argv.insert(1, flag)
+    is_chrome = any(b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge"))
+    if not os.environ.get("URIRUN_KVM_NO_A11Y") and is_chrome:
         if not any("force-renderer-accessibility" in a for a in argv):
             argv.insert(1, "--force-renderer-accessibility")
+        if debug or os.environ.get("URIRUN_KVM_CDP_ON_LAUNCH"):
+            cdp_port = _cdp_port()
+            if not any("remote-debugging-port" in a for a in argv):
+                argv.insert(1, f"--remote-debugging-port={cdp_port}")
+            if not any("user-data-dir" in a for a in argv):
+                ddir = os.environ.get("URIRUN_KVM_CDP_PROFILE") or f"/tmp/urirun-kvm-cdp-{cdp_port}"
+                argv.insert(1, f"--user-data-dir={ddir}")
+                for flag in ("--no-first-run", "--no-default-browser-check"):
+                    if flag not in argv:
+                        argv.insert(1, flag)
     # session_env() points the child at the live compositor/X/D-Bus; a node process is
     # often spawned without those, and the old hardcoded WAYLAND_DISPLAY=wayland-0 was
     # wrong on any seat whose socket isn't wayland-0.
@@ -191,7 +194,10 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     if cdp_port:
         # Spend the settle window (or a short default) polling for the debug port so the
         # result honestly reports whether CDP came up instead of assuming it did.
-        result["cdp"] = _cdp_wait(cdp_port, max(settled, 8.0))
+        # headful Chrome cold-start on a real desktop binds the debug port well after the
+        # process exists (~12-15s observed on the lenovo node) — too short a window reports a
+        # false "debugger did not come up" while Chrome is in fact coming up. Match cdp.launch_session.
+        result["cdp"] = _cdp_wait(cdp_port, max(settled, 15.0))
     elif settled:
         time.sleep(settled)
     return result

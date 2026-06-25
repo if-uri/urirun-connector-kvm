@@ -1,138 +1,166 @@
-# code2llm | 12f 2104L | shell:3,python:3,yaml:3,toml:1,json:1 | 2026-06-25
-# generated in 0.00s
-# CC̅=3.9 | critical:3/99 | dups:0 | cycles:0
+# code2llm | 29f 5904L | python:19,shell:3,yaml:3,toml:1,json:1,txt:1 | 2026-06-25
+# generated in 0.01s
+# CC̅=3.4 | critical:10/294 | dups:0 | cycles:0
 
-HEALTH[3]:
+HEALTH[10]:
+  🟡 CC    route CC=20 (limit:15)
+  🟡 CC    act CC=15 (limit:15)
   🟡 CC    _parse_desktop CC=15 (limit:15)
-  🟡 CC    _locate_tesseract CC=26 (limit:15)
+  🟡 CC    _launch_xdg CC=22 (limit:15)
+  🟡 CC    _tesseract_query_matches CC=23 (limit:15)
+  🟡 CC    uinput_abs_click CC=15 (limit:15)
+  🟡 CC    surface_report CC=28 (limit:15)
   🟡 CC    capture CC=15 (limit:15)
+  🟡 CC    ui_act CC=22 (limit:15)
+  🟡 CC    run_one_iteration CC=23 (limit:15)
 
 REFACTOR[1]:
-  1. split 3 high-CC methods  (CC>15)
+  1. split 10 high-CC methods  (CC>15)
 
-PIPELINES[68]:
-  [1] Src [is_x11]: is_x11 → is_wayland
+PIPELINES[195]:
+  [1] Src [cap]: cap → run
       PURITY: 100% pure
-  [2] Src [missing]: missing → have_bin
+  [2] Src [magenta_frac]: magenta_frac
       PURITY: 100% pure
-  [3] Src [available]: available → platform_tag → is_wayland
+  [3] Src [find_box]: find_box
       PURITY: 100% pure
-  [4] Src [registry_report]: registry_report
+  [4] Src [available]: available → is_browser
       PURITY: 100% pure
-  [5] Src [_cap_portal]: _cap_portal → backend
+  [5] Src [locate]: locate
       PURITY: 100% pure
-  [6] Src [_cap_grim]: _cap_grim → backend
+  [6] Src [click]: click
       PURITY: 100% pure
-  [7] Src [_cap_mss]: _cap_mss → backend
+  [7] Src [fill]: fill
       PURITY: 100% pure
-  [8] Src [_cap_pillow]: _cap_pillow → backend
+  [8] Src [available]: available
       PURITY: 100% pure
-  [9] Src [_cap_scrot]: _cap_scrot → backend
+  [9] Src [locate]: locate
       PURITY: 100% pure
-  [10] Src [_cap_im]: _cap_im → backend
+  [10] Src [click]: click
       PURITY: 100% pure
-  [11] Src [_cap_gnome]: _cap_gnome → backend
+  [11] Src [fill]: fill
       PURITY: 100% pure
-  [12] Src [_cap_macos]: _cap_macos → backend
+  [12] Src [available]: available
       PURITY: 100% pure
-  [13] Src [_type_ydotool]: _type_ydotool → backend
+  [13] Src [locate]: locate
       PURITY: 100% pure
-  [14] Src [_type_wtype]: _type_wtype → backend
+  [14] Src [_click_xy]: _click_xy
       PURITY: 100% pure
-  [15] Src [_type_xdotool]: _type_xdotool → backend
+  [15] Src [click]: click
       PURITY: 100% pure
-  [16] Src [_type_pynput]: _type_pynput → backend
+  [16] Src [fill]: fill
       PURITY: 100% pure
-  [17] Src [_click_ydotool]: _click_ydotool → backend
+  [17] Src [current]: current → _active_window
       PURITY: 100% pure
-  [18] Src [_click_xdotool]: _click_xdotool → backend
+  [18] Src [page_ready]: page_ready → _evaluate → _pages → endpoint
       PURITY: 100% pure
-  [19] Src [_click_pynput]: _click_pynput → backend
+  [19] Src [launch_session]: launch_session → endpoint
       PURITY: 100% pure
-  [20] Src [_move_ydotool]: _move_ydotool → backend
+  [20] Src [find]: find → _run → _evaluate → _pages → ...(1 more)
       PURITY: 100% pure
-  [21] Src [_move_xdotool]: _move_xdotool → backend
+  [21] Src [act]: act → _run → _evaluate → _pages → ...(1 more)
       PURITY: 100% pure
-  [22] Src [_move_pynput]: _move_pynput → backend
+  [22] Src [strategy]: strategy
       PURITY: 100% pure
-  [23] Src [_key_ydotool]: _key_ydotool → backend
+  [23] Src [act]: act → route → _verify_value
       PURITY: 100% pure
-  [24] Src [_key_xdotool]: _key_xdotool → backend
+  [24] Src [report]: report → _safe_avail
       PURITY: 100% pure
-  [25] Src [_key_pynput]: _key_pynput → backend
+  [25] Src [profile]: profile → _safe
       PURITY: 100% pure
-  [26] Src [_scroll_ydotool]: _scroll_ydotool → backend
+  [26] Src [main]: main
       PURITY: 100% pure
-  [27] Src [_scroll_pynput]: _scroll_pynput → backend
+  [27] Src [_handle_new_page]: _handle_new_page
       PURITY: 100% pure
-  [28] Src [_focus_wmctrl]: _focus_wmctrl → backend
+  [28] Src [__enter__]: __enter__
       PURITY: 100% pure
-  [29] Src [_focus_pgw]: _focus_pgw → backend
+  [29] Src [__exit__]: __exit__
       PURITY: 100% pure
-  [30] Src [_winlist_wmctrl]: _winlist_wmctrl → backend
+  [30] Src [open_web_browser]: open_web_browser
       PURITY: 100% pure
-  [31] Src [_launch_xdg]: _launch_xdg → backend
+  [31] Src [click_at]: click_at
       PURITY: 100% pure
-  [32] Src [_launch_macos]: _launch_macos → backend
+  [32] Src [double_click_at]: double_click_at
       PURITY: 100% pure
-  [33] Src [_launch_windows]: _launch_windows → backend
+  [33] Src [triple_click_at]: triple_click_at
       PURITY: 100% pure
-  [34] Src [_list_xdg]: _list_xdg → backend
+  [34] Src [middle_click_at]: middle_click_at
       PURITY: 100% pure
-  [35] Src [_list_macos]: _list_macos → backend
+  [35] Src [right_click_at]: right_click_at
       PURITY: 100% pure
-  [36] Src [_focus_atspi]: _focus_atspi → backend
+  [36] Src [mouse_down]: mouse_down
       PURITY: 100% pure
-  [37] Src [_locate_tesseract]: _locate_tesseract → backend
+  [37] Src [mouse_up]: mouse_up
       PURITY: 100% pure
-  [38] Src [_locate_easyocr]: _locate_easyocr → backend
+  [38] Src [type_text]: type_text
       PURITY: 100% pure
-  [39] Src [bbox_center]: bbox_center
+  [39] Src [wait]: wait
       PURITY: 100% pure
-  [40] Src [_locate_atspi]: _locate_atspi → backend
+  [40] Src [hover_at]: hover_at
       PURITY: 100% pure
-  [41] Src [_locate_imgl]: _locate_imgl → backend
+  [41] Src [type_text_at]: type_text_at
       PURITY: 100% pure
-  [42] Src [_locate_vql]: _locate_vql → backend
+  [42] Src [_horizontal_document_scroll]: _horizontal_document_scroll
       PURITY: 100% pure
-  [43] Src [uinput_abs_click]: uinput_abs_click → _uinput_create_abs
+  [43] Src [scroll_document]: scroll_document
       PURITY: 100% pure
-  [44] Src [surface_report]: surface_report → platform_tag → is_wayland
+  [44] Src [scroll_at]: scroll_at
       PURITY: 100% pure
-  [45] Src [capture]: capture → _ok
+  [45] Src [wait_5_seconds]: wait_5_seconds
       PURITY: 100% pure
-  [46] Src [type_text]: type_text → _ok
+  [46] Src [go_back]: go_back
       PURITY: 100% pure
-  [47] Src [key]: key → _ok
+  [47] Src [go_forward]: go_forward
       PURITY: 100% pure
-  [48] Src [click]: click → _ok
+  [48] Src [search]: search
       PURITY: 100% pure
-  [49] Src [move]: move → _ok
+  [49] Src [navigate]: navigate
       PURITY: 100% pure
-  [50] Src [scroll]: scroll → _ok
+  [50] Src [key_combination]: key_combination
       PURITY: 100% pure
 
 LAYERS:
-  urirun_connector_kvm/           CC̄=3.9    ←in:0  →out:0
-  │ !! backends                  1111L  2C   71m  CC=26     ←0
-  │ !! core                       457L  0C   28m  CC=15     ←0
-  │ connector.manifest.json     75L  0C    0m  CC=0.0    ←0
-  │ __init__                    30L  0C    0m  CC=0.0    ←0
+  urirun_connector_kvm/           CC̄=4.3    ←in:0  →out:0
+  │ !! backends                  1217L  2C   72m  CC=28     ←2
+  │ !! core                       798L  0C   50m  CC=22     ←0
+  │ cdp                        307L  0C   16m  CC=10     ←1
+  │ !! launch_backends            251L  0C   12m  CC=22     ←0
+  │ !! control                    187L  0C    6m  CC=20     ←0
+  │ strategies                 129L  3C   14m  CC=4      ←0
+  │ environment                 82L  0C    3m  CC=10     ←0
+  │ connector.manifest.json     82L  0C    0m  CC=0.0    ←0
+  │ surface                     60L  0C    2m  CC=7      ←0
+  │ __init__                    38L  0C    0m  CC=0.0    ←0
+  │
+  computer-use-preview/           CC̄=2.1    ←in:0  →out:0
+  │ !! agent                      494L  1C   18m  CC=23     ←0
+  │ playwright                 418L  1C   33m  CC=5      ←0
+  │ computer                   198L  2C   27m  CC=1      ←0
+  │ kvm                        190L  1C   33m  CC=11     ←0
+  │ main                       101L  0C    1m  CC=4      ←0
+  │ browserbase                 80L  1C    3m  CC=3      ←0
+  │ __init__                    25L  0C    0m  CC=0.0    ←0
+  │ requirements.txt             8L  0C    0m  CC=0.0    ←0
+  │ __init__                     2L  0C    0m  CC=0.0    ←0
+  │ __init__                     0L  0C    0m  CC=0.0    ←0
+  │
+  examples/                       CC̄=1.5    ←in:0  →out:0
+  │ calibrate_abs               75L  0C    4m  CC=2      ←0
+  │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
-  │ planfile.yaml              188L  0C    0m  CC=0.0    ←0
+  │ !! planfile.yaml              916L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ project.sh                  69L  0C    0m  CC=0.0    ←0
-  │ pyproject.toml              38L  0C    0m  CC=0.0    ←0
+  │ pyproject.toml              41L  0C    0m  CC=0.0    ←0
   │ Makefile                    13L  0C    0m  CC=0.0    ←0
   │ tree.sh                      4L  0C    0m  CC=0.0    ←0
-  │
-  examples/                       CC̄=0.0    ←in:0  →out:0
-  │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
   │
   testql-scenarios/               CC̄=0.0    ←in:0  →out:0
   │ generated-cli-tests.testql.toon.yaml    20L  0C    0m  CC=0.0    ←0
   │
+  ── zero ──
+     computer-use-preview/computers/playwright/__init__.py  0L
 
 COUPLING: no cross-package imports detected
 

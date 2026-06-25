@@ -63,6 +63,15 @@ def _fail_from(action: str, exc: Exception) -> dict[str, Any]:
     return urirun.fail(str(exc), connector=CONNECTOR_ID, action=action, platform=B.platform_tag())
 
 
+def _spread(d: dict | None, *also_exclude: str) -> dict[str, Any]:
+    """Strip the envelope-reserved keys from an inner result dict BEFORE spreading it into
+    ``urirun.ok``/``urirun.fail`` — passing the inner ``error``/``ok``/``connector``/``action``
+    (or a key the caller sets explicitly) collides with the envelope's own and raises
+    TypeError, which used to mask the real result behind a generic handler crash."""
+    reserved = {"ok", "error", "connector", "action", *also_exclude}
+    return {k: v for k, v in (d or {}).items() if k not in reserved}
+
+
 def _positioned_click(button: str, x, y, clicks: int = 1) -> dict[str, Any]:
     """Position+click as ONE uinput absolute device when /dev/uinput is writable.
     On a GNOME/Wayland node that lacks WAYLAND_DISPLAY, ydotool's ``mousemove -a``
@@ -505,8 +514,8 @@ def cdp_ensure(url: str = "", user_data_dir: str = "", copy_from: str = "",
     except ImportError:
         import cdp as _cdp  # type: ignore
     r = _cdp.launch_session(url=url, user_data_dir=user_data_dir, copy_from=copy_from, wait=float(wait))
-    return _ok(action="cdp-ensure", **r) if r.get("ok") else \
-        urirun.fail(r.get("error", "cdp ensure failed"), connector=CONNECTOR_ID, action="cdp-ensure", **r)
+    return _ok(action="cdp-ensure", **_spread(r)) if r.get("ok") else \
+        urirun.fail(r.get("error", "cdp ensure failed"), connector=CONNECTOR_ID, action="cdp-ensure", **_spread(r))
 
 
 def _cdp_mod():

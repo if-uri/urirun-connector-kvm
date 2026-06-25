@@ -291,15 +291,42 @@ def test_chrome_launch_injects_dedicated_profile_and_debug_port(monkeypatch) -> 
                         lambda argv, **kw: (captured.__setitem__("argv", argv), _Proc())[1])
     monkeypatch.delenv("URIRUN_KVM_NO_A11Y", raising=False)
     monkeypatch.delenv("URIRUN_KVM_CDP_PROFILE", raising=False)
+    monkeypatch.delenv("URIRUN_KVM_CDP_ON_LAUNCH", raising=False)
 
-    res = LB._launch_xdg(app="google-chrome", settle=0)
+    # debug=True OPTS IN to the CDP surface: a dedicated --user-data-dir is required for the
+    # debug port to bind (Chrome 136+ blocks it on the default profile, and a bare port is
+    # swallowed by a running default-profile chrome).
+    res = LB._launch_xdg(app="google-chrome", settle=0, debug=True)
     argv = captured["argv"]
-    # a bare --remote-debugging-port is dropped when the user's default-profile chrome is
-    # already up; the dedicated --user-data-dir forces a separate instance that binds it.
     assert any(a.startswith("--remote-debugging-port=") for a in argv)
     assert any(a.startswith("--user-data-dir=") for a in argv)
     assert "--no-first-run" in argv and "--no-default-browser-check" in argv
     assert res["cdp"]["ready"] is False   # readiness is probed + reported, not assumed
+
+
+def test_chrome_launch_default_keeps_real_profile(monkeypatch) -> None:
+    # Without debug, launch must NOT force a dedicated profile — that would open an
+    # UNAUTHENTICATED chrome and break logged-in OCR workflows (e.g. a LinkedIn post).
+    captured = {}
+
+    class _Proc:
+        pid = 99
+
+    monkeypatch.setattr(LB, "_find_app", lambda app: None)
+    monkeypatch.setattr(LB.shutil, "which", lambda b: "/usr/bin/google-chrome" if "chrome" in b else None)
+    monkeypatch.setattr(LB, "session_env", lambda: {})
+    monkeypatch.setattr(LB.time, "sleep", lambda *_a: None)
+    monkeypatch.setattr(LB.subprocess, "Popen",
+                        lambda argv, **kw: (captured.__setitem__("argv", argv), _Proc())[1])
+    monkeypatch.delenv("URIRUN_KVM_NO_A11Y", raising=False)
+    monkeypatch.delenv("URIRUN_KVM_CDP_ON_LAUNCH", raising=False)
+
+    res = LB._launch_xdg(app="google-chrome", args=["https://www.linkedin.com"], settle=0)
+    argv = captured["argv"]
+    assert not any("user-data-dir" in a for a in argv)      # real (logged-in) profile preserved
+    assert not any("remote-debugging-port" in a for a in argv)
+    assert "--force-renderer-accessibility" in argv          # a11y/OCR help is still applied
+    assert "cdp" not in res                                   # no CDP readiness probe
 
 
 def test_non_chrome_launch_skips_cdp(monkeypatch) -> None:

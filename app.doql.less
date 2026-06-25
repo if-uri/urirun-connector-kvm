@@ -26,17 +26,17 @@ interface[type="cli"] page[name="urirun-kvm"] {
 
 workflow[name="manifest"] {
   trigger: manual;
-  step-1: run cmd=urirun-connector-kvm manifest;
+  step-1: run cmd=urirun-kvm manifest;
 }
 
 workflow[name="bindings"] {
   trigger: manual;
-  step-1: run cmd=urirun-connector-kvm bindings;
+  step-1: run cmd=urirun-kvm bindings;
 }
 
 workflow[name="smoke"] {
   trigger: manual;
-  step-1: run cmd=urirun-connector-kvm bindings | urirun connectors smoke - \;
+  step-1: run cmd=urirun-kvm bindings | urirun connectors smoke - \;
   step-2: run cmd=--run 'kvm://host/screen/query/capture' --payload '{"output":"shot.png"}' \;
   step-3: run cmd=--allow 'kvm://*' --name kvm;
 }

@@ -774,6 +774,38 @@ def _tsv_lines(tsv: str, min_conf: float) -> list[dict]:
     return out
 
 
+def _tesseract_query_matches(tsv_stdout: str, ql: str, min_conf: float) -> list[dict]:
+    """Find word spans in tesseract TSV output whose line contains ``ql``."""
+    words: dict[tuple, list] = {}
+    for raw in tsv_stdout.splitlines()[1:]:
+        c = raw.split("\t")
+        if len(c) < 12 or c[0] != "5":
+            continue
+        try:
+            left, top, w, h, conf = int(c[6]), int(c[7]), int(c[8]), int(c[9]), float(c[10])
+        except ValueError:
+            continue
+        t = c[11].strip()
+        if t and conf >= float(min_conf):
+            words.setdefault((c[1], c[2], c[3], c[4]), []).append(
+                {"text": t, "conf": conf, "box": [left, top, w, h]})
+    terms = [t for t in ql.split() if len(t) >= 3] or ql.split()
+    matches = []
+    for ws in words.values():
+        if ql not in " ".join(x["text"] for x in ws).lower():
+            continue
+        sel = [x for x in ws if any(term in x["text"].lower() for term in terms)] or ws
+        x0 = min(x["box"][0] for x in sel); y0 = min(x["box"][1] for x in sel)
+        x1 = max(x["box"][0] + x["box"][2] for x in sel)
+        y1 = max(x["box"][1] + x["box"][3] for x in sel)
+        matches.append({"text": " ".join(x["text"] for x in sel),
+                        "conf": round(sum(x["conf"] for x in sel) / len(sel), 1),
+                        "box": [x0, y0, x1 - x0, y1 - y0],
+                        "center": [(x0 + x1) // 2, (y0 + y1) // 2]})
+    matches.sort(key=lambda m: -m["conf"])
+    return matches
+
+
 @backend("locate", "tesseract", priority=65, needs_bin=("tesseract",))
 def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: str = "",
                       name: str = "", min_conf: float = 40, **_) -> dict:
@@ -793,36 +825,7 @@ def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: st
     if not ql:
         matches = sorted(_tsv_lines(p.stdout, float(min_conf)), key=lambda m: -m["conf"])
     else:
-        # Word-level so a click lands ON the matched word(s), not the whole nav line.
-        words: dict[tuple, list] = {}
-        for raw in p.stdout.splitlines()[1:]:
-            c = raw.split("\t")
-            if len(c) < 12 or c[0] != "5":
-                continue
-            try:
-                left, top, w, h, conf = int(c[6]), int(c[7]), int(c[8]), int(c[9]), float(c[10])
-            except ValueError:
-                continue
-            t = c[11].strip()
-            if t and conf >= float(min_conf):
-                words.setdefault((c[1], c[2], c[3], c[4]), []).append(
-                    {"text": t, "conf": conf, "box": [left, top, w, h]})
-        # Drop 1-2 char tokens ("a", "to", ...): substring-matching them ("a" in
-        # "Today's") pulls unrelated words into the span and drifts the click centre off
-        # target. Keep them only if the query is ENTIRELY short tokens.
-        terms = [t for t in ql.split() if len(t) >= 3] or ql.split()
-        matches = []
-        for ws in words.values():
-            if ql not in " ".join(x["text"] for x in ws).lower():
-                continue
-            sel = [x for x in ws if any(term in x["text"].lower() for term in terms)] or ws
-            x0 = min(x["box"][0] for x in sel); y0 = min(x["box"][1] for x in sel)
-            x1 = max(x["box"][0] + x["box"][2] for x in sel)
-            y1 = max(x["box"][1] + x["box"][3] for x in sel)
-            matches.append({"text": " ".join(x["text"] for x in sel),
-                            "conf": round(sum(x["conf"] for x in sel) / len(sel), 1),
-                            "box": [x0, y0, x1 - x0, y1 - y0], "center": [(x0 + x1) // 2, (y0 + y1) // 2]})
-        matches.sort(key=lambda m: -m["conf"])
+        matches = _tesseract_query_matches(p.stdout, ql, float(min_conf))
     out = {"via": "tesseract", "source": "tesseract", "coord_space": "image-px",
            "query": q, "count": len(matches), "matches": matches, "fullSize": full}
     if matches and ql:
@@ -1165,6 +1168,32 @@ def _wayland_present():
     return None
 
 
+def _surface_warnings(waylandish: bool, multi: bool, fractional: bool,
+                      mons: list, unconfirmed: bool) -> list[str]:
+    """Build the human-readable warning list for ``surface_report``."""
+    warnings = []
+    if waylandish:
+        if multi or fractional or not mons:
+            why = ", ".join(p for p in (
+                "multi-monitor" if multi else "",
+                "fractional-HiDPI" if fractional else "",
+                "layout unconfirmed (Mutter geometry unreadable)" if not mons else "") if p)
+            warnings.append(
+                f"OS-level pixel input (move/click/abs/task) is UNRELIABLE here: Wayland + {why} — "
+                "screenshot pixels do not map to a fixed input coordinate and focus cannot be stolen. "
+                "Use browser-cdp (web) or remotedesktop-portal / vdisplay (native). capture (portal) is fine.")
+        else:
+            warnings.append(
+                "Wayland single-monitor, integer scale: pixel input maps ~1:1 — usable, but keys "
+                "reach only the ACTIVE window (no focus-stealing).")
+    elif unconfirmed:
+        warnings.append(
+            "Session type unconfirmed (node env has no WAYLAND_DISPLAY/DISPLAY). If this is GNOME/Wayland, "
+            "OS-level pixel input is likely unreliable — prefer browser-cdp / remotedesktop-portal; verify "
+            "with a known-coordinate click before trusting move/click/abs.")
+    return warnings
+
+
 def surface_report() -> dict:
     """Which execution surface to trust here, and why — env-independent so it is honest
     even on a node process that can't see WAYLAND_DISPLAY. Surfaces: os-level (raw input,
@@ -1180,25 +1209,7 @@ def surface_report() -> dict:
     waylandish = (wl is True) or is_wayland() or (bool(mons) and wl is not False)
     unconfirmed = linux and not waylandish and wl is None and not os.environ.get("DISPLAY")
     confirmed_simple = bool(mons) and not multi and not fractional and wl is False  # positively X11 single+integer
-    warnings = []
-    if waylandish:
-        if multi or fractional or not mons:
-            why = ", ".join(p for p in ("multi-monitor" if multi else "",
-                                        "fractional-HiDPI" if fractional else "",
-                                        "layout unconfirmed (Mutter geometry unreadable)" if not mons else "") if p)
-            warnings.append(
-                f"OS-level pixel input (move/click/abs/task) is UNRELIABLE here: Wayland + {why} — "
-                "screenshot pixels do not map to a fixed input coordinate and focus cannot be stolen. "
-                "Use browser-cdp (web) or remotedesktop-portal / vdisplay (native). capture (portal) is fine.")
-        else:
-            warnings.append(
-                "Wayland single-monitor, integer scale: pixel input maps ~1:1 — usable, but keys "
-                "reach only the ACTIVE window (no focus-stealing).")
-    elif unconfirmed:
-        warnings.append(
-            "Session type unconfirmed (node env has no WAYLAND_DISPLAY/DISPLAY). If this is GNOME/Wayland, "
-            "OS-level pixel input is likely unreliable — prefer browser-cdp / remotedesktop-portal; verify "
-            "with a known-coordinate click before trusting move/click/abs.")
+    warnings = _surface_warnings(waylandish, multi, fractional, mons, unconfirmed)
     os_reliable = bool(confirmed_simple or (wl is False and not multi and not fractional and not unconfirmed))
     recommended = (["browser-cdp", "remotedesktop-portal", "vdisplay"]
                    if (waylandish or unconfirmed) else ["os-level", "browser-cdp"])
