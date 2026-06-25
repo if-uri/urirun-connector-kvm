@@ -24,7 +24,7 @@ project_file('urirun_connector_kvm/__init__.py', 39, 'python').
 project_file('urirun_connector_kvm/backends.py', 1293, 'python').
 project_file('urirun_connector_kvm/cdp.py', 349, 'python').
 project_file('urirun_connector_kvm/control.py', 215, 'python').
-project_file('urirun_connector_kvm/core.py', 919, 'python').
+project_file('urirun_connector_kvm/core.py', 926, 'python').
 project_file('urirun_connector_kvm/environment.py', 95, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 283, 'python').
 project_file('urirun_connector_kvm/strategies.py', 130, 'python').
@@ -148,22 +148,13 @@ python_function('urirun_connector_kvm/backends.py', '_surface_warnings', 5, 11, 
 python_function('urirun_connector_kvm/backends.py', '_os_level_reliable', 5, 5, 1).
 python_function('urirun_connector_kvm/backends.py', '_surface_flags', 3, 11, 6).
 python_function('urirun_connector_kvm/backends.py', 'surface_report', 0, 4, 6).
-python_function('urirun_connector_kvm/cdp.py', 'endpoint', 0, 2, 2).
-python_function('urirun_connector_kvm/cdp.py', '_pages', 0, 8, 7).
-python_function('urirun_connector_kvm/cdp.py', 'reachable', 0, 2, 2).
-python_function('urirun_connector_kvm/cdp.py', 'navigate', 1, 1, 2).
-python_function('urirun_connector_kvm/cdp.py', 'page_ready', 1, 4, 6).
+python_function('urirun_connector_kvm/cdp.py', '_kvm_endpoint', 0, 2, 2).
 python_function('urirun_connector_kvm/cdp.py', '_find_chrome', 0, 4, 3).
 python_function('urirun_connector_kvm/cdp.py', '_copy_auth', 2, 4, 7).
-python_function('urirun_connector_kvm/cdp.py', 'start_session', 3, 8, 12).
+python_function('urirun_connector_kvm/cdp.py', 'start_session', 3, 7, 12).
 python_function('urirun_connector_kvm/cdp.py', 'await_ready', 1, 4, 6).
 python_function('urirun_connector_kvm/cdp.py', 'launch_session', 4, 3, 4).
-python_function('urirun_connector_kvm/cdp.py', '_ws_connect', 2, 6, 12).
-python_function('urirun_connector_kvm/cdp.py', '_ws_send', 2, 4, 9).
-python_function('urirun_connector_kvm/cdp.py', '_ws_recv', 1, 6, 6).
-python_function('urirun_connector_kvm/cdp.py', '_call', 4, 4, 7).
-python_function('urirun_connector_kvm/cdp.py', '_evaluate', 1, 4, 6).
-python_function('urirun_connector_kvm/cdp.py', '_run', 5, 2, 6).
+python_function('urirun_connector_kvm/cdp.py', '_run', 5, 3, 7).
 python_function('urirun_connector_kvm/cdp.py', 'find', 3, 1, 1).
 python_function('urirun_connector_kvm/cdp.py', 'act', 5, 2, 3).
 python_function('urirun_connector_kvm/control.py', 'strategy', 1, 1, 3).
@@ -228,7 +219,7 @@ python_function('urirun_connector_kvm/core.py', '_capture_native', 1, 1, 4).
 python_function('urirun_connector_kvm/core.py', 'ui_locate', 3, 3, 9).
 python_function('urirun_connector_kvm/core.py', 'ui_click_text', 7, 8, 11).
 python_function('urirun_connector_kvm/core.py', 'doctor', 0, 1, 6).
-python_function('urirun_connector_kvm/core.py', 'launch', 4, 4, 5).
+python_function('urirun_connector_kvm/core.py', 'launch', 4, 5, 7).
 python_function('urirun_connector_kvm/core.py', 'list_apps', 1, 2, 4).
 python_function('urirun_connector_kvm/core.py', 'urirun_bindings', 0, 1, 1).
 python_function('urirun_connector_kvm/core.py', 'connector_manifest', 0, 1, 2).

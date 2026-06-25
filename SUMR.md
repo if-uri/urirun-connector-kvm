@@ -112,11 +112,11 @@ urirun>=0.4.14
 | Function | CC | in | out | total |
 |----------|----|----|-----|-------|
 | `backend` *(in urirun_connector_kvm.backends)* | 1 | 39 | 6 | **45** |
-| `_ok` *(in urirun_connector_kvm.core)* | 1 | 40 | 1 | **41** |
 | `task_run` *(in urirun_connector_kvm.core)* | 13 ⚠ | 0 | 41 | **41** |
-| `_apply_capture_postprocessing` *(in urirun_connector_kvm.core)* | 10 ⚠ | 1 | 27 | **28** |
+| `_ok` *(in urirun_connector_kvm.core)* | 1 | 40 | 1 | **41** |
+| `_run` *(in urirun_connector_kvm.backends)* | 4 | 26 | 4 | **30** |
 | `_fail_from` *(in urirun_connector_kvm.core)* | 1 | 25 | 3 | **28** |
-| `_run` *(in urirun_connector_kvm.backends)* | 4 | 24 | 4 | **28** |
+| `_apply_capture_postprocessing` *(in urirun_connector_kvm.core)* | 10 ⚠ | 1 | 27 | **28** |
 | `_locate_easyocr` *(in urirun_connector_kvm.backends)* | 14 ⚠ | 0 | 26 | **26** |
 | `profile` *(in urirun_connector_kvm.environment)* | 13 ⚠ | 0 | 25 | **25** |
 
@@ -129,16 +129,16 @@ urirun>=0.4.14
 HUBS[20]:
   urirun_connector_kvm.backends.backend
     CC=1  in:39  out:6  total:45
-  urirun_connector_kvm.core._ok
-    CC=1  in:40  out:1  total:41
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
-  urirun_connector_kvm.core._apply_capture_postprocessing
-    CC=10  in:1  out:27  total:28
+  urirun_connector_kvm.core._ok
+    CC=1  in:40  out:1  total:41
+  urirun_connector_kvm.backends._run
+    CC=4  in:26  out:4  total:30
   urirun_connector_kvm.core._fail_from
     CC=1  in:25  out:3  total:28
-  urirun_connector_kvm.backends._run
-    CC=4  in:24  out:4  total:28
+  urirun_connector_kvm.core._apply_capture_postprocessing
+    CC=10  in:1  out:27  total:28
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
   urirun_connector_kvm.environment.profile
@@ -157,16 +157,16 @@ HUBS[20]:
     CC=11  in:0  out:20  total:20
   urirun_connector_kvm.backends.dispatch
     CC=11  in:2  out:17  total:19
-  urirun_connector_kvm.core.cdp_ensure
-    CC=6  in:0  out:18  total:18
   urirun_connector_kvm.core._positioned_click
     CC=8  in:6  out:12  total:18
-  urirun_connector_kvm.backends._screen_wh
-    CC=8  in:2  out:15  total:17
+  urirun_connector_kvm.core.cdp_ensure
+    CC=6  in:0  out:18  total:18
   urirun_connector_kvm.core.ui_act
     CC=7  in:0  out:17  total:17
   urirun_connector_kvm.core.capture
     CC=6  in:0  out:17  total:17
+  urirun_connector_kvm.backends._screen_wh
+    CC=8  in:2  out:15  total:17
 
 MODULES:
   computer-use-preview.agent  [3 funcs]
@@ -242,55 +242,55 @@ MODULES:
 
 EDGES:
   examples.calibrate_abs.cap → examples.calibrate_abs.run
-  urirun_connector_kvm.launch_backends._parse_desktop → urirun_connector_kvm.launch_backends._parse_desktop_section
-  urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._xdg_app_dirs
-  urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._parse_desktop
-  urirun_connector_kvm.launch_backends._find_app → urirun_connector_kvm.launch_backends._desktop_entries
-  urirun_connector_kvm.launch_backends._resolve_launch_argv → urirun_connector_kvm.launch_backends._find_app
-  urirun_connector_kvm.launch_backends._resolve_launch_argv → urirun_connector_kvm.launch_backends._strip_field_codes
-  urirun_connector_kvm.launch_backends._inject_chrome_flags → urirun_connector_kvm.launch_backends._cdp_port
-  urirun_connector_kvm.launch_backends._inject_chrome_flags → urirun_connector_kvm.launch_backends._inject_cdp_profile
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._resolve_launch_argv
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._inject_chrome_flags
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._cdp_wait
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.launch_backends._desktop_entries
-  urirun_connector_kvm.launch_backends._list_macos → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.strategies.CdpStrategy.available → urirun_connector_kvm.strategies.is_browser
   urirun_connector_kvm.surface.current → urirun_connector_kvm.surface._active_window
-  urirun_connector_kvm.cdp._pages → urirun_connector_kvm.cdp.endpoint
-  urirun_connector_kvm.cdp.reachable → urirun_connector_kvm.cdp._pages
-  urirun_connector_kvm.cdp.navigate → urirun_connector_kvm.cdp._evaluate
-  urirun_connector_kvm.cdp.page_ready → urirun_connector_kvm.cdp._evaluate
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp.endpoint
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp.reachable
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._copy_auth
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._find_chrome
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp.navigate
-  urirun_connector_kvm.cdp.await_ready → urirun_connector_kvm.cdp.endpoint
-  urirun_connector_kvm.cdp.await_ready → urirun_connector_kvm.cdp.reachable
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.start_session
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.await_ready
-  urirun_connector_kvm.cdp._call → urirun_connector_kvm.cdp._ws_send
-  urirun_connector_kvm.cdp._call → urirun_connector_kvm.cdp._ws_recv
-  urirun_connector_kvm.cdp._evaluate → urirun_connector_kvm.cdp._pages
-  urirun_connector_kvm.cdp._evaluate → urirun_connector_kvm.cdp._ws_connect
-  urirun_connector_kvm.cdp._evaluate → urirun_connector_kvm.cdp._call
-  urirun_connector_kvm.cdp._run → urirun_connector_kvm.cdp._evaluate
-  urirun_connector_kvm.cdp.find → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.cdp.act → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._apply_capture_postprocessing
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.backends._wayland_socket → urirun_connector_kvm.backends._runtime_dir
+  urirun_connector_kvm.backends.is_wayland → urirun_connector_kvm.backends._wayland_socket
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends._x_display
+  urirun_connector_kvm.backends.platform_tag → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.Backend.missing → urirun_connector_kvm.backends.have_bin
+  urirun_connector_kvm.backends.Backend.missing → urirun_connector_kvm.backends.have_mod
+  urirun_connector_kvm.backends.Backend.available → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends.dispatch → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends._run → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._portal_python
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_mss → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_pillow → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_gnome → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_gnome → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_macos → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_macos → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends.ensure_ydotoold → urirun_connector_kvm.backends._ydotool_socket
+  urirun_connector_kvm.backends._yd_env → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._yd_env → urirun_connector_kvm.backends.ensure_ydotoold
+  urirun_connector_kvm.backends.session_env → urirun_connector_kvm.backends._runtime_dir
+  urirun_connector_kvm.backends.session_env → urirun_connector_kvm.backends._x_display
+  urirun_connector_kvm.backends.session_env → urirun_connector_kvm.backends._wayland_socket
+  urirun_connector_kvm.backends._clipboard_set → urirun_connector_kvm.backends.have_bin
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._clipboard_set
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._yd_env
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._yd_keyseq
+  urirun_connector_kvm.backends._type_wtype → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._type_wtype → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._type_xdotool → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._type_xdotool → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._type_pynput → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._click_ydotool → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._click_ydotool → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._click_ydotool → urirun_connector_kvm.backends._yd_env
+  urirun_connector_kvm.backends._click_xdotool → urirun_connector_kvm.backends.backend
 ```
 
 ## Test Contracts
@@ -316,16 +316,16 @@ EDGES:
 HUBS[20]:
   urirun_connector_kvm.backends.backend
     CC=1  in:39  out:6  total:45
-  urirun_connector_kvm.core._ok
-    CC=1  in:40  out:1  total:41
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
-  urirun_connector_kvm.core._apply_capture_postprocessing
-    CC=10  in:1  out:27  total:28
+  urirun_connector_kvm.core._ok
+    CC=1  in:40  out:1  total:41
+  urirun_connector_kvm.backends._run
+    CC=4  in:26  out:4  total:30
   urirun_connector_kvm.core._fail_from
     CC=1  in:25  out:3  total:28
-  urirun_connector_kvm.backends._run
-    CC=4  in:24  out:4  total:28
+  urirun_connector_kvm.core._apply_capture_postprocessing
+    CC=10  in:1  out:27  total:28
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
   urirun_connector_kvm.environment.profile
@@ -344,16 +344,16 @@ HUBS[20]:
     CC=11  in:0  out:20  total:20
   urirun_connector_kvm.backends.dispatch
     CC=11  in:2  out:17  total:19
-  urirun_connector_kvm.core.cdp_ensure
-    CC=6  in:0  out:18  total:18
   urirun_connector_kvm.core._positioned_click
     CC=8  in:6  out:12  total:18
-  urirun_connector_kvm.backends._screen_wh
-    CC=8  in:2  out:15  total:17
+  urirun_connector_kvm.core.cdp_ensure
+    CC=6  in:0  out:18  total:18
   urirun_connector_kvm.core.ui_act
     CC=7  in:0  out:17  total:17
   urirun_connector_kvm.core.capture
     CC=6  in:0  out:17  total:17
+  urirun_connector_kvm.backends._screen_wh
+    CC=8  in:2  out:15  total:17
 
 MODULES:
   computer-use-preview.agent  [3 funcs]
@@ -429,61 +429,61 @@ MODULES:
 
 EDGES:
   examples.calibrate_abs.cap → examples.calibrate_abs.run
-  urirun_connector_kvm.launch_backends._parse_desktop → urirun_connector_kvm.launch_backends._parse_desktop_section
-  urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._xdg_app_dirs
-  urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._parse_desktop
-  urirun_connector_kvm.launch_backends._find_app → urirun_connector_kvm.launch_backends._desktop_entries
-  urirun_connector_kvm.launch_backends._resolve_launch_argv → urirun_connector_kvm.launch_backends._find_app
-  urirun_connector_kvm.launch_backends._resolve_launch_argv → urirun_connector_kvm.launch_backends._strip_field_codes
-  urirun_connector_kvm.launch_backends._inject_chrome_flags → urirun_connector_kvm.launch_backends._cdp_port
-  urirun_connector_kvm.launch_backends._inject_chrome_flags → urirun_connector_kvm.launch_backends._inject_cdp_profile
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._resolve_launch_argv
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._inject_chrome_flags
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._cdp_wait
-  urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.launch_backends._desktop_entries
-  urirun_connector_kvm.launch_backends._list_macos → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.strategies.CdpStrategy.available → urirun_connector_kvm.strategies.is_browser
   urirun_connector_kvm.surface.current → urirun_connector_kvm.surface._active_window
-  urirun_connector_kvm.cdp._pages → urirun_connector_kvm.cdp.endpoint
-  urirun_connector_kvm.cdp.reachable → urirun_connector_kvm.cdp._pages
-  urirun_connector_kvm.cdp.navigate → urirun_connector_kvm.cdp._evaluate
-  urirun_connector_kvm.cdp.page_ready → urirun_connector_kvm.cdp._evaluate
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp.endpoint
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp.reachable
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._copy_auth
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._find_chrome
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp.navigate
-  urirun_connector_kvm.cdp.await_ready → urirun_connector_kvm.cdp.endpoint
-  urirun_connector_kvm.cdp.await_ready → urirun_connector_kvm.cdp.reachable
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.start_session
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.await_ready
-  urirun_connector_kvm.cdp._call → urirun_connector_kvm.cdp._ws_send
-  urirun_connector_kvm.cdp._call → urirun_connector_kvm.cdp._ws_recv
-  urirun_connector_kvm.cdp._evaluate → urirun_connector_kvm.cdp._pages
-  urirun_connector_kvm.cdp._evaluate → urirun_connector_kvm.cdp._ws_connect
-  urirun_connector_kvm.cdp._evaluate → urirun_connector_kvm.cdp._call
-  urirun_connector_kvm.cdp._run → urirun_connector_kvm.cdp._evaluate
-  urirun_connector_kvm.cdp.find → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.cdp.act → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._apply_capture_postprocessing
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.backends._wayland_socket → urirun_connector_kvm.backends._runtime_dir
+  urirun_connector_kvm.backends.is_wayland → urirun_connector_kvm.backends._wayland_socket
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends._x_display
+  urirun_connector_kvm.backends.platform_tag → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.Backend.missing → urirun_connector_kvm.backends.have_bin
+  urirun_connector_kvm.backends.Backend.missing → urirun_connector_kvm.backends.have_mod
+  urirun_connector_kvm.backends.Backend.available → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends.dispatch → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends._run → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._portal_python
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_mss → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_pillow → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_gnome → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_gnome → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_macos → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_macos → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends.ensure_ydotoold → urirun_connector_kvm.backends._ydotool_socket
+  urirun_connector_kvm.backends._yd_env → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._yd_env → urirun_connector_kvm.backends.ensure_ydotoold
+  urirun_connector_kvm.backends.session_env → urirun_connector_kvm.backends._runtime_dir
+  urirun_connector_kvm.backends.session_env → urirun_connector_kvm.backends._x_display
+  urirun_connector_kvm.backends.session_env → urirun_connector_kvm.backends._wayland_socket
+  urirun_connector_kvm.backends._clipboard_set → urirun_connector_kvm.backends.have_bin
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._clipboard_set
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._yd_env
+  urirun_connector_kvm.backends._type_ydotool → urirun_connector_kvm.backends._yd_keyseq
+  urirun_connector_kvm.backends._type_wtype → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._type_wtype → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._type_xdotool → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._type_xdotool → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._type_pynput → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._click_ydotool → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._click_ydotool → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._click_ydotool → urirun_connector_kvm.backends._yd_env
+  urirun_connector_kvm.backends._click_xdotool → urirun_connector_kvm.backends.backend
 ```
 
 ### Code Analysis (`project/analysis.toon.yaml`)
 
 ```toon markpact:analysis path=project/analysis.toon.yaml
-# code2llm | 29f 6212L | python:19,shell:3,yaml:3,toml:1,json:1,txt:1 | 2026-06-25
+# code2llm | 29f 6219L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
 # generated in 0.01s
 # CC̅=3.3 | critical:0/321 | dups:0 | cycles:0
 
@@ -498,106 +498,106 @@ PIPELINES[200]:
       PURITY: 100% pure
   [3] Src [find_box]: find_box
       PURITY: 100% pure
-  [4] Src [_launch_xdg]: _launch_xdg → backend
+  [4] Src [available]: available → is_browser
       PURITY: 100% pure
-  [5] Src [_launch_macos]: _launch_macos → backend
+  [5] Src [locate]: locate
       PURITY: 100% pure
-  [6] Src [_launch_windows]: _launch_windows → backend
+  [6] Src [click]: click
       PURITY: 100% pure
-  [7] Src [_list_xdg]: _list_xdg → backend
+  [7] Src [fill]: fill
       PURITY: 100% pure
-  [8] Src [_list_macos]: _list_macos → backend
+  [8] Src [available]: available
       PURITY: 100% pure
-  [9] Src [available]: available → is_browser
+  [9] Src [locate]: locate
       PURITY: 100% pure
-  [10] Src [locate]: locate
+  [10] Src [click]: click
       PURITY: 100% pure
-  [11] Src [click]: click
+  [11] Src [fill]: fill
       PURITY: 100% pure
-  [12] Src [fill]: fill
+  [12] Src [available]: available
       PURITY: 100% pure
-  [13] Src [available]: available
+  [13] Src [locate]: locate
       PURITY: 100% pure
-  [14] Src [locate]: locate
+  [14] Src [_click_xy]: _click_xy
       PURITY: 100% pure
   [15] Src [click]: click
       PURITY: 100% pure
   [16] Src [fill]: fill
       PURITY: 100% pure
-  [17] Src [available]: available
+  [17] Src [current]: current → _active_window
       PURITY: 100% pure
-  [18] Src [locate]: locate
+  [18] Src [is_x11]: is_x11 → is_wayland → _wayland_socket → _runtime_dir
       PURITY: 100% pure
-  [19] Src [_click_xy]: _click_xy
+  [19] Src [missing]: missing → have_bin
       PURITY: 100% pure
-  [20] Src [click]: click
+  [20] Src [available]: available → platform_tag → is_wayland → _wayland_socket → ...(1 more)
       PURITY: 100% pure
-  [21] Src [fill]: fill
+  [21] Src [registry_report]: registry_report
       PURITY: 100% pure
-  [22] Src [current]: current → _active_window
+  [22] Src [_cap_portal]: _cap_portal → backend
       PURITY: 100% pure
-  [23] Src [page_ready]: page_ready → _evaluate → _pages → endpoint
+  [23] Src [_cap_grim]: _cap_grim → backend
       PURITY: 100% pure
-  [24] Src [launch_session]: launch_session → start_session → endpoint
+  [24] Src [_cap_mss]: _cap_mss → backend
       PURITY: 100% pure
-  [25] Src [find]: find → _run → _evaluate → _pages → ...(1 more)
+  [25] Src [_cap_pillow]: _cap_pillow → backend
       PURITY: 100% pure
-  [26] Src [act]: act → _run → _evaluate → _pages → ...(1 more)
+  [26] Src [_cap_scrot]: _cap_scrot → backend
       PURITY: 100% pure
-  [27] Src [capture]: capture → _apply_capture_postprocessing
+  [27] Src [_cap_im]: _cap_im → backend
       PURITY: 100% pure
-  [28] Src [display_info]: display_info → _ok
+  [28] Src [_cap_gnome]: _cap_gnome → backend
       PURITY: 100% pure
-  [29] Src [type_text]: type_text → _ok
+  [29] Src [_cap_macos]: _cap_macos → backend
       PURITY: 100% pure
-  [30] Src [key]: key → _ok
+  [30] Src [_type_ydotool]: _type_ydotool → backend
       PURITY: 100% pure
-  [31] Src [click]: click → _ok
+  [31] Src [_type_wtype]: _type_wtype → backend
       PURITY: 100% pure
-  [32] Src [move]: move → _ok
+  [32] Src [_type_xdotool]: _type_xdotool → backend
       PURITY: 100% pure
-  [33] Src [wait]: wait → _ok
+  [33] Src [_type_pynput]: _type_pynput → backend
       PURITY: 100% pure
-  [34] Src [scroll]: scroll → _ok
+  [34] Src [_click_ydotool]: _click_ydotool → backend
       PURITY: 100% pure
-  [35] Src [double_click]: double_click → _ok
+  [35] Src [_click_xdotool]: _click_xdotool → backend
       PURITY: 100% pure
-  [36] Src [triple_click]: triple_click → _ok
+  [36] Src [_click_pynput]: _click_pynput → backend
       PURITY: 100% pure
-  [37] Src [right_click]: right_click → _ok
+  [37] Src [_move_uinput_abs]: _move_uinput_abs → backend
       PURITY: 100% pure
-  [38] Src [middle_click]: middle_click → _ok
+  [38] Src [_move_ydotool]: _move_ydotool → backend
       PURITY: 100% pure
-  [39] Src [hover]: hover → _ok
+  [39] Src [_move_xdotool]: _move_xdotool → backend
       PURITY: 100% pure
-  [40] Src [drag_and_drop]: drag_and_drop → _ok
+  [40] Src [_move_pynput]: _move_pynput → backend
       PURITY: 100% pure
-  [41] Src [click_abs]: click_abs → _ok
+  [41] Src [_key_ydotool]: _key_ydotool → backend
       PURITY: 100% pure
-  [42] Src [task_run]: task_run → _ok
+  [42] Src [_key_xdotool]: _key_xdotool → backend
       PURITY: 100% pure
-  [43] Src [focus]: focus → _ok
+  [43] Src [_key_pynput]: _key_pynput → backend
       PURITY: 100% pure
-  [44] Src [window_list]: window_list → _ok
+  [44] Src [_scroll_ydotool]: _scroll_ydotool → backend
       PURITY: 100% pure
-  [45] Src [window_close]: window_close → _cdp_mod
+  [45] Src [_scroll_pynput]: _scroll_pynput → backend
       PURITY: 100% pure
-  [46] Src [window_restore]: window_restore → _cdp_mod
+  [46] Src [_focus_wmctrl]: _focus_wmctrl → backend
       PURITY: 100% pure
-  [47] Src [proc_kill]: proc_kill → _ok
+  [47] Src [_focus_pgw]: _focus_pgw → backend
       PURITY: 100% pure
-  [48] Src [a11y_act]: a11y_act → _ok
+  [48] Src [_winlist_wmctrl]: _winlist_wmctrl → backend
       PURITY: 100% pure
-  [49] Src [_click_hit]: _click_hit → _positioned_click
+  [49] Src [_focus_atspi]: _focus_atspi → backend
       PURITY: 100% pure
-  [50] Src [ui_find]: ui_find → _router_return → _ok
+  [50] Src [_locate_tesseract]: _locate_tesseract → backend
       PURITY: 100% pure
 
 LAYERS:
   urirun_connector_kvm/           CC̄=4.1    ←in:0  →out:0
   │ !! backends                  1292L  2C   79m  CC=14     ←2
-  │ !! core                       918L  0C   58m  CC=13     ←0
-  │ cdp                        348L  0C   18m  CC=8      ←1
+  │ !! core                       925L  0C   58m  CC=13     ←0
+  │ cdp                        348L  0C   18m  CC=8      ←0
   │ launch_backends            282L  0C   16m  CC=11     ←0
   │ control                    214L  0C    9m  CC=13     ←0
   │ strategies                 129L  3C   14m  CC=4      ←0
@@ -669,8 +669,8 @@ NEXT[3] (ranked by impact):
       EFFORT: ~4h  IMPACT: 18088
 
   [2] !! SPLIT           urirun_connector_kvm/core.py
-      WHY: 918L, 0 classes, max CC=13
-      EFFORT: ~4h  IMPACT: 11934
+      WHY: 925L, 0 classes, max CC=13
+      EFFORT: ~4h  IMPACT: 12025
 
   [3] !! SPLIT           planfile.yaml
       WHY: 890L, 0 classes, max CC=0
@@ -714,7 +714,7 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=3.1 → now CC̄=3.3
+  prev CC̄=3.3 → now CC̄=3.3
 ```
 
 ## Intent

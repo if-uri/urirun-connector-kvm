@@ -383,14 +383,14 @@ def window_close(id: str = "") -> dict[str, Any]:
         session: (() => { try { return Object.fromEntries(Object.entries(sessionStorage)); } catch (e) { return {}; } })()
     }))()"""
     try:
-        snap = cdp._evaluate(snapshot_js)
-    except B.BackendError as exc:
+        snap = cdp.evaluate(snapshot_js)
+    except (B.BackendError, cdp.CdpError) as exc:
         return _fail_from("window-close", exc)
     if isinstance(snap, dict):
         snap["id"] = id or "active"
     try:
-        cdp._evaluate("window.close()")
-    except B.BackendError:
+        cdp.evaluate("window.close()")
+    except (B.BackendError, cdp.CdpError):
         # some pages refuse window.close(); the tab may persist, the snapshot stays valid
         pass
     return _ok(action="window-close", did=f"close({id or 'active'})", reversible=True, snapshot=snap,
@@ -427,8 +427,8 @@ def window_restore(snapshot: dict | None = None) -> dict[str, Any]:
     try:
         cdp.navigate(s["url"])
         cdp.page_ready()
-        cdp._evaluate(expr)
-    except B.BackendError as exc:
+        cdp.evaluate(expr)
+    except (B.BackendError, cdp.CdpError) as exc:
         return _fail_from("window-restore", exc)
     return _ok(action="window-restore", did=f"restore({s.get('id', '?')})", reversible=True,
                inverse={"path": "window/command/close", "args": {"id": s.get("id")}})
@@ -637,7 +637,7 @@ def cdp_navigate(url: str = "", ready_timeout: float = 8.0) -> dict[str, Any]:
     try:
         prev = None
         try:
-            prev = cdp._evaluate("location.href")   # capture before leaving, for the inverse
+            prev = cdp.evaluate("location.href")   # capture before leaving, for the inverse
         except Exception:  # noqa: BLE001 - no page yet -> the inverse is simply unavailable
             prev = None
         nav = cdp.navigate(url)

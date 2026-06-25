@@ -1,6 +1,6 @@
-# code2llm | 44f 7940L | python:19,md:15,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
+# code2llm | 29f 6088L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
 # generated in 0.01s
-# CC̅=3.3 | critical:0/321 | dups:0 | cycles:0
+# CC̅=3.3 | critical:0/312 | dups:0 | cycles:0
 
 HEALTH[0]: ok
 
@@ -109,11 +109,11 @@ PIPELINES[200]:
       PURITY: 100% pure
 
 LAYERS:
-  urirun_connector_kvm/           CC̄=4.1    ←in:0  →out:0
-  │ !! backends                  1292L  2C   79m  CC=14     ←2
-  │ !! core                       918L  0C   58m  CC=13     ←0
-  │ cdp                        348L  0C   18m  CC=8      ←0
+  urirun_connector_kvm/           CC̄=4.0    ←in:0  →out:1
+  │ !! backends                  1292L  2C   79m  CC=14     ←1
+  │ !! core                       925L  0C   58m  CC=13     ←0
   │ launch_backends            282L  0C   16m  CC=11     ←0
+  │ cdp                        217L  0C    9m  CC=7      ←0
   │ control                    214L  0C    9m  CC=13     ←0
   │ strategies                 129L  3C   14m  CC=4      ←0
   │ environment                 94L  0C    3m  CC=13     ←0
@@ -124,12 +124,10 @@ LAYERS:
   computer-use-preview/           CC̄=2.1    ←in:0  →out:0
   │ !! agent                      512L  1C   21m  CC=13     ←0
   │ playwright                 418L  1C   33m  CC=5      ←0
-  │ computer                   198L  2C   27m  CC=1      ←0
+  │ computer                   198L  2C   27m  CC=1      ←1
   │ kvm                        190L  1C   33m  CC=11     ←0
-  │ README.md                  182L  0C    0m  CC=0.0    ←0
   │ main                       101L  0C    1m  CC=4      ←0
   │ browserbase                 80L  1C    3m  CC=3      ←0
-  │ CONTRIBUTING.md             33L  0C    0m  CC=0.0    ←0
   │ __init__                    25L  0C    0m  CC=0.0    ←0
   │ requirements.txt             8L  0C    0m  CC=0.0    ←0
   │ __init__                     2L  0C    0m  CC=0.0    ←0
@@ -137,38 +135,27 @@ LAYERS:
   │
   examples/                       CC̄=1.5    ←in:0  →out:0
   │ calibrate_abs               75L  0C    4m  CC=2      ←0
-  │ README.md                   35L  0C    0m  CC=0.0    ←0
   │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
   │ !! planfile.yaml              890L  0C    0m  CC=0.0    ←0
-  │ DESKTOPENV.md              198L  0C    0m  CC=0.0    ←0
-  │ TODO.md                    160L  0C    0m  CC=0.0    ←0
-  │ README.md                  139L  0C    0m  CC=0.0    ←0
-  │ CHANGELOG.md               124L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ project.sh                  69L  0C    0m  CC=0.0    ←0
   │ pyproject.toml              44L  0C    0m  CC=0.0    ←0
-  │ CONTRIBUTING.md             21L  0C    0m  CC=0.0    ←0
   │ Makefile                    13L  0C    0m  CC=0.0    ←0
   │ tree.sh                      4L  0C    0m  CC=0.0    ←0
   │
   testql-scenarios/               CC̄=0.0    ←in:0  →out:0
   │ generated-cli-tests.testql.toon.yaml    20L  0C    0m  CC=0.0    ←0
   │
-  docs/                           CC̄=0.0    ←in:0  →out:0
-  │ ARCHITECTURE-cross-platform-backends.md   238L  0C    0m  CC=0.0    ←0
-  │ lenovo-control-runbook.md   148L  0C    0m  CC=0.0    ←0
-  │ surface-architecture.md    113L  0C    0m  CC=0.0    ←0
-  │ reversibility-contract.md    98L  0C    0m  CC=0.0    ←0
-  │ operational-layers-priorities.md    90L  0C    0m  CC=0.0    ←0
-  │ autonomous-kvm-agent.md     81L  0C    0m  CC=0.0    ←0
-  │ control-router-findings.md    68L  0C    0m  CC=0.0    ←0
-  │
   ── zero ──
      computer-use-preview/computers/playwright/__init__.py  0L
 
-COUPLING: no cross-package imports detected
+COUPLING:
+                                  computer-use-preview.computers            urirun_connector_kvm
+  computer-use-preview.computers                              ──                              ←1
+            urirun_connector_kvm                               1                              ──
+  CYCLES: none
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon

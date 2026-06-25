@@ -41,6 +41,8 @@ endpoint = _surface.endpoint
 reachable = _surface.reachable
 navigate = _surface.navigate
 page_ready = _surface.page_ready
+evaluate = _surface.evaluate          # raw JS eval (snapshot/restore/navigate-inverse capture)
+CdpError = _surface.CdpError          # raised by evaluate when no page / JS throws
 
 # --------------------------------------------------------------------------- #
 # launch — kept here (not re-exported) because tests patch cdp._find_chrome and
