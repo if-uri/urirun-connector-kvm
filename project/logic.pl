@@ -21,10 +21,10 @@ project_file('project.sh', 69, 'shell').
 project_file('tests/test_kvm.py', 464, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1293, 'python').
-project_file('urirun_connector_kvm/cdp.py', 349, 'python').
+project_file('urirun_connector_kvm/backends.py', 1279, 'python').
+project_file('urirun_connector_kvm/cdp.py', 221, 'python').
 project_file('urirun_connector_kvm/control.py', 215, 'python').
-project_file('urirun_connector_kvm/core.py', 926, 'python').
+project_file('urirun_connector_kvm/core.py', 947, 'python').
 project_file('urirun_connector_kvm/environment.py', 95, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 283, 'python').
 project_file('urirun_connector_kvm/strategies.py', 130, 'python').
@@ -77,8 +77,6 @@ python_function('urirun_connector_kvm/backends.py', '_x_display', 0, 6, 4).
 python_function('urirun_connector_kvm/backends.py', 'is_wayland', 0, 3, 4).
 python_function('urirun_connector_kvm/backends.py', 'is_x11', 0, 3, 4).
 python_function('urirun_connector_kvm/backends.py', 'platform_tag', 0, 5, 2).
-python_function('urirun_connector_kvm/backends.py', 'have_bin', 1, 1, 1).
-python_function('urirun_connector_kvm/backends.py', 'have_mod', 1, 2, 1).
 python_function('urirun_connector_kvm/backends.py', 'backend', 2, 1, 5).
 python_function('urirun_connector_kvm/backends.py', 'dispatch', 1, 11, 9).
 python_function('urirun_connector_kvm/backends.py', 'registry_report', 0, 3, 4).
@@ -197,7 +195,7 @@ python_function('urirun_connector_kvm/core.py', '_click_hit', 4, 7, 7).
 python_function('urirun_connector_kvm/core.py', '_router_return', 2, 5, 4).
 python_function('urirun_connector_kvm/core.py', 'ui_find', 5, 1, 3).
 python_function('urirun_connector_kvm/core.py', 'ui_click', 4, 1, 3).
-python_function('urirun_connector_kvm/core.py', 'ui_fill', 6, 2, 4).
+python_function('urirun_connector_kvm/core.py', 'ui_fill', 6, 8, 6).
 python_function('urirun_connector_kvm/core.py', 'ui_strategies', 0, 1, 3).
 python_function('urirun_connector_kvm/core.py', 'env_profile', 0, 2, 3).
 python_function('urirun_connector_kvm/core.py', '_surface_mod', 0, 2, 0).
@@ -205,7 +203,7 @@ python_function('urirun_connector_kvm/core.py', 'surface_current', 0, 1, 4).
 python_function('urirun_connector_kvm/core.py', 'cdp_ensure', 4, 6, 10).
 python_function('urirun_connector_kvm/core.py', 'cdp_session_ready', 1, 4, 10).
 python_function('urirun_connector_kvm/core.py', '_cdp_mod', 0, 2, 0).
-python_function('urirun_connector_kvm/core.py', 'cdp_navigate', 2, 3, 9).
+python_function('urirun_connector_kvm/core.py', 'cdp_navigate', 2, 7, 11).
 python_function('urirun_connector_kvm/core.py', 'cdp_ready', 1, 2, 8).
 python_function('urirun_connector_kvm/core.py', '_resolve_act_app', 1, 4, 3).
 python_function('urirun_connector_kvm/core.py', '_act_retry_loop', 11, 5, 10).
@@ -389,7 +387,6 @@ python_method('TestMain', 'test_main_browserbase', 3, 1, 5).
 python_class('urirun_connector_kvm/backends.py', 'Backend').
 python_method('Backend', 'missing', 0, 5, 2).
 python_method('Backend', 'available', 0, 3, 2).
-python_class('urirun_connector_kvm/backends.py', 'BackendError').
 python_class('urirun_connector_kvm/strategies.py', 'CdpStrategy').
 python_method('CdpStrategy', 'available', 1, 1, 2).
 python_method('CdpStrategy', 'locate', 1, 2, 2).

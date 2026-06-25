@@ -7,16 +7,16 @@
 - **Primary Language**: python
 - **Languages**: python: 19, yaml: 3, shell: 3, toml: 1, json: 1
 - **Analysis Mode**: static
-- **Total Functions**: 312
-- **Total Classes**: 11
+- **Total Functions**: 310
+- **Total Classes**: 10
 - **Modules**: 29
-- **Entry Points**: 232
+- **Entry Points**: 231
 
 ## Architecture by Module
 
 ### urirun_connector_kvm.backends
-- **Functions**: 79
-- **Classes**: 2
+- **Functions**: 77
+- **Classes**: 1
 - **File**: `backends.py`
 
 ### urirun_connector_kvm.core
@@ -140,23 +140,23 @@ can't blow the node handler's exec cap. Reuses a live endpoint, els
 wait+find+click+verify (which it gets wrong: dumb sleeps, OCR label guesses, n
 - **Calls**: conn.handler, urirun_connector_kvm.core._act_reject, urirun_connector_kvm.core._resolve_act_app, time.monotonic, urirun_connector_kvm.core._act_ready, urirun_connector_kvm.core._act_retry_loop, urirun.fail, last.get
 
-### computer-use-preview.computers.kvm.kvm.KvmComputer._run
-- **Calls**: None.encode, urllib.request.Request, env.get, urllib.request.urlopen, json.loads, env.get, RuntimeError, isinstance
+### computer-use-preview.agent.BrowserAgent._dispatch_action
+> Dispatch a non-legacy action by name.
+- **Calls**: ValueError, self.denormalize_x, self.denormalize_y, self._handle_scroll_at, self._handle_drag_and_drop, bc.type_text, bc.wait, bc.navigate
 
 ### urirun_connector_kvm.backends._locate_tesseract
 > OCR-locate on-screen text. Unlike a saliency detector this GENUINELY matches the
 query against recognised text, so it is preferred (priority 65 > imgl
 - **Calls**: urirun_connector_kvm.backends.backend, None.strip, urirun_connector_kvm.backends._run, q.lower, urirun_connector_kvm.backends._capture_tmp, sorted, urirun_connector_kvm.backends._tesseract_query_matches, len
 
-### computer-use-preview.agent.BrowserAgent._dispatch_action
-> Dispatch a non-legacy action by name.
-- **Calls**: ValueError, self.denormalize_x, self.denormalize_y, self._handle_scroll_at, self._handle_drag_and_drop, bc.type_text, bc.wait, bc.navigate
-
 ### computer-use-preview.agent.BrowserAgent.run_one_iteration
 - **Calls**: self._generate_response, self.get_text, self.extract_function_calls, self._render_turn, self._execute_function_calls, self._contents.append, self._trim_old_screenshots, print
 
 ### computer-use-preview.main.main
 - **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument
+
+### computer-use-preview.agent.BrowserAgent.__init__
+- **Calls**: genai.Client, GenerateContentConfig, Content, types.FunctionDeclaration.from_callable, os.environ.get, os.environ.get, os.environ.get, types.ThinkingConfig
 
 ### urirun_connector_kvm.core.display_info
 > The display geometry callers need without taking a screenshot: full pixel size (the
@@ -168,9 +168,6 @@ space capture and click coordinates live in), per-monitor geometry
 kvm click at the element's centre. Prefers the locate ``center`` (OCR ba
 - **Calls**: hit.get, hit.get, hit.get, B.BackendError, hit.get, urirun_connector_kvm.core._positioned_click, hit.get, B.dispatch
 
-### computer-use-preview.agent.BrowserAgent.__init__
-- **Calls**: genai.Client, GenerateContentConfig, Content, types.FunctionDeclaration.from_callable, os.environ.get, os.environ.get, os.environ.get, types.ThinkingConfig
-
 ### urirun_connector_kvm.launch_backends._launch_xdg
 - **Calls**: urirun_connector_kvm.backends.backend, list, urirun_connector_kvm.launch_backends._resolve_launch_argv, urirun_connector_kvm.launch_backends._inject_chrome_flags, subprocess.Popen, max, min, bool
 
@@ -179,15 +176,24 @@ kvm click at the element's centre. Prefers the locate ``center`` (OCR ba
 on HiDPI the caller should scale image-px → logical coords (see fullS
 - **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._capture_tmp, urirun_connector_kvm.backends._run, _json.loads, BackendError, h.get, h.get, cap.get
 
+### urirun_connector_kvm.control.act
+> Orchestrated perceive→act→verify→retry over ``route()`` — the closed loop the bare
+router lacks. Runs the op, waits ``settle``, then VERIFIES a post-c
+- **Calls**: None.lower, range, any, urirun_connector_kvm.control.route, time.sleep, urirun_connector_kvm.control._check_post_condition, None.strip, int
+
 ### urirun_connector_kvm.backends._cap_portal
 > XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
 Wayland. Runs via a system python with dbus+gi; needs a one-time permiss
 - **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._portal_python, urirun_connector_kvm.backends._run, Path, src.read_bytes, None.write_bytes, BackendError, len
 
-### urirun_connector_kvm.control.act
-> Orchestrated perceive→act→verify→retry over ``route()`` — the closed loop the bare
-router lacks. Runs the op, waits ``settle``, then VERIFIES a post-c
-- **Calls**: None.lower, range, any, urirun_connector_kvm.control.route, time.sleep, urirun_connector_kvm.control._check_post_condition, None.strip, int
+### urirun_connector_kvm.core.cdp_navigate
+- **Calls**: conn.handler, urirun_connector_kvm.core._cdp_mod, urirun.fail, cdp.navigate, cdp.page_ready, urirun_connector_kvm.core._ok, cdp.evaluate, isinstance
+
+### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__enter__
+- **Calls**: print, None.start, self._playwright.chromium.launch, self._browser.new_context, self._context.new_page, self._page.goto, self._context.on, termcolor.cprint
+
+### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at
+- **Calls**: self.highlight_mouse, self._page.mouse.click, self._page.wait_for_load_state, self._page.keyboard.type, self._page.wait_for_load_state, self._page.wait_for_load_state, self.current_state, self.key_combination
 
 ### urirun_connector_kvm.core.drag_and_drop
 - **Calls**: conn.handler, B.dispatch, time.sleep, B.dispatch, urirun_connector_kvm.core._ok, urirun_connector_kvm.core._fail_from, int, int
@@ -196,12 +202,6 @@ router lacks. Runs the op, waits ``settle``, then VERIFIES a post-c
 > Readiness half of the launch/probe split: poll the debug endpoint WITHOUT launching
 (distinct from ``cdp/page/query/ready``, which waits on document l
 - **Calls**: conn.handler, None.await_ready, r.get, urirun_connector_kvm.core._ok, urirun.fail, urirun_connector_kvm.core._cdp_mod, min, r.get
-
-### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__enter__
-- **Calls**: print, None.start, self._playwright.chromium.launch, self._browser.new_context, self._context.new_page, self._page.goto, self._context.on, termcolor.cprint
-
-### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at
-- **Calls**: self.highlight_mouse, self._page.mouse.click, self._page.wait_for_load_state, self._page.keyboard.type, self._page.wait_for_load_state, self._page.wait_for_load_state, self.current_state, self.key_combination
 
 ### urirun_connector_kvm.launch_backends._list_xdg
 - **Calls**: urirun_connector_kvm.backends.backend, None.lower, urirun_connector_kvm.launch_backends._desktop_entries, out.sort, e.get, out.append, len, None.lower
@@ -324,10 +324,6 @@ cdp_ensure [urirun_connector_kvm.core]
 - **Methods**: 2
 - **Key Methods**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
 
-### urirun_connector_kvm.backends.BackendError
-- **Methods**: 0
-- **Inherits**: RuntimeError
-
 ### computer-use-preview.computers.computer.EnvState
 - **Methods**: 0
 - **Inherits**: pydantic.BaseModel
@@ -365,11 +361,6 @@ Returns (full_size, crop_info) — both may be None when
 - **Confidence**: 0.70
 - **Functions**: urirun_connector_kvm.strategies.VisionStrategy.available, urirun_connector_kvm.strategies.VisionStrategy.locate, urirun_connector_kvm.strategies.VisionStrategy._click_xy, urirun_connector_kvm.strategies.VisionStrategy.click, urirun_connector_kvm.strategies.VisionStrategy.fill
 
-### state_machine_Backend
-- **Type**: state_machine
-- **Confidence**: 0.70
-- **Functions**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
-
 ### state_machine_PlaywrightComputer
 - **Type**: state_machine
 - **Confidence**: 0.70
@@ -384,6 +375,11 @@ Returns (full_size, crop_info) — both may be None when
 - **Type**: state_machine
 - **Confidence**: 0.70
 - **Functions**: computer-use-preview.computers.kvm.kvm.KvmComputer.__init__, computer-use-preview.computers.kvm.kvm.KvmComputer.__enter__, computer-use-preview.computers.kvm.kvm.KvmComputer.__exit__, computer-use-preview.computers.kvm.kvm.KvmComputer._run, computer-use-preview.computers.kvm.kvm.KvmComputer._state
+
+### state_machine_Backend
+- **Type**: state_machine
+- **Confidence**: 0.70
+- **Functions**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
 
 ## Public API Surface
 
@@ -405,30 +401,30 @@ Functions exposed as public API (no underscore prefix):
 - `urirun_connector_kvm.core.display_info` - 14 calls
 - `urirun_connector_kvm.control.act` - 12 calls
 - `urirun_connector_kvm.cdp.start_session` - 12 calls
+- `urirun_connector_kvm.core.cdp_navigate` - 12 calls
+- `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at` - 11 calls
 - `urirun_connector_kvm.core.drag_and_drop` - 11 calls
 - `urirun_connector_kvm.core.cdp_session_ready` - 11 calls
-- `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at` - 11 calls
 - `urirun_connector_kvm.surface.current` - 10 calls
-- `urirun_connector_kvm.core.cdp_navigate` - 10 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop` - 10 calls
+- `urirun_connector_kvm.core.ui_fill` - 10 calls
 - `examples.calibrate_abs.cap` - 9 calls
 - `urirun_connector_kvm.strategies.AtspiStrategy.click` - 9 calls
+- `computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at` - 9 calls
 - `urirun_connector_kvm.core.click_abs` - 9 calls
 - `urirun_connector_kvm.core.cdp_ready` - 9 calls
 - `urirun_connector_kvm.core.ui_locate` - 9 calls
-- `computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at` - 9 calls
+- `urirun_connector_kvm.control.route` - 8 calls
+- `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.key_combination` - 8 calls
 - `urirun_connector_kvm.backends.ensure_ydotoold` - 8 calls
 - `urirun_connector_kvm.backends.session_env` - 8 calls
+- `urirun_connector_kvm.cdp.launch_session` - 8 calls
 - `urirun_connector_kvm.core.wait` - 8 calls
 - `urirun_connector_kvm.core.ui_verify` - 8 calls
 - `urirun_connector_kvm.core.launch` - 8 calls
-- `urirun_connector_kvm.control.route` - 8 calls
-- `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.key_combination` - 8 calls
-- `urirun_connector_kvm.cdp.launch_session` - 8 calls
 - `examples.calibrate_abs.find_box` - 7 calls
-- `urirun_connector_kvm.core.window_close` - 7 calls
-- `urirun_connector_kvm.core.a11y_act` - 7 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at` - 7 calls
+- `urirun_connector_kvm.cdp.await_ready` - 7 calls
 
 ## System Interactions
 

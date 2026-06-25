@@ -543,8 +543,20 @@ def ui_fill(text: str = "", role: str = "entry", app: str = "", value: str = "",
     element; the cdp/atspi strategies act on the real element so they don't need it."""
     if not value:
         return urirun.fail("value is required", connector=CONNECTOR_ID)
-    return _router_return("ui-fill", C.route("fill", text=text, role=role, app=app,
-                                             name=name, value=value, verify=verify))
+    prev = None  # read the field's current value (same finder fill uses) so we can register an inverse
+    try:
+        loc = C.route("locate", text=text, role=role, app=app, name=name, cheap=True)
+        if loc.get("ok") or loc.get("found"):
+            prev = loc.get("value")
+    except Exception:  # noqa: BLE001 - locate is best-effort; no prev value -> no inverse
+        prev = None
+    out = _router_return("ui-fill", C.route("fill", text=text, role=role, app=app,
+                                            name=name, value=value, verify=verify))
+    if out.get("ok") and isinstance(prev, str) and prev != value:
+        # fill(new) reverse fill(old): restore the value we overwrote
+        out["inverse"] = {"path": "ui/command/fill",
+                          "args": {"text": text, "role": role, "name": name, "value": prev}}
+    return out
 
 
 @conn.handler("ui/query/strategies", isolated=True,
@@ -653,7 +665,7 @@ def cdp_navigate(url: str = "", ready_timeout: float = 8.0) -> dict[str, Any]:
 
 @conn.handler("cdp/page/query/ready", isolated=True,
               meta={"label": "Wait until the CDP page document is fully loaded"})
-def cdp_ready(timeout: float = 8.0) -> dict[str, Any]:
+def cdp_ready(timeout: float = 30.0) -> dict[str, Any]:
     r = _cdp_mod().page_ready(timeout=float(timeout))
     return _ok(action="cdp-ready", **_spread(r)) if r.get("ok") else \
         urirun.fail("page not ready within timeout", connector=CONNECTOR_ID, action="cdp-ready", **_spread(r))

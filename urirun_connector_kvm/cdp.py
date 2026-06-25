@@ -178,6 +178,7 @@ _JS = r"""
   if(!best) return {found:false};
   var r=best.getBoundingClientRect();
   var info={found:true, role:roleOf(best), name:nameOf(best).slice(0,80),
+            value:(best.value!==undefined?best.value:(best.textContent||'')),
             x:Math.round(r.left+r.width/2), y:Math.round(r.top+r.height/2),
             w:Math.round(r.width), h:Math.round(r.height)};
   if(q.op==='click'){ best.scrollIntoView({block:'center'}); best.click(); info.clicked=true; }

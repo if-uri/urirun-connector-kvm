@@ -1,4 +1,4 @@
-# urirun-connector-kvm | 312 func | 15f | 6088L | python | 2026-06-25
+# urirun-connector-kvm | 310 func | 15f | 6098L | python | 2026-06-25
 # generated in 0.00s
 
 HEALTH:
@@ -7,26 +7,26 @@ HEALTH:
 ALERTS[20]:
   !!  high_fan_out     _locate_easyocr = 19 (limit:10)
   !!  high_fan_out     capture = 16 (limit:10)
+  !!  high_fan_out     BrowserAgent._dispatch_legacy_action = 15 (limit:10)
   !!  high_fan_out     _tsv_lines = 15 (limit:10)
   !!  high_fan_out     uinput_abs_click = 15 (limit:10)
   !!  high_fan_out     proc_kill = 15 (limit:10)
-  !!  high_fan_out     BrowserAgent._dispatch_legacy_action = 15 (limit:10)
+  !   high_fan_out     profile = 14 (limit:10)
   !   high_fan_out     _locate_vql = 14 (limit:10)
   !   high_fan_out     window_restore = 14 (limit:10)
-  !   high_fan_out     profile = 14 (limit:10)
-  !   high_fan_out     _locate_tesseract = 13 (limit:10)
+  !   high_fan_out     BrowserAgent._dispatch_action = 13 (limit:10)
 
 MODULES[29] (top by size):
-  M[urirun_connector_kvm/backends.py] 1292L C:2 F:79 CC↑14 D:1 (python)
-  M[urirun_connector_kvm/core.py] 925L C:0 F:58 CC↑13 D:0 (python)
+  M[urirun_connector_kvm/backends.py] 1278L C:1 F:77 CC↑14 D:1 (python)
+  M[urirun_connector_kvm/core.py] 946L C:0 F:58 CC↑13 D:0 (python)
   M[planfile.yaml] 890L C:0 F:0 CC↑0 D:0 (yaml)
   M[computer-use-preview/agent.py] 512L C:1 F:21 CC↑13 D:0 (python)
   M[computer-use-preview/computers/playwright/playwright.py] 418L C:1 F:33 CC↑5 D:0 (python)
   M[urirun_connector_kvm/launch_backends.py] 282L C:0 F:16 CC↑11 D:0 (python)
-  M[urirun_connector_kvm/cdp.py] 217L C:0 F:9 CC↑7 D:0 (python)
+  M[urirun_connector_kvm/cdp.py] 220L C:0 F:9 CC↑7 D:0 (python)
   M[urirun_connector_kvm/control.py] 214L C:0 F:9 CC↑13 D:0 (python)
   M[computer-use-preview/computers/computer.py] 198L C:2 F:27 CC↑1 D:1 (python)
-  M[computer-use-preview/computers/kvm/kvm.py] 190L C:1 F:33 CC↑11 D:0 (python)
+  M[computer-use-preview/computers/kvm/kvm.py] 190L C:1 F:33 CC↑11 D:1 (python)
   M[urirun_connector_kvm/strategies.py] 129L C:3 F:14 CC↑4 D:0 (python)
   M[computer-use-preview/main.py] 101L C:0 F:1 CC↑4 D:0 (python)
   M[urirun_connector_kvm/environment.py] 94L C:0 F:3 CC↑13 D:0 (python)
@@ -38,17 +38,17 @@ HOTSPOTS[10]:
   ★ _locate_easyocr fan=19  // OCR-locate via EasyOCR (CRAFT detector + CRNN) — stronger than tesseract on UI
 f
   ★ capture fan=16  // Capture the live screen via the best available backend. ``max_width`` downscales
+  ★ BrowserAgent._dispatch_legacy_action fan=15  // 15-way dispatch
   ★ _tsv_lines fan=15  // Aggregate tesseract word rows (level 5) into line boxes so a multi-word label
 li
   ★ uinput_abs_click fan=15  // Orchestrates 15 calls
-  ★ proc_kill fan=15  // Send a signal to a process so process lifecycle is controllable *via a URI*, not
 
 REFACTOR[7]:
-  [1] H/H Split god module urirun_connector_kvm/backends.py (1292L, 2 classes)
+  [1] H/H Split god module urirun_connector_kvm/backends.py (1278L, 1 classes)
   [2] H/H Split god module computer-use-preview/agent.py (512L, 1 classes)
-  [3] H/H Split god module urirun_connector_kvm/core.py (925L, 0 classes)
+  [3] H/H Split god module urirun_connector_kvm/core.py (946L, 0 classes)
   [4] H/H Split god module planfile.yaml (890L, 0 classes)
   [5] M/M Reduce _locate_easyocr fan-out (currently 19)
 
 EVOLUTION:
-  2026-06-25 CC̄=3.3 crit=21 6088L // Automated analysis
+  2026-06-25 CC̄=3.3 crit=21 6098L // Automated analysis
