@@ -1,15 +1,14 @@
 # System Architecture Analysis
-<!-- generated in 0.00s -->
 
 ## Overview
 
 - **Project**: /home/tom/github/if-uri/urirun-connector-kvm
 - **Primary Language**: python
-- **Languages**: python: 19, yaml: 3, shell: 3, toml: 1, json: 1
+- **Languages**: python: 19, md: 14, yaml: 3, shell: 3, toml: 1
 - **Analysis Mode**: static
 - **Total Functions**: 316
 - **Total Classes**: 11
-- **Modules**: 29
+- **Modules**: 43
 - **Entry Points**: 230
 
 ## Architecture by Module

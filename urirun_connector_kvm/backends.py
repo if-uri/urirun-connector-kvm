@@ -774,8 +774,8 @@ def _tsv_lines(tsv: str, min_conf: float) -> list[dict]:
     return out
 
 
-def _tesseract_query_matches(tsv_stdout: str, ql: str, min_conf: float) -> list[dict]:
-    """Find word spans in tesseract TSV output whose line contains ``ql``."""
+def _tesseract_words_by_line(tsv_stdout: str, min_conf: float) -> dict[tuple, list]:
+    """Group tesseract TSV word rows (level 5, conf ≥ min) by (page,block,par,line)."""
     words: dict[tuple, list] = {}
     for raw in tsv_stdout.splitlines()[1:]:
         c = raw.split("\t")
@@ -786,22 +786,31 @@ def _tesseract_query_matches(tsv_stdout: str, ql: str, min_conf: float) -> list[
         except ValueError:
             continue
         t = c[11].strip()
-        if t and conf >= float(min_conf):
+        if t and conf >= min_conf:
             words.setdefault((c[1], c[2], c[3], c[4]), []).append(
                 {"text": t, "conf": conf, "box": [left, top, w, h]})
+    return words
+
+
+def _line_match(ws: list, ql: str, terms: list) -> dict | None:
+    """Build a match box for one TSV line if it contains ``ql``; else ``None``."""
+    if ql not in " ".join(x["text"] for x in ws).lower():
+        return None
+    sel = [x for x in ws if any(term in x["text"].lower() for term in terms)] or ws
+    x0 = min(x["box"][0] for x in sel); y0 = min(x["box"][1] for x in sel)
+    x1 = max(x["box"][0] + x["box"][2] for x in sel)
+    y1 = max(x["box"][1] + x["box"][3] for x in sel)
+    return {"text": " ".join(x["text"] for x in sel),
+            "conf": round(sum(x["conf"] for x in sel) / len(sel), 1),
+            "box": [x0, y0, x1 - x0, y1 - y0],
+            "center": [(x0 + x1) // 2, (y0 + y1) // 2]}
+
+
+def _tesseract_query_matches(tsv_stdout: str, ql: str, min_conf: float) -> list[dict]:
+    """Find word spans in tesseract TSV output whose line contains ``ql``."""
+    words = _tesseract_words_by_line(tsv_stdout, float(min_conf))
     terms = [t for t in ql.split() if len(t) >= 3] or ql.split()
-    matches = []
-    for ws in words.values():
-        if ql not in " ".join(x["text"] for x in ws).lower():
-            continue
-        sel = [x for x in ws if any(term in x["text"].lower() for term in terms)] or ws
-        x0 = min(x["box"][0] for x in sel); y0 = min(x["box"][1] for x in sel)
-        x1 = max(x["box"][0] + x["box"][2] for x in sel)
-        y1 = max(x["box"][1] + x["box"][3] for x in sel)
-        matches.append({"text": " ".join(x["text"] for x in sel),
-                        "conf": round(sum(x["conf"] for x in sel) / len(sel), 1),
-                        "box": [x0, y0, x1 - x0, y1 - y0],
-                        "center": [(x0 + x1) // 2, (y0 + y1) // 2]})
+    matches = [m for ws in words.values() if (m := _line_match(ws, ql, terms)) is not None]
     matches.sort(key=lambda m: -m["conf"])
     return matches
 
@@ -1069,16 +1078,10 @@ def _calib() -> tuple | None:
         return None
 
 
-def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
-                     do_click: bool = True, settle: float = 0.9, clicks: int = 1) -> dict:
-    if not uinput_available():
-        raise BackendError("no write access to /dev/uinput (add user to 'input' group or udev rule)")
-    if not sw or not sh:  # auto-detect from the capture surface when the caller omits it
-        dsw, dsh = _screen_wh()
-        sw, sh = sw or dsw, sh or dsh
-    px, py = float(x), float(y)
+def _compute_abs_coords(px: float, py: float, sw: int, sh: int) -> tuple[int, int]:
+    """Apply calibration (if set) and map pixel coords to uinput [0,65535] ABS range."""
     cal = _calib()
-    if cal:  # invert landing = a*commanded + b  ->  command (desired-b)/a so it LANDS at (x,y)
+    if cal:
         ca_x, cb_x, ca_y, cb_y = cal
         if ca_x:
             px = (px - cb_x) / ca_x
@@ -1088,6 +1091,28 @@ def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
         py = max(0.0, min(float(sh), py))
     ax = max(0, min(_ABS_RANGE, int(px / sw * _ABS_RANGE) if sw else int(px)))
     ay = max(0, min(_ABS_RANGE, int(py / sh * _ABS_RANGE) if sh else int(py)))
+    return ax, ay
+
+
+def _uinput_emit_clicks(ev, fd: int, button: str, clicks: int) -> None:
+    """Emit ``clicks`` press/release pairs on the open uinput ``fd`` via the ``ev`` writer.
+    N presses on ONE device = a real double/triple-click. Factored out of ``uinput_abs_click``."""
+    bc = _BTN_CODE.get(button, 0x110)
+    for _i in range(max(1, int(clicks))):
+        ev(fd, _EV_KEY, bc, 1); ev(fd, _EV_KEY, _BTN_TOUCH, 1); ev(fd, _EV_SYN, 0, 0)
+        time.sleep(0.06)
+        ev(fd, _EV_KEY, bc, 0); ev(fd, _EV_KEY, _BTN_TOUCH, 0); ev(fd, _EV_SYN, 0, 0)
+        time.sleep(0.06)
+
+
+def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
+                     do_click: bool = True, settle: float = 0.9, clicks: int = 1) -> dict:
+    if not uinput_available():
+        raise BackendError("no write access to /dev/uinput (add user to 'input' group or udev rule)")
+    if not sw or not sh:  # auto-detect from the capture surface when the caller omits it
+        dsw, dsh = _screen_wh()
+        sw, sh = sw or dsw, sh or dsh
+    ax, ay = _compute_abs_coords(float(x), float(y), sw, sh)
 
     def ev(fd, t, c, v):
         os.write(fd, _struct.pack("llHHi", 0, 0, t, c, v))
@@ -1097,12 +1122,7 @@ def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
         ev(fd, _EV_ABS, _ABS_X, ax); ev(fd, _EV_ABS, _ABS_Y, ay); ev(fd, _EV_SYN, 0, 0)
         time.sleep(0.25)
         if do_click:
-            bc = _BTN_CODE.get(button, 0x110)
-            for _i in range(max(1, int(clicks))):  # N presses on ONE device = real double/triple-click
-                ev(fd, _EV_KEY, bc, 1); ev(fd, _EV_KEY, _BTN_TOUCH, 1); ev(fd, _EV_SYN, 0, 0)
-                time.sleep(0.06)
-                ev(fd, _EV_KEY, bc, 0); ev(fd, _EV_KEY, _BTN_TOUCH, 0); ev(fd, _EV_SYN, 0, 0)
-                time.sleep(0.06)
+            _uinput_emit_clicks(ev, fd, button, clicks)
         time.sleep(0.2)
         return {"via": "uinput-absolute", "abs": [ax, ay], "pixel": [x, y],
                 "clicked": bool(do_click), "clicks": int(clicks) if do_click else 0}
@@ -1194,6 +1214,26 @@ def _surface_warnings(waylandish: bool, multi: bool, fractional: bool,
     return warnings
 
 
+def _os_level_reliable(wl, multi: bool, fractional: bool, unconfirmed: bool,
+                       confirmed_simple: bool) -> bool:
+    """True when OS-level pixel input (move/click) can be trusted on this session."""
+    return bool(confirmed_simple or (wl is False and not multi and not fractional and not unconfirmed))
+
+
+def _surface_flags(linux: bool, mons: list[dict], wl) -> dict:
+    """Derive the Wayland/multi/fractional/reliability booleans from monitor geometry and
+    the (True/False/None) Wayland signal. Factored out so ``surface_report`` stays simple."""
+    multi = len(mons) > 1
+    fractional = any(m["scale"] not in (0, 1.0) for m in mons)
+    # GNOME answered DisplayConfig and the session isn't positively X11 → treat as Wayland-ish.
+    waylandish = (wl is True) or is_wayland() or (bool(mons) and wl is not False)
+    unconfirmed = linux and not waylandish and wl is None and not os.environ.get("DISPLAY")
+    confirmed_simple = bool(mons) and not multi and not fractional and wl is False  # positively X11 single+integer
+    os_reliable = _os_level_reliable(wl, multi, fractional, unconfirmed, confirmed_simple)
+    return {"multi": multi, "fractional": fractional, "waylandish": waylandish,
+            "unconfirmed": unconfirmed, "os_reliable": os_reliable}
+
+
 def surface_report() -> dict:
     """Which execution surface to trust here, and why — env-independent so it is honest
     even on a node process that can't see WAYLAND_DISPLAY. Surfaces: os-level (raw input,
@@ -1203,14 +1243,10 @@ def surface_report() -> dict:
     linux = sys.platform.startswith("linux")
     mons = _gnome_monitors() if linux else []     # ground truth via Mutter (works w/o WAYLAND_DISPLAY)
     wl = _wayland_present()                         # True / False / None
-    multi = len(mons) > 1
-    fractional = any(m["scale"] not in (0, 1.0) for m in mons)
-    # GNOME answered DisplayConfig and the session isn't positively X11 → treat as Wayland-ish.
-    waylandish = (wl is True) or is_wayland() or (bool(mons) and wl is not False)
-    unconfirmed = linux and not waylandish and wl is None and not os.environ.get("DISPLAY")
-    confirmed_simple = bool(mons) and not multi and not fractional and wl is False  # positively X11 single+integer
+    f = _surface_flags(linux, mons, wl)
+    multi, fractional, waylandish = f["multi"], f["fractional"], f["waylandish"]
+    unconfirmed, os_reliable = f["unconfirmed"], f["os_reliable"]
     warnings = _surface_warnings(waylandish, multi, fractional, mons, unconfirmed)
-    os_reliable = bool(confirmed_simple or (wl is False and not multi and not fractional and not unconfirmed))
     recommended = (["browser-cdp", "remotedesktop-portal", "vdisplay"]
                    if (waylandish or unconfirmed) else ["os-level", "browser-cdp"])
     return {"platform": plat, "wayland": waylandish, "waylandConfirmed": wl, "monitors": mons,

@@ -914,3 +914,16 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-8fd63e18
+    name: Fix smart-return-type issues
+    description: Resolve 2 smart-return-type issues in tests/test_kvm.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_kvm.py
+    rule_id: smart-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced

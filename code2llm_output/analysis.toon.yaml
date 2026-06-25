@@ -1,4 +1,4 @@
-# code2llm | 29f 6090L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
+# code2llm | 43f 7743L | python:19,md:14,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
 # generated in 0.01s
 # CC̅=3.3 | critical:0/316 | dups:0 | cycles:0
 
@@ -126,8 +126,10 @@ LAYERS:
   │ playwright                 418L  1C   33m  CC=5      ←0
   │ computer                   198L  2C   27m  CC=1      ←0
   │ kvm                        190L  1C   33m  CC=11     ←0
+  │ README.md                  182L  0C    0m  CC=0.0    ←0
   │ main                       101L  0C    1m  CC=4      ←0
   │ browserbase                 80L  1C    3m  CC=3      ←0
+  │ CONTRIBUTING.md             33L  0C    0m  CC=0.0    ←0
   │ __init__                    25L  0C    0m  CC=0.0    ←0
   │ requirements.txt             8L  0C    0m  CC=0.0    ←0
   │ __init__                     2L  0C    0m  CC=0.0    ←0
@@ -135,15 +137,29 @@ LAYERS:
   │
   examples/                       CC̄=1.5    ←in:0  →out:0
   │ calibrate_abs               75L  0C    4m  CC=2      ←0
+  │ README.md                   35L  0C    0m  CC=0.0    ←0
   │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
   │ !! planfile.yaml              929L  0C    0m  CC=0.0    ←0
+  │ DESKTOPENV.md              198L  0C    0m  CC=0.0    ←0
+  │ TODO.md                    183L  0C    0m  CC=0.0    ←0
+  │ README.md                  139L  0C    0m  CC=0.0    ←0
+  │ CHANGELOG.md               124L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ project.sh                  69L  0C    0m  CC=0.0    ←0
   │ pyproject.toml              41L  0C    0m  CC=0.0    ←0
+  │ CONTRIBUTING.md             21L  0C    0m  CC=0.0    ←0
   │ Makefile                    13L  0C    0m  CC=0.0    ←0
   │ tree.sh                      4L  0C    0m  CC=0.0    ←0
+  │
+  docs/                           CC̄=0.0    ←in:0  →out:0
+  │ ARCHITECTURE-cross-platform-backends.md   238L  0C    0m  CC=0.0    ←0
+  │ lenovo-control-runbook.md   148L  0C    0m  CC=0.0    ←0
+  │ surface-architecture.md    113L  0C    0m  CC=0.0    ←0
+  │ operational-layers-priorities.md    90L  0C    0m  CC=0.0    ←0
+  │ autonomous-kvm-agent.md     81L  0C    0m  CC=0.0    ←0
+  │ control-router-findings.md    68L  0C    0m  CC=0.0    ←0
   │
   testql-scenarios/               CC̄=0.0    ←in:0  →out:0
   │ generated-cli-tests.testql.toon.yaml    20L  0C    0m  CC=0.0    ←0

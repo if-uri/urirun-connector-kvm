@@ -1,58 +1,30 @@
-# code2llm/evolution | 290 func | 14f | 2026-06-25
+# code2llm/evolution | 312 func | 14f | 2026-06-25
 # generated in 0.00s
 
-NEXT[10] (ranked by impact):
+NEXT[3] (ranked by impact):
   [1] !! SPLIT           urirun_connector_kvm/backends.py
-      WHY: 1217L, 2 classes, max CC=28
-      EFFORT: ~4h  IMPACT: 34076
+      WHY: 1261L, 2 classes, max CC=14
+      EFFORT: ~4h  IMPACT: 17654
 
   [2] !! SPLIT           urirun_connector_kvm/core.py
-      WHY: 798L, 0 classes, max CC=22
-      EFFORT: ~4h  IMPACT: 17556
+      WHY: 832L, 0 classes, max CC=13
+      EFFORT: ~4h  IMPACT: 10816
 
-  [3] !  SPLIT-FUNC      ui_act  CC=22  fan=26
-      WHY: CC=22 exceeds 15
-      EFFORT: ~1h  IMPACT: 572
-
-  [4] !  SPLIT-FUNC      BrowserAgent.run_one_iteration  CC=23  fan=22
-      WHY: CC=23 exceeds 15
-      EFFORT: ~1h  IMPACT: 506
-
-  [5] !  SPLIT-FUNC      _tesseract_query_matches  CC=23  fan=19
-      WHY: CC=23 exceeds 15
-      EFFORT: ~1h  IMPACT: 437
-
-  [6] !  SPLIT-FUNC      _launch_xdg  CC=22  fan=19
-      WHY: CC=22 exceeds 15
-      EFFORT: ~1h  IMPACT: 418
-
-  [7] !  SPLIT-FUNC      capture  CC=15  fan=24
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 360
-
-  [8] !! SPLIT-FUNC      surface_report  CC=28  fan=11
-      WHY: CC=28 exceeds 15
-      EFFORT: ~1h  IMPACT: 308
-
-  [9] !  SPLIT-FUNC      uinput_abs_click  CC=15  fan=18
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 270
-
-  [10] !  SPLIT-FUNC      route  CC=20  fan=11
-      WHY: CC=20 exceeds 15
-      EFFORT: ~1h  IMPACT: 220
+  [3] !! SPLIT           planfile.yaml
+      WHY: 929L, 0 classes, max CC=0
+      EFFORT: ~4h  IMPACT: 0
 
 
 RISKS[3]:
-  ⚠ Splitting urirun_connector_kvm/backends.py may break 72 import paths
+  ⚠ Splitting urirun_connector_kvm/backends.py may break 79 import paths
   ⚠ Splitting planfile.yaml may break 0 import paths
-  ⚠ Splitting urirun_connector_kvm/core.py may break 50 import paths
+  ⚠ Splitting urirun_connector_kvm/core.py may break 55 import paths
 
 METRICS-TARGET:
-  CC̄:          3.4 → ≤2.4
-  max-CC:      28 → ≤14
-  god-modules: 3 → 0
-  high-CC(≥15): 10 → ≤5
+  CC̄:          3.3 → ≤2.3
+  max-CC:      14 → ≤7
+  god-modules: 4 → 0
+  high-CC(≥15): 0 → ≤0
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -80,4 +52,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=3.5 → now CC̄=3.4
+  prev CC̄=3.3 → now CC̄=3.3

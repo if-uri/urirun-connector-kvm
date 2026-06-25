@@ -75,26 +75,32 @@ def _xdg_app_dirs() -> list[str]:
     return out
 
 
-def _parse_desktop(path: str):
+def _parse_desktop_section(fh) -> tuple[str, str, bool]:
+    """Parse [Desktop Entry] lines for Name, Exec, NoDisplay. Returns (name, exec, nodisplay)."""
     name = exec_line = ""
     nodisplay = False
+    in_main = False
+    for raw in fh:
+        line = raw.rstrip("\n")
+        if line.startswith("["):
+            in_main = line.strip() == "[Desktop Entry]"
+            continue
+        if not in_main or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        if k == "Name" and not name:
+            name = v
+        elif k == "Exec" and not exec_line:
+            exec_line = v
+        elif k == "NoDisplay" and v.strip().lower() == "true":
+            nodisplay = True
+    return name, exec_line, nodisplay
+
+
+def _parse_desktop(path: str):
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
-            in_main = False
-            for raw in fh:
-                line = raw.rstrip("\n")
-                if line.startswith("["):
-                    in_main = line.strip() == "[Desktop Entry]"
-                    continue
-                if not in_main or "=" not in line:
-                    continue
-                k, v = line.split("=", 1)
-                if k == "Name" and not name:
-                    name = v
-                elif k == "Exec" and not exec_line:
-                    exec_line = v
-                elif k == "NoDisplay" and v.strip().lower() == "true":
-                    nodisplay = True
+            name, exec_line, nodisplay = _parse_desktop_section(fh)
     except OSError:
         return None
     if not exec_line:
@@ -141,12 +147,10 @@ def _find_app(query: str):
     return None
 
 
-@backend("launch", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
-def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, settle: float = 0,
-                debug: bool = False, **_) -> dict:
-    extra = list(args or [])
-    if compose:
-        extra += ["-compose", compose]
+def _resolve_launch_argv(app: str, extra: list):
+    """Resolve ``app`` to a runnable ``argv`` + ``resolved`` descriptor the way the system app
+    search does: prefer a matching XDG ``.desktop`` entry (field codes stripped), then a PATH
+    binary, else raise. Shared boundary for ``_launch_xdg``."""
     entry = _find_app(app)
     if entry:
         argv = _strip_field_codes(entry["exec"]) + extra
@@ -157,6 +161,46 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     else:
         raise BackendError(f"no .desktop entry or PATH binary matches {app!r} "
                            "(call window/query/list or doctor for what's installed)")
+    return argv, resolved
+
+
+def _inject_cdp_profile(argv: list, cdp_port: str) -> None:
+    """Inject --user-data-dir (isolated profile) and startup flags so the debug port actually
+    binds — Chrome 136+ silently drops --remote-debugging-port on the default profile."""
+    if not any("user-data-dir" in a for a in argv):
+        ddir = os.environ.get("URIRUN_KVM_CDP_PROFILE") or f"/tmp/urirun-kvm-cdp-{cdp_port}"
+        argv.insert(1, f"--user-data-dir={ddir}")
+        for flag in ("--no-first-run", "--no-default-browser-check"):
+            if flag not in argv:
+                argv.insert(1, flag)
+
+
+def _inject_chrome_flags(argv: list, debug: bool) -> str:
+    """Add Chrome/Chromium control-surface flags in place (a11y always; CDP debug profile when
+    opted in) and return the chosen CDP port (``""`` when none). Mutates ``argv`` exactly as the
+    inline block in ``_launch_xdg`` did; no-op for non-chrome binaries or when URIRUN_KVM_NO_A11Y."""
+    cdp_port = ""
+    is_chrome = any(b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge"))
+    if os.environ.get("URIRUN_KVM_NO_A11Y") or not is_chrome:
+        return cdp_port
+    if not any("force-renderer-accessibility" in a for a in argv):
+        argv.insert(1, "--force-renderer-accessibility")
+    if not (debug or os.environ.get("URIRUN_KVM_CDP_ON_LAUNCH")):
+        return cdp_port
+    cdp_port = _cdp_port()
+    if not any("remote-debugging-port" in a for a in argv):
+        argv.insert(1, f"--remote-debugging-port={cdp_port}")
+    _inject_cdp_profile(argv, cdp_port)
+    return cdp_port
+
+
+@backend("launch", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
+def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, settle: float = 0,
+                debug: bool = False, **_) -> dict:
+    extra = list(args or [])
+    if compose:
+        extra += ["-compose", compose]
+    argv, resolved = _resolve_launch_argv(app, extra)
     # Chrome/Chromium control surfaces:
     #   --force-renderer-accessibility → the atspi/OCR strategies can see web elements.
     #     Harmless and does NOT change which profile opens — applied to every chrome launch.
@@ -168,21 +212,7 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     #     workflows (e.g. an OCR-driven LinkedIn post). For an authenticated CDP session use
     #     the cdp/session/command/ensure route (it clones auth via copy_from). Off via
     #     URIRUN_KVM_NO_A11Y=1.
-    cdp_port = ""
-    is_chrome = any(b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge"))
-    if not os.environ.get("URIRUN_KVM_NO_A11Y") and is_chrome:
-        if not any("force-renderer-accessibility" in a for a in argv):
-            argv.insert(1, "--force-renderer-accessibility")
-        if debug or os.environ.get("URIRUN_KVM_CDP_ON_LAUNCH"):
-            cdp_port = _cdp_port()
-            if not any("remote-debugging-port" in a for a in argv):
-                argv.insert(1, f"--remote-debugging-port={cdp_port}")
-            if not any("user-data-dir" in a for a in argv):
-                ddir = os.environ.get("URIRUN_KVM_CDP_PROFILE") or f"/tmp/urirun-kvm-cdp-{cdp_port}"
-                argv.insert(1, f"--user-data-dir={ddir}")
-                for flag in ("--no-first-run", "--no-default-browser-check"):
-                    if flag not in argv:
-                        argv.insert(1, flag)
+    cdp_port = _inject_chrome_flags(argv, debug)
     # session_env() points the child at the live compositor/X/D-Bus; a node process is
     # often spawned without those, and the old hardcoded WAYLAND_DISPLAY=wayland-0 was
     # wrong on any seat whose socket isn't wayland-0.

@@ -11,23 +11,13 @@ When you run `code2llm ./ -f all`, the following files are created:
 
 | File | Format | Purpose | Key Insights |
 |------|--------|---------|--------------|
-| `evolution.toon.yaml` | **YAML** | **📋 Refactoring queue** - Prioritized improvements | 0 refactoring actions needed |
-| `map.toon.yaml` | **YAML** | **🗺️ Structural map + project header** - Modules, imports, exports, signatures, stats, alerts, hotspots, trend | Project architecture overview |
 
 ### 🤖 LLM-Ready Documentation
 
 | File | Format | Purpose | Use Case |
 |------|--------|---------|----------|
-| `prompt.txt` | **Text** | **📝 Ready-to-send prompt** - Lists all files with instructions | Attach to LLM conversation as context guide |
 | `context.md` | **Markdown** | **📖 LLM narrative** - Architecture summary | Paste into ChatGPT/Claude for code analysis |
 
-### 📊 Visualizations
-
-| File | Format | Purpose | Description |
-|------|--------|---------|-------------|
-| `flow.mmd` | **Mermaid** | **🔄 Control flow diagram** | Function call paths with complexity styling |
-| `calls.mmd` | **Mermaid** | **📞 Call graph** | Function dependencies (edges only) |
-| `compact_flow.mmd` | **Mermaid** | **📦 Module overview** | Aggregated module-level view |
 
 ## 🚀 Quick Start Commands
 
@@ -335,6 +325,6 @@ code2llm ./ -f yaml --separate-orphans
 **Analysis Date**: 2026-06-25  
 **Total Functions**: 316  
 **Total Classes**: 11  
-**Modules**: 29  
+**Modules**: 43  
 
 For more information about code2llm, visit: https://github.com/tom-sapletta/code2llm

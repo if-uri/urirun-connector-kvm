@@ -10,7 +10,8 @@
     "Capture a screenshot of a host (Wayland portal included), or a zoomed focus crop, as part of an automation.",
     "Locate a UI element by text/role and click it (ui/command/click-text, a11y/command/act) — OCR/accessibility grounding for vision agents.",
     "Run a bounded focus→click→type→submit sequence in one session via task/command/run.",
-    "Project KVM control to MCP/A2A so agents can operate a desktop."
+    "Project KVM control to MCP/A2A so agents can operate a desktop.",
+    "Reverse a desktop automation: every mutation registers a concrete inverse, rollback navigates them back, re-scan proves the return (twin://)."
   ],
   "flowExample": [
     "app://host/desktop/command/launch",
@@ -70,11 +71,17 @@
     "kvm://host/window/query/list",
     "kvm://host/doctor/query/report",
     "app://host/desktop/command/launch",
-    "app://host/desktop/query/list"
+    "app://host/desktop/query/list",
+    "twin://host/environment/query/profile",
+    "twin://host/action/query/inverse",
+    "twin://host/action/command/do",
+    "twin://host/transition/query/ledger",
+    "twin://host/transition/command/rollback"
   ],
   "uriSchemes": [
     "app",
-    "kvm"
+    "kvm",
+    "twin"
   ],
   "adapterKinds": [
     "local-function"

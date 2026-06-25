@@ -66,6 +66,46 @@ for _cls in _strategies.ALL:
 
 
 # --------------------------------------------------------------------------- #
+# strategy dispatch helpers
+# --------------------------------------------------------------------------- #
+def _try_locate_one(st, target: dict, attempts: list) -> dict | None:
+    """Try one locate strategy. Returns the hit dict if found, None to fall through."""
+    try:
+        hit = st.locate(target)
+    except B.BackendError as exc:
+        attempts.append({"strategy": st.name, "error": str(exc)})
+        return None
+    except Exception as exc:  # noqa: BLE001
+        attempts.append({"strategy": st.name, "error": f"{type(exc).__name__}: {exc}"})
+        return None
+    if not hit.get("found"):
+        attempts.append({"strategy": st.name, "found": False})
+        return None
+    return hit
+
+
+def _try_act_one(st, op: str, target: dict, verify: bool, value: str,
+                 app: str, attempts: list) -> dict | None:
+    """Try one click/fill strategy. Returns the result dict if ok, None to fall through."""
+    try:
+        res = st.click(target) if op == "click" else st.fill(target)
+    except B.BackendError as exc:
+        attempts.append({"strategy": st.name, "error": str(exc)})
+        return None
+    except Exception as exc:  # noqa: BLE001
+        attempts.append({"strategy": st.name, "error": f"{type(exc).__name__}: {exc}"})
+        return None
+    if not res.get("ok"):
+        return None
+    if op == "fill" and verify and st.name == "vision":
+        if not _verify_value(value, app):
+            attempts.append({"strategy": st.name, "verify": False})
+            return None
+        res["verified"] = True
+    return {"strategy": st.name, "attempts": attempts, **res}
+
+
+# --------------------------------------------------------------------------- #
 # the router
 # --------------------------------------------------------------------------- #
 def route(op: str, text: str = "", role: str = "", app: str = "", name: str = "",
@@ -90,35 +130,26 @@ def route(op: str, text: str = "", role: str = "", app: str = "", name: str = ""
         except Exception as exc:  # noqa: BLE001
             attempts.append({"strategy": st.name, "skipped": f"probe-error: {exc}"})
             continue
-        try:
-            if op == "locate":
-                hit = st.locate(target)
-                if hit.get("found"):
-                    # unify the hit schema: always carry strategy + a confidence, even for
-                    # cdp/atspi whose raw hits omit it (callers branch on confidence).
-                    return {"ok": True, "strategy": st.name,
-                            "confidence": hit.get("confidence", getattr(st, "confidence", None)),
-                            "attempts": attempts, **hit}
-                attempts.append({"strategy": st.name, "found": False})
-                continue
-            res = st.click(target) if op == "click" else st.fill(target)
-            if res.get("ok"):
-                res = {"strategy": st.name, "attempts": attempts, **res}
-                if op == "fill" and verify and st.name == "vision":
-                    res["verified"] = _verify_value(value, app)
-                    if not res["verified"]:
-                        attempts.append({"strategy": st.name, "verify": False})
-                        continue   # typed into the wrong place — let no other strategy lie; report below
-                return res
-        except B.BackendError as exc:
-            attempts.append({"strategy": st.name, "error": str(exc)})
-            continue
-        except Exception as exc:  # noqa: BLE001
-            attempts.append({"strategy": st.name, "error": f"{type(exc).__name__}: {exc}"})
-            continue
+        if op == "locate":
+            hit = _try_locate_one(st, target, attempts)
+            if hit is not None:
+                return {"ok": True, "strategy": st.name,
+                        "confidence": hit.get("confidence", getattr(st, "confidence", None)),
+                        "attempts": attempts, **hit}
+        else:
+            result = _try_act_one(st, op, target, verify, value, app, attempts)
+            if result is not None:
+                return result
     return {"ok": False, "strategy": None, "attempts": attempts,
             "error": f"no control strategy could {op} target "
                      f"(text={text!r} role={role!r} name={name!r})"}
+
+
+def _check_post_condition(expect: str, gone: bool, text: str, name: str, app: str) -> bool:
+    """Verify that a post-condition holds after an act (present or gone)."""
+    probe = route("locate", text=expect or text or name, app=app, cheap=True)
+    present = bool(probe.get("ok"))
+    return (not present) if gone else present
 
 
 def act(op: str = "click", text: str = "", role: str = "", app: str = "", name: str = "",
@@ -145,11 +176,9 @@ def act(op: str = "click", text: str = "", role: str = "", app: str = "", name: 
             continue
         time.sleep(float(settle))
         if not (expect or gone):
-            last["verified"] = None          # nothing to check against — trust the act
+            last["verified"] = None
             return last
-        probe = route("locate", text=expect or text or name, app=app, cheap=True)
-        present = bool(probe.get("ok"))
-        verified = (not present) if gone else present
+        verified = _check_post_condition(expect, gone, text, name, app)
         last["verified"] = verified
         if verified:
             return last

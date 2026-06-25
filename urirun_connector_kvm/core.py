@@ -93,6 +93,31 @@ def _positioned_click(button: str, x, y, clicks: int = 1) -> dict[str, Any]:
     return {**last, "moved": moved} if moved else last
 
 
+def _apply_capture_postprocessing(out: str, cx: int, cy: int, zoom: int,
+                                   crop_w: int, crop_h: int, max_width: int):
+    """Apply PIL post-processing to a captured PNG.
+    Returns (full_size, crop_info) — both may be None when PIL is absent."""
+    from PIL import Image
+    with Image.open(out) as im:
+        full = list(im.size)
+        wpx, hpx = im.size
+        want_crop = int(cx) >= 0 and int(cy) >= 0 and (int(zoom) > 1 or (crop_w and crop_h))
+        if want_crop:
+            cw = int(crop_w) if crop_w else max(64, wpx // int(zoom))
+            ch = int(crop_h) if crop_h else max(64, hpx // int(zoom))
+            x0 = max(0, min(int(cx) - cw // 2, wpx - cw))
+            y0 = max(0, min(int(cy) - ch // 2, hpx - ch))
+            im = im.crop((x0, y0, x0 + cw, y0 + ch))
+            crop = {"x": x0, "y": y0, "w": cw, "h": ch, "cx": int(cx), "cy": int(cy)}
+        else:
+            crop = None
+            if max_width and im.width > int(max_width):
+                ratio = int(max_width) / im.width
+                im = im.resize((int(max_width), int(im.height * ratio)))
+        im.convert("RGB").save(out, format="PNG", optimize=True)
+    return full, crop
+
+
 # --------------------------------------------------------------------------- #
 # screen capture
 # --------------------------------------------------------------------------- #
@@ -112,22 +137,7 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
         return _fail_from("capture", exc)
     full = crop = None
     try:
-        from PIL import Image
-        with Image.open(out) as im:
-            full = list(im.size)
-            wpx, hpx = im.size
-            want_crop = int(cx) >= 0 and int(cy) >= 0 and (int(zoom) > 1 or (crop_w and crop_h))
-            if want_crop:
-                cw = int(crop_w) if crop_w else max(64, wpx // int(zoom))
-                ch = int(crop_h) if crop_h else max(64, hpx // int(zoom))
-                x0 = max(0, min(int(cx) - cw // 2, wpx - cw))
-                y0 = max(0, min(int(cy) - ch // 2, hpx - ch))
-                im = im.crop((x0, y0, x0 + cw, y0 + ch))
-                crop = {"x": x0, "y": y0, "w": cw, "h": ch, "cx": int(cx), "cy": int(cy)}
-            elif max_width and im.width > int(max_width):
-                ratio = int(max_width) / im.width
-                im = im.resize((int(max_width), int(im.height * ratio)))
-            im.convert("RGB").save(out, format="PNG", optimize=True)
+        full, crop = _apply_capture_postprocessing(out, cx, cy, zoom, crop_w, crop_h, max_width)
     except Exception:  # noqa: BLE001 - PIL optional; keep raw capture
         pass
     payload: dict[str, Any] = {"path": out, "monitor": monitor, "via": res.get("via"),
@@ -272,7 +282,7 @@ def drag_and_drop(x: int, y: int, destination_x: int, destination_y: int) -> dic
         B.dispatch("move", x=int(x), y=int(y))
         time.sleep(0.1)
         res = B.dispatch("move", x=int(destination_x), y=int(destination_y))
-        return _ok(action="drag-and-drop", **res)
+        return _ok(action="drag-and-drop", **_spread(res))
     except B.BackendError as exc:
         return _fail_from("drag-and-drop", exc)
 
@@ -353,6 +363,60 @@ def window_list() -> dict[str, Any]:
         return _fail_from("window_list", exc)
 
 
+@conn.handler("window/command/close", isolated=True,
+              meta={"label": "Snapshot the active page, then close it (reversible: restore)"})
+def window_close(id: str = "") -> dict[str, Any]:
+    """Checkpoint-before-mutate: capture the page's SERIALIZABLE state (URL + scroll + form
+    values + sessionStorage) in one CDP round-trip and return it as ``snapshot``, then close
+    the tab. The reversible engine pairs this with ``window/command/restore {snapshot}`` as the
+    inverse. Fidelity is bounded to what the snapshot serialized — ephemeral in-memory state
+    (a live socket, JS-only vars) is OUTSIDE the edge and is NOT claimed restorable."""
+    cdp = _cdp_mod()
+    try:
+        snap = cdp._evaluate(
+            "(() => ({url: location.href, scrollX: scrollX, scrollY: scrollY,"
+            " forms: [...document.querySelectorAll('input,textarea,[contenteditable]')]"
+            ".map((el,i)=>({i, ce: !!el.isContentEditable, v: el.isContentEditable?el.textContent:el.value})),"
+            " session: Object.fromEntries(Object.entries(sessionStorage))}))()")
+    except B.BackendError as exc:
+        return _fail_from("window-close", exc)
+    if isinstance(snap, dict):
+        snap["id"] = id or "active"
+    try:
+        cdp._evaluate("window.close()")
+    except B.BackendError:
+        pass  # some pages refuse window.close(); the tab may persist — the snapshot is still valid
+    return _ok(action="window-close", did=f"close({id or 'active'})", reversible=True, snapshot=snap)
+
+
+@conn.handler("window/command/restore", isolated=True,
+              meta={"label": "Reopen and rehydrate a window from a close snapshot"})
+def window_restore(snapshot: dict | None = None) -> dict[str, Any]:
+    """Inverse of ``window/command/close``: navigate to the snapshot URL, then rehydrate scroll
+    and form values (dispatching input/change so React/contenteditable register them). Honest
+    caveats: sessionStorage set post-load is missed by on-load scripts, and back/forward history
+    is not reconstructable by a single navigate — fidelity is bounded to the snapshot."""
+    import json as _json
+    s = snapshot or {}
+    if not s.get("url"):
+        return urirun.fail("snapshot.url is required to restore", connector=CONNECTOR_ID, action="window-restore")
+    cdp = _cdp_mod()
+    try:
+        cdp.navigate(s["url"])
+        cdp.page_ready()
+        cdp._evaluate(
+            "(() => { scrollTo(%d,%d); const f=%s;"
+            " const els=document.querySelectorAll('input,textarea,[contenteditable]');"
+            " f.forEach(x => { const el=els[x.i]; if(!el) return;"
+            " if(x.ce) el.textContent=x.v; else el.value=x.v;"
+            " el.dispatchEvent(new Event('input',{bubbles:true}));"
+            " el.dispatchEvent(new Event('change',{bubbles:true})); }); })()"
+            % (int(s.get("scrollX", 0)), int(s.get("scrollY", 0)), _json.dumps(s.get("forms") or [])))
+    except B.BackendError as exc:
+        return _fail_from("window-restore", exc)
+    return _ok(action="window-restore", did=f"restore({s.get('id', '?')})", reversible=True)
+
+
 @conn.handler("proc/command/kill", isolated=True, meta={"label": "Terminate a process by PID or name (node lifecycle control)"})
 def proc_kill(pid: int = 0, name: str = "", signal: str = "TERM") -> dict[str, Any]:
     """Send a signal to a process so process lifecycle is controllable *via a URI*, not a
@@ -399,7 +463,7 @@ def a11y_act(app: str = "", role: str = "", name: str = "", action: str = "focus
         return urirun.fail("action must be focus|click|settext|gettext", connector=CONNECTOR_ID)
     try:
         res = B.dispatch("a11y", app=app, role=role, name=name, op=action, text=text, nth=int(nth))
-        return _ok(action="a11y", request={"app": app, "role": role, "name": name, "op": action}, **res)
+        return _ok(action="a11y", request={"app": app, "role": role, "name": name, "op": action}, **_spread(res))
     except B.BackendError as exc:
         return _fail_from("a11y", exc)
 
@@ -535,7 +599,7 @@ def cdp_navigate(url: str = "", ready_timeout: float = 8.0) -> dict[str, Any]:
     try:
         nav = cdp.navigate(url)
         ready = cdp.page_ready(timeout=float(ready_timeout))
-        return _ok(action="cdp-navigate", url=url, ready=ready, **nav)
+        return _ok(action="cdp-navigate", url=url, ready=ready, **_spread(nav, "url"))
     except Exception as exc:  # noqa: BLE001
         return urirun.fail(str(exc), connector=CONNECTOR_ID, action="cdp-navigate")
 
@@ -544,8 +608,65 @@ def cdp_navigate(url: str = "", ready_timeout: float = 8.0) -> dict[str, Any]:
               meta={"label": "Wait until the CDP page document is fully loaded"})
 def cdp_ready(timeout: float = 8.0) -> dict[str, Any]:
     r = _cdp_mod().page_ready(timeout=float(timeout))
-    return _ok(action="cdp-ready", **r) if r.get("ok") else \
-        urirun.fail("page not ready within timeout", connector=CONNECTOR_ID, action="cdp-ready", **r)
+    return _ok(action="cdp-ready", **_spread(r)) if r.get("ok") else \
+        urirun.fail("page not ready within timeout", connector=CONNECTOR_ID, action="cdp-ready", **_spread(r))
+
+
+def _resolve_act_app(app: str):
+    """Detect the foreground surface if app is empty. Returns (resolved_app, surface_or_None)."""
+    surface = None
+    if not app:
+        try:
+            surface = _surface_mod().current()
+            if surface.get("app"):
+                app = surface["app"]
+        except Exception:  # noqa: BLE001
+            surface = None
+    return app, surface
+
+
+def _act_retry_loop(op: str, text: str, role: str, app: str, name: str, value: str,
+                    cheap: bool, retries: int, settle: float, budget: float,
+                    start: float) -> tuple:
+    """Run the route/retry loop. Returns (tries, last_result)."""
+    tries: list = []
+    last: dict = {}
+    for attempt in range(max(1, int(retries))):
+        last = C.route(op, text=text, role=role, app=app, name=name, value=value, cheap=cheap)
+        ok = last.get("ok") or last.get("found")
+        tries.append({"attempt": attempt + 1, "ok": bool(ok), "strategy": last.get("strategy")})
+        if ok:
+            return tries, last
+        if time.monotonic() - start + float(settle) >= budget:
+            break
+        time.sleep(float(settle))
+    return tries, last
+
+
+def _act_reject(do: str, text: str, name: str, value: str, safe: bool) -> dict[str, Any] | None:
+    """Reject a malformed/unsafe act request; return a fail dict, else None to proceed.
+    Human-in-the-loop gate: refuse an irreversible label (Post/Publish/Send/Delete…) unless
+    the caller explicitly drops safe — so an autonomous planner can't publish on its own."""
+    if do not in ("click", "fill", "find", "wait"):
+        return urirun.fail("do must be click|fill|find|wait", connector=CONNECTOR_ID)
+    if do == "fill" and not value:
+        return urirun.fail("value is required for fill", connector=CONNECTOR_ID)
+    label = (text or name or "").strip().lower()
+    if safe and do in ("click", "fill") and any(w in label for w in C._IRREVERSIBLE):
+        return urirun.fail(f"refusing to {do} {label!r} with safe=true (pass safe=false to allow)",
+                           connector=CONNECTOR_ID, action="act", blocked="irreversible", do=do)
+    return None
+
+
+def _act_ready(ready_timeout: float) -> dict[str, Any] | None:
+    """If a CDP page is reachable, wait for it to finish loading; else None."""
+    cdp = _cdp_mod()
+    if not cdp.reachable():
+        return None
+    try:
+        return cdp.page_ready(timeout=min(float(ready_timeout), 8.0))
+    except Exception:  # noqa: BLE001
+        return {"ok": False}
 
 
 @conn.handler("ui/command/act", isolated=True,
@@ -560,52 +681,20 @@ def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", va
     a ``settle`` pause between (covers spinners / late-rendered elements); (3) return the
     winning strategy + the per-try trail. Acting via the router means it's role/name exact on
     CDP and degrades to OCR only when it must."""
-    if do not in ("click", "fill", "find", "wait"):
-        return urirun.fail("do must be click|fill|find|wait", connector=CONNECTOR_ID)
-    if do == "fill" and not value:
-        return urirun.fail("value is required for fill", connector=CONNECTOR_ID)
-    # Human-in-the-loop gate: refuse to fire an irreversible label (Post/Publish/Send/Delete…)
-    # unless the caller explicitly drops safe — so an autonomous planner can't publish on its own.
-    label = (text or name or "").strip().lower()
-    if safe and do in ("click", "fill") and any(w in label for w in C._IRREVERSIBLE):
-        return urirun.fail(f"refusing to {do} {label!r} with safe=true (pass safe=false to allow)",
-                           connector=CONNECTOR_ID, action="act", blocked="irreversible", do=do)
-    # Resolve the foreground surface when the flow didn't name an app, so CDP engages on a
-    # browser without the planner having to know — the router only probes CDP for a browser app.
-    surface = None
-    if not app:
-        try:
-            surface = _surface_mod().current()
-            if surface.get("app"):
-                app = surface["app"]
-        except Exception:  # noqa: BLE001
-            surface = None
-    # Bound the WHOLE orchestration (ready-wait + every retry) under the node's ~30s
-    # subprocess cap — ready_timeout + N×(cdp+OCR) trivially exceeds it otherwise.
+    bad = _act_reject(do, text, name, value, safe)
+    if bad is not None:
+        return bad
+    app, surface = _resolve_act_app(app)
     budget = 25.0
     start = time.monotonic()
-    cdp = _cdp_mod()
-    ready = None
-    if cdp.reachable():
-        try:
-            ready = cdp.page_ready(timeout=min(float(ready_timeout), 8.0))
-        except Exception:  # noqa: BLE001
-            ready = {"ok": False}
+    ready = _act_ready(ready_timeout)
     op = "locate" if do in ("find", "wait") else do
-    cheap = do in ("find", "wait")   # presence checks use cdp/atspi only — never the slow OCR
-    tries = []
-    last: dict[str, Any] = {}
-    for attempt in range(max(1, int(retries))):
-        last = C.route(op, text=text, role=role, app=app, name=name, value=value, cheap=cheap)
-        ok = last.get("ok") or last.get("found")
-        tries.append({"attempt": attempt + 1, "ok": bool(ok), "strategy": last.get("strategy")})
-        if ok:
-            body = {k: v for k, v in last.items() if k not in ("ok", "error", "attempts")}
-            return _ok(action="act", do=do, app=app, surface=surface, ready=ready, tries=tries,
-                       strategyAttempts=last.get("attempts"), **body)
-        if time.monotonic() - start + float(settle) >= budget:
-            break                                   # stop before the node kills us
-        time.sleep(float(settle))
+    cheap = do in ("find", "wait")
+    tries, last = _act_retry_loop(op, text, role, app, name, value, cheap, retries, settle, budget, start)
+    if last.get("ok") or last.get("found"):
+        body = {k: v for k, v in last.items() if k not in ("ok", "error", "attempts")}
+        return _ok(action="act", do=do, app=app, surface=surface, ready=ready, tries=tries,
+                   strategyAttempts=last.get("attempts"), **body)
     return urirun.fail(last.get("error", f"act:{do} failed after {len(tries)} tries"),
                        connector=CONNECTOR_ID, action="act", do=do, app=app, surface=surface,
                        ready=ready, tries=tries, waited=round(time.monotonic() - start, 1),
@@ -695,7 +784,7 @@ def ui_locate(query: str = "", min_conf: int = 40, monitor: int = 0) -> dict[str
             screen = list(im.size)
     except Exception:  # noqa: BLE001 - PIL optional
         pass
-    return _ok(action="locate", screenshot=shot, screen=screen, **loc)
+    return _ok(action="locate", screenshot=shot, screen=screen, **_spread(loc, "screenshot", "screen"))
 
 
 @conn.handler("ui/command/click-text", isolated=True,
@@ -777,7 +866,7 @@ def list_apps(filter: str = "") -> dict[str, Any]:  # noqa: A002 - route input f
         return _fail_from("list_apps", exc)
 
 
-# --- authoring surface: bindings / manifest / CLI --------------------------
+
 def urirun_bindings() -> dict[str, Any]:
     """Serializable v2 bindings for this connector (entry point: urirun.bindings)."""
     return conn.bindings()

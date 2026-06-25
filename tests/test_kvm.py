@@ -387,3 +387,26 @@ def test_cdp_port_prefers_client_url(monkeypatch) -> None:
     assert LB._cdp_port() == "9333"
     monkeypatch.delenv("URIRUN_KVM_CDP_PORT", raising=False)
     assert LB._cdp_port() == "9222"
+
+
+# --------------------------------------------------------------------------- #
+# Phase 0: envelope-collision regression (inner result with ok/error/url spread
+# into urirun.ok/fail used to raise TypeError and mask the real CDP result)
+# --------------------------------------------------------------------------- #
+def test_spread_strips_envelope_reserved_keys() -> None:
+    assert core._spread({"ok": True, "error": "e", "connector": "k", "action": "a", "keep": 1}) == {"keep": 1}
+    assert core._spread({"url": "u", "keep": 2}, "url") == {"keep": 2}
+    assert core._spread(None) == {}
+
+
+def test_cdp_navigate_has_no_url_collision(monkeypatch) -> None:
+    class FakeCdp:
+        @staticmethod
+        def navigate(url):
+            return {"ok": True, "url": url}            # 'url' would collide with the handler's url=
+        @staticmethod
+        def page_ready(timeout=8.0):
+            return {"ok": True, "readyState": "complete"}
+    monkeypatch.setattr(core, "_cdp_mod", lambda: FakeCdp)
+    r = core.cdp_navigate(url="https://x")
+    assert r["ok"] is True and r["url"] == "https://x"   # no TypeError; url present exactly once

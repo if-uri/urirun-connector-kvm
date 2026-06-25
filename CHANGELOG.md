@@ -3,6 +3,11 @@
 ## [0.1.10] - 2026-06-25
 
 ### Fixed
+- Fix smart-return-type issues (ticket-8fd63e18)
+
+## [0.1.10] - 2026-06-25
+
+### Fixed
 - Fix relative-imports issues (ticket-79eaa6e7)
 - Fix magic-numbers issues (ticket-ce81629f)
 - Fix llm-generated-code issues (ticket-e2651440)

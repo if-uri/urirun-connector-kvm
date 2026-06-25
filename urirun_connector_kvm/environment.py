@@ -75,6 +75,17 @@ def profile() -> dict:
         },
         "cdpFeasible": bool(cdp_feasible),
     }
+    # Surface trustworthiness (env-independent, via Mutter ground truth): on Wayland
+    # multi-monitor / fractional-HiDPI the OS-level pixel path is UNRELIABLE (screenshot and
+    # input live in different coordinate spaces) — a recovery INPUT, not just a doctor warning.
+    try:
+        sr = B.surface_report()
+        prof["osLevelReliable"] = bool(sr.get("osLevelReliable"))
+        prof["recommendedSurfaces"] = list(sr.get("recommended") or [])
+        prof["monitors"] = list(sr.get("monitors") or [])
+    except Exception:  # noqa: BLE001
+        prof["osLevelReliable"] = None
+        prof["recommendedSurfaces"] = []
     # An honest top-line: can this environment drive a UI at all, and how best?
     cs = prof["controlStrategies"]
     prof["best"] = "cdp" if cs["cdp"] else "atspi" if cs["atspi"] else "vision" if cs["vision"] else None

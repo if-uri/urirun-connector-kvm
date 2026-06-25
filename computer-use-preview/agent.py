@@ -370,21 +370,71 @@ class BrowserAgent:
                     ):
                         part.function_response.parts = None
 
-    def run_one_iteration(self) -> Literal["COMPLETE", "CONTINUE"]:
-        # Generate a response from the model.
+    def _generate_response(self):
+        """Get the model response; swallow errors as a COMPLETE signal (returns None)."""
         if self._verbose:
             with console.status(
                 "Generating response from Gemini Computer Use...", spinner_style=None
             ):
                 try:
-                    response = self.get_model_response()
-                except Exception as e:
-                    return "COMPLETE"
-        else:
-            try:
-                response = self.get_model_response()
-            except Exception as e:
-                return "COMPLETE"
+                    return self.get_model_response()
+                except Exception:
+                    return None
+        try:
+            return self.get_model_response()
+        except Exception:
+            return None
+
+    def _render_turn(self, reasoning, function_calls) -> None:
+        """Render the reasoning + function-call(s) table (printed only when verbose)."""
+        function_call_strs = []
+        for function_call in function_calls:
+            # Print the function call and any reasoning.
+            function_call_str = f"Name: {function_call.name}"
+            if function_call.args:
+                function_call_str += f"\nArgs:"
+                for key, value in function_call.args.items():
+                    function_call_str += f"\n  {key}: {value}"
+            function_call_strs.append(function_call_str)
+
+        table = Table(expand=True)
+        table.add_column(
+            "Gemini Computer Use Reasoning", header_style="magenta", ratio=1
+        )
+        table.add_column("Function Call(s)", header_style="cyan", ratio=1)
+        table.add_row(reasoning, "\n".join(function_call_strs))
+        if self._verbose:
+            console.print(table)
+            print()
+
+    def _execute_function_calls(self, function_calls) -> tuple[list, bool]:
+        """Execute each function call, returning (function_responses, terminated).
+        ``terminated`` is True when a safety decision was TERMINATE (the caller then
+        completes the loop without recording the partial responses)."""
+        function_responses = []
+        for function_call in function_calls:
+            extra_fr_fields = {}
+            if function_call.args and (safety := function_call.args.get("safety_decision")):
+                decision = self._get_safety_confirmation(safety)
+                if decision == "TERMINATE":
+                    print("Terminating agent loop")
+                    return function_responses, True
+                extra_fr_fields["safety_acknowledgement"] = "true"
+            if self._verbose:
+                with console.status("Sending command to Computer...", spinner_style=None):
+                    fc_result = self.handle_action(function_call, self._use_legacy_computer_use_function_call)
+            else:
+                fc_result = self.handle_action(function_call, self._use_legacy_computer_use_function_call)
+            fr = self._build_function_response(function_call, fc_result, extra_fr_fields)
+            if fr is not None:
+                function_responses.append(fr)
+        return function_responses, False
+
+    def run_one_iteration(self) -> Literal["COMPLETE", "CONTINUE"]:
+        # Generate a response from the model.
+        response = self._generate_response()
+        if response is None:
+            return "COMPLETE"
 
         if not response.candidates:
             if (
@@ -420,43 +470,11 @@ class BrowserAgent:
             self.final_reasoning = reasoning
             return "COMPLETE"
 
-        function_call_strs = []
-        for function_call in function_calls:
-            # Print the function call and any reasoning.
-            function_call_str = f"Name: {function_call.name}"
-            if function_call.args:
-                function_call_str += f"\nArgs:"
-                for key, value in function_call.args.items():
-                    function_call_str += f"\n  {key}: {value}"
-            function_call_strs.append(function_call_str)
+        self._render_turn(reasoning, function_calls)
 
-        table = Table(expand=True)
-        table.add_column(
-            "Gemini Computer Use Reasoning", header_style="magenta", ratio=1
-        )
-        table.add_column("Function Call(s)", header_style="cyan", ratio=1)
-        table.add_row(reasoning, "\n".join(function_call_strs))
-        if self._verbose:
-            console.print(table)
-            print()
-
-        function_responses = []
-        for function_call in function_calls:
-            extra_fr_fields = {}
-            if function_call.args and (safety := function_call.args.get("safety_decision")):
-                decision = self._get_safety_confirmation(safety)
-                if decision == "TERMINATE":
-                    print("Terminating agent loop")
-                    return "COMPLETE"
-                extra_fr_fields["safety_acknowledgement"] = "true"
-            if self._verbose:
-                with console.status("Sending command to Computer...", spinner_style=None):
-                    fc_result = self.handle_action(function_call, self._use_legacy_computer_use_function_call)
-            else:
-                fc_result = self.handle_action(function_call, self._use_legacy_computer_use_function_call)
-            fr = self._build_function_response(function_call, fc_result, extra_fr_fields)
-            if fr is not None:
-                function_responses.append(fr)
+        function_responses, terminated = self._execute_function_calls(function_calls)
+        if terminated:
+            return "COMPLETE"
 
         self._contents.append(
             Content(role="user", parts=[Part(function_response=fr) for fr in function_responses])
