@@ -81,6 +81,11 @@ def platform_tag() -> str:
 
 ALL_PLATFORMS = ("linux-wayland", "linux-x11", "windows", "macos")
 
+_TESSERACT_TSV_COLS = 12    # number of tab-separated columns in tesseract TSV output
+_TESSERACT_WORD_LEVEL = "5" # level=5 means word in tesseract's page-hierarchy
+_MIN_QUERY_TERM_LEN = 3     # ignore 1-2 char tokens in multi-word query expansion
+_MAX_SCREEN_COORD = 100_000 # sanity bound: reject AT-SPI bboxes outside plausible screen area
+
 
 # --------------------------------------------------------------------------- #
 # registry + @backend decorator
@@ -255,7 +260,8 @@ def _cap_portal(output: str, **_) -> dict:
 
 @backend("capture", "grim", priority=85, platforms=("linux-wayland",), needs_bin=("grim",))
 def _cap_grim(output: str, **_) -> dict:
-    _run(["grim", output]); return {"path": output, "via": "grim"}
+    _run(["grim", output])
+    return {"path": output, "via": "grim"}
 
 
 @backend("capture", "mss", priority=70, platforms=("linux-x11", "windows", "macos"), needs_mod=("mss",))
@@ -279,22 +285,26 @@ def _cap_pillow(output: str, **_) -> dict:
 
 @backend("capture", "scrot", priority=60, platforms=("linux-x11",), needs_bin=("scrot",))
 def _cap_scrot(output: str, **_) -> dict:
-    _run(["scrot", "-o", output]); return {"path": output, "via": "scrot"}
+    _run(["scrot", "-o", output])
+    return {"path": output, "via": "scrot"}
 
 
 @backend("capture", "imagemagick", priority=40, platforms=("linux-x11",), needs_bin=("import",))
 def _cap_im(output: str, **_) -> dict:
-    _run(["import", "-window", "root", output]); return {"path": output, "via": "imagemagick"}
+    _run(["import", "-window", "root", output])
+    return {"path": output, "via": "imagemagick"}
 
 
 @backend("capture", "gnome-screenshot", priority=35, platforms=("linux-x11",), needs_bin=("gnome-screenshot",))
 def _cap_gnome(output: str, **_) -> dict:
-    _run(["gnome-screenshot", "-f", output], timeout=20); return {"path": output, "via": "gnome-screenshot"}
+    _run(["gnome-screenshot", "-f", output], timeout=20)
+    return {"path": output, "via": "gnome-screenshot"}
 
 
 @backend("capture", "screencapture", priority=80, platforms=("macos",), needs_bin=("screencapture",))
 def _cap_macos(output: str, **_) -> dict:
-    _run(["screencapture", "-x", output]); return {"path": output, "via": "screencapture"}
+    _run(["screencapture", "-x", output])
+    return {"path": output, "via": "screencapture"}
 
 
 # --------------------------------------------------------------------------- #
@@ -310,7 +320,8 @@ def ensure_ydotoold() -> str:
     sock = _ydotool_socket()
     running = subprocess.run(["pgrep", "-x", "ydotoold"], capture_output=True).returncode == 0
     if not running:
-        env = os.environ.copy(); env["YDOTOOL_SOCKET"] = sock
+        env = os.environ.copy()
+        env["YDOTOOL_SOCKET"] = sock
         subprocess.Popen(["ydotoold", "-p", sock], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True, env=env)
         for _ in range(40):
@@ -322,7 +333,9 @@ def ensure_ydotoold() -> str:
 
 
 def _yd_env() -> dict:
-    env = session_env(); env["YDOTOOL_SOCKET"] = ensure_ydotoold(); return env
+    env = session_env()
+    env["YDOTOOL_SOCKET"] = ensure_ydotoold()
+    return env
 
 
 _YD_BUTTON = {"left": "0xC0", "right": "0xC1", "middle": "0xC2"}
@@ -414,24 +427,28 @@ def _type_ydotool(text: str, **_) -> dict:
 
 @backend("type", "wtype", priority=60, platforms=("linux-wayland",), needs_bin=("wtype",))
 def _type_wtype(text: str, **_) -> dict:
-    _run(["wtype", "--", text]); return {"via": "wtype", "chars": len(text)}
+    _run(["wtype", "--", text])
+    return {"via": "wtype", "chars": len(text)}
 
 
 @backend("type", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
 def _type_xdotool(text: str, **_) -> dict:
-    _run(["xdotool", "type", "--", text]); return {"via": "xdotool", "chars": len(text)}
+    _run(["xdotool", "type", "--", text])
+    return {"via": "xdotool", "chars": len(text)}
 
 
 @backend("type", "pynput", priority=40, needs_mod=("pynput",))
 def _type_pynput(text: str, **_) -> dict:
     from pynput.keyboard import Controller
-    Controller().type(text); return {"via": "pynput", "chars": len(text)}
+    Controller().type(text)
+    return {"via": "pynput", "chars": len(text)}
 
 
 # ---- click ----
 @backend("click", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
 def _click_ydotool(button: str = "left", **_) -> dict:
-    _run(["ydotool", "click", _YD_BUTTON.get(button, "0xC0")], env=_yd_env()); return {"via": "ydotool", "button": button}
+    _run(["ydotool", "click", _YD_BUTTON.get(button, "0xC0")], env=_yd_env())
+    return {"via": "ydotool", "button": button}
 
 
 @backend("click", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
@@ -470,13 +487,15 @@ def _move_ydotool(x: int, y: int, **_) -> dict:
 
 @backend("move", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
 def _move_xdotool(x: int, y: int, **_) -> dict:
-    _run(["xdotool", "mousemove", str(int(x)), str(int(y))]); return {"via": "xdotool", "x": x, "y": y}
+    _run(["xdotool", "mousemove", str(int(x)), str(int(y))])
+    return {"via": "xdotool", "x": x, "y": y}
 
 
 @backend("move", "pynput", priority=40, needs_mod=("pynput",))
 def _move_pynput(x: int, y: int, **_) -> dict:
     from pynput.mouse import Controller
-    Controller().position = (int(x), int(y)); return {"via": "pynput", "x": x, "y": y}
+    Controller().position = (int(x), int(y))
+    return {"via": "pynput", "x": x, "y": y}
 
 
 # ---- key / hotkey ----
@@ -485,12 +504,14 @@ def _key_ydotool(keys: str, **_) -> dict:
     seq = _yd_keyseq(keys)
     if not seq:
         raise BackendError(f"unknown key combo {keys!r}")
-    _run(["ydotool", "key", *seq], env=_yd_env()); return {"via": "ydotool", "keys": keys}
+    _run(["ydotool", "key", *seq], env=_yd_env())
+    return {"via": "ydotool", "keys": keys}
 
 
 @backend("key", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
 def _key_xdotool(keys: str, **_) -> dict:
-    _run(["xdotool", "key", keys.replace("+", "+")]); return {"via": "xdotool", "keys": keys}
+    _run(["xdotool", "key", keys.replace("+", "+")])
+    return {"via": "xdotool", "keys": keys}
 
 
 @backend("key", "pynput", priority=40, needs_mod=("pynput",))
@@ -503,7 +524,8 @@ def _key_pynput(keys: str, **_) -> dict:
     for m in mods:
         if m:
             kb.press(m)
-    kb.press(last); kb.release(last)
+    kb.press(last)
+    kb.release(last)
     for m in reversed(mods):
         if m:
             kb.release(m)
@@ -513,13 +535,15 @@ def _key_pynput(keys: str, **_) -> dict:
 # ---- scroll ----
 @backend("scroll", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
 def _scroll_ydotool(dy: int = -3, **_) -> dict:
-    _run(["ydotool", "mousemove", "-w", "-x", "0", "-y", str(int(dy))], env=_yd_env()); return {"via": "ydotool", "dy": dy}
+    _run(["ydotool", "mousemove", "-w", "-x", "0", "-y", str(int(dy))], env=_yd_env())
+    return {"via": "ydotool", "dy": dy}
 
 
 @backend("scroll", "pynput", priority=40, needs_mod=("pynput",))
 def _scroll_pynput(dy: int = -3, **_) -> dict:
     from pynput.mouse import Controller
-    Controller().scroll(0, int(dy)); return {"via": "pynput", "dy": dy}
+    Controller().scroll(0, int(dy))
+    return {"via": "pynput", "dy": dy}
 
 
 # --------------------------------------------------------------------------- #
@@ -527,7 +551,8 @@ def _scroll_pynput(dy: int = -3, **_) -> dict:
 # --------------------------------------------------------------------------- #
 @backend("focus", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
 def _focus_wmctrl(title: str, **_) -> dict:
-    _run(["wmctrl", "-a", title]); return {"via": "wmctrl", "title": title}
+    _run(["wmctrl", "-a", title])
+    return {"via": "wmctrl", "title": title}
 
 
 @backend("focus", "pygetwindow", priority=40, platforms=("windows", "macos"), needs_mod=("pygetwindow",))
@@ -536,7 +561,8 @@ def _focus_pgw(title: str, **_) -> dict:
     wins = gw.getWindowsWithTitle(title)
     if not wins:
         raise BackendError(f"no window matching {title!r}")
-    wins[0].activate(); return {"via": "pygetwindow", "title": title}
+    wins[0].activate()
+    return {"via": "pygetwindow", "title": title}
 
 
 @backend("window_list", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
@@ -744,7 +770,7 @@ def _tsv_lines(tsv: str, min_conf: float) -> list[dict]:
     groups: dict[tuple, dict] = {}
     for raw in tsv.splitlines()[1:]:           # skip header row
         c = raw.split("\t")
-        if len(c) < 12 or c[0] != "5":         # level 5 == word
+        if len(c) < _TESSERACT_TSV_COLS or c[0] != _TESSERACT_WORD_LEVEL:
             continue
         try:
             left, top, w, h, conf = int(c[6]), int(c[7]), int(c[8]), int(c[9]), float(c[10])
@@ -776,7 +802,7 @@ def _tesseract_words_by_line(tsv_stdout: str, min_conf: float) -> dict[tuple, li
     words: dict[tuple, list] = {}
     for raw in tsv_stdout.splitlines()[1:]:
         c = raw.split("\t")
-        if len(c) < 12 or c[0] != "5":
+        if len(c) < _TESSERACT_TSV_COLS or c[0] != _TESSERACT_WORD_LEVEL:
             continue
         try:
             left, top, w, h, conf = int(c[6]), int(c[7]), int(c[8]), int(c[9]), float(c[10])
@@ -794,7 +820,8 @@ def _line_match(ws: list, ql: str, terms: list) -> dict | None:
     if ql not in " ".join(x["text"] for x in ws).lower():
         return None
     sel = [x for x in ws if any(term in x["text"].lower() for term in terms)] or ws
-    x0 = min(x["box"][0] for x in sel); y0 = min(x["box"][1] for x in sel)
+    x0 = min(x["box"][0] for x in sel)
+    y0 = min(x["box"][1] for x in sel)
     x1 = max(x["box"][0] + x["box"][2] for x in sel)
     y1 = max(x["box"][1] + x["box"][3] for x in sel)
     return {"text": " ".join(x["text"] for x in sel),
@@ -806,7 +833,7 @@ def _line_match(ws: list, ql: str, terms: list) -> dict | None:
 def _tesseract_query_matches(tsv_stdout: str, ql: str, min_conf: float) -> list[dict]:
     """Find word spans in tesseract TSV output whose line contains ``ql``."""
     words = _tesseract_words_by_line(tsv_stdout, float(min_conf))
-    terms = [t for t in ql.split() if len(t) >= 3] or ql.split()
+    terms = [t for t in ql.split() if len(t) >= _MIN_QUERY_TERM_LEN] or ql.split()
     matches = [m for ws in words.values() if (m := _line_match(ws, ql, terms)) is not None]
     matches.sort(key=lambda m: -m["conf"])
     return matches
@@ -921,7 +948,7 @@ def _locate_atspi(text: str = "", role: str = "", app: str = "", nth: int = 0, *
     if not res.get("found") or not res.get("bbox"):
         raise BackendError(f"atspi: no element role~{role!r} name~{text!r}")
     x, y, w, h = res["bbox"]   # reject off-screen / collapsed elements (a11y tree noise)
-    if x < 0 or y < 0 or w < 2 or h < 2 or x > 100000 or y > 100000:
+    if x < 0 or y < 0 or w < 2 or h < 2 or x > _MAX_SCREEN_COORD or y > _MAX_SCREEN_COORD:  # noqa: PLR2004
         raise BackendError(f"atspi: element name~{text!r} has no on-screen bbox {res['bbox']}")
     return {"found": True, "bbox": res["bbox"], "source": "atspi", "coord_space": "screen",
             "role": res.get("role"), "name": res.get("name"), "actionable": True,
@@ -1096,9 +1123,13 @@ def _uinput_emit_clicks(ev, fd: int, button: str, clicks: int) -> None:
     N presses on ONE device = a real double/triple-click. Factored out of ``uinput_abs_click``."""
     bc = _BTN_CODE.get(button, 0x110)
     for _i in range(max(1, int(clicks))):
-        ev(fd, _EV_KEY, bc, 1); ev(fd, _EV_KEY, _BTN_TOUCH, 1); ev(fd, _EV_SYN, 0, 0)
+        ev(fd, _EV_KEY, bc, 1)
+        ev(fd, _EV_KEY, _BTN_TOUCH, 1)
+        ev(fd, _EV_SYN, 0, 0)
         time.sleep(0.06)
-        ev(fd, _EV_KEY, bc, 0); ev(fd, _EV_KEY, _BTN_TOUCH, 0); ev(fd, _EV_SYN, 0, 0)
+        ev(fd, _EV_KEY, bc, 0)
+        ev(fd, _EV_KEY, _BTN_TOUCH, 0)
+        ev(fd, _EV_SYN, 0, 0)
         time.sleep(0.06)
 
 
@@ -1116,7 +1147,9 @@ def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
     fd = _uinput_create_abs()
     try:
         time.sleep(float(settle))  # compositor discovers + maps the new device
-        ev(fd, _EV_ABS, _ABS_X, ax); ev(fd, _EV_ABS, _ABS_Y, ay); ev(fd, _EV_SYN, 0, 0)
+        ev(fd, _EV_ABS, _ABS_X, ax)
+        ev(fd, _EV_ABS, _ABS_Y, ay)
+        ev(fd, _EV_SYN, 0, 0)
         time.sleep(0.25)
         if do_click:
             _uinput_emit_clicks(ev, fd, button, clicks)

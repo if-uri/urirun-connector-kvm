@@ -25,6 +25,11 @@ except ImportError:  # pragma: no cover - flat deploy
     from backends import BackendError  # type: ignore
 
 
+_WS_LEN_EXT16 = 126    # RFC 6455: payload >= 126 bytes uses 16-bit extended length field
+_WS_LEN_EXT64 = 127    # RFC 6455: payload >= 65536 bytes uses 64-bit extended length field
+_WS_MAX_LEN16 = 65536  # RFC 6455: maximum payload size for the 16-bit extended form
+
+
 def endpoint() -> str:
     return (os.environ.get("URIRUN_KVM_CDP_URL") or "http://127.0.0.1:9222").rstrip("/")
 
@@ -107,14 +112,20 @@ def _copy_auth(src: str, dst: str) -> list:
     return copied
 
 
-def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
-                   wait: float = 14.0) -> dict:
-    """Reuse a live CDP endpoint, or launch a DEDICATED-profile Chrome that binds the debug
-    port (a fresh user-data-dir forces a separate instance, avoiding the 'debugger did not
-    come up' collision with the user's daily Chrome), then poll until it is reachable.
-    ``copy_from`` clones a profile's auth files first so the session is logged in."""
+def start_session(url: str = "", user_data_dir: str = "", copy_from: str = "") -> dict:
+    """Reuse a live CDP endpoint, or LAUNCH a dedicated-profile debug Chrome and return
+    IMMEDIATELY — does NOT block on the debug port binding.
+
+    Chrome's headful cold-start to bind the port can exceed a node handler's exec cap
+    (~30s observed), so awaiting readiness *inside* the launch call is what made the launch
+    look like it failed ('debugger did not come up') while Chrome was in fact still coming up.
+    Split it: this fires the launch and returns ``launching: True``; poll with
+    :func:`await_ready` (the ``cdp/session/query/ready`` route) on its OWN budget.
+
+    Spawns AT MOST one instance: if already reachable it REUSES. Callers must poll readiness
+    rather than re-calling start — re-calling spawns competing instances that fight over the
+    profile dir's SingletonLock and then none bind. ``copy_from`` clones auth files first."""
     import subprocess
-    import time as _t
     base = endpoint()
     if reachable():                                   # already up — reuse, just navigate
         nav = None
@@ -123,7 +134,7 @@ def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
                 nav = navigate(url)
             except Exception as exc:  # noqa: BLE001
                 nav = {"ok": False, "error": str(exc)}
-        return {"ok": True, "reused": True, "endpoint": base, "navigate": nav}
+        return {"ok": True, "reused": True, "launching": False, "endpoint": base, "navigate": nav}
     port = base.rsplit(":", 1)[-1].split("/")[0]
     ddir = user_data_dir or f"/tmp/urirun-kvm-cdp-{port}"
     os.makedirs(ddir, exist_ok=True)
@@ -138,14 +149,41 @@ def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
         from backends import session_env  # type: ignore
     proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                             start_new_session=True, env=session_env())
-    deadline = _t.monotonic() + float(wait)
-    while _t.monotonic() < deadline:
+    return {"ok": True, "reused": False, "launching": True, "endpoint": base, "pid": proc.pid,
+            "userDataDir": ddir, "authCopied": copied}
+
+
+def await_ready(timeout: float = 12.0) -> dict:
+    """Poll until the CDP debug endpoint is reachable, WITHOUT launching anything — the
+    readiness half of the launch/probe split. Repeatable and idempotent: keep ``timeout``
+    under the node handler's exec cap and call again if not ready yet (each call is a pure
+    probe, so it never spawns a competing Chrome)."""
+    import time as _t
+    base = endpoint()
+    deadline = _t.monotonic() + max(0.0, float(timeout))
+    while True:
         if reachable():
-            return {"ok": True, "reused": False, "endpoint": base, "pid": proc.pid,
-                    "userDataDir": ddir, "authCopied": copied}
+            return {"ok": True, "ready": True, "endpoint": base}
+        if _t.monotonic() >= deadline:
+            return {"ok": False, "ready": False, "endpoint": base,
+                    "error": "debugger not reachable within timeout"}
         _t.sleep(0.5)
-    return {"ok": False, "error": "debugger did not come up within timeout",
-            "endpoint": base, "pid": proc.pid, "userDataDir": ddir, "authCopied": copied}
+
+
+def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
+                   wait: float = 14.0) -> dict:
+    """Back-compat one-shot: :func:`start_session` then :func:`await_ready`. Prefer the split
+    in handlers (start returns fast; readiness polls on its own budget) so Chrome's cold-start
+    can't blow the node handler's exec cap."""
+    r = start_session(url=url, user_data_dir=user_data_dir, copy_from=copy_from)
+    if r.get("reused"):
+        return r
+    ready = await_ready(timeout=wait)
+    r["ok"] = bool(ready.get("ready"))
+    r["launching"] = not ready.get("ready")
+    if not ready.get("ready"):
+        r["error"] = ready.get("error", "debugger did not come up within timeout")
+    return r
 
 
 # ---- websocket (stdlib, client frames are masked) ------------------------- #
@@ -174,12 +212,14 @@ def _ws_send(s, data: str) -> None:
     payload = data.encode()
     n = len(payload)
     header = bytearray([0x81])  # FIN + text
-    if n < 126:
+    if n < _WS_LEN_EXT16:
         header.append(0x80 | n)
-    elif n < 65536:
-        header.append(0x80 | 126); header += struct.pack(">H", n)
+    elif n < _WS_MAX_LEN16:
+        header.append(0x80 | _WS_LEN_EXT16)
+        header += struct.pack(">H", n)
     else:
-        header.append(0x80 | 127); header += struct.pack(">Q", n)
+        header.append(0x80 | _WS_LEN_EXT64)
+        header += struct.pack(">Q", n)
     mask = os.urandom(4)
     header += mask
     s.sendall(bytes(header) + bytes(b ^ mask[i % 4] for i, b in enumerate(payload)))
@@ -198,9 +238,9 @@ def _ws_recv(s) -> str:
     while True:
         h = rd(2)
         fin, ln = h[0] & 0x80, h[1] & 0x7F
-        if ln == 126:
+        if ln == _WS_LEN_EXT16:
             ln = struct.unpack(">H", rd(2))[0]
-        elif ln == 127:
+        elif ln == _WS_LEN_EXT64:
             ln = struct.unpack(">Q", rd(8))[0]
         out += rd(ln) if ln else b""
         if fin:

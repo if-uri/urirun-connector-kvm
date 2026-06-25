@@ -38,6 +38,7 @@ EXPECTED_ROUTES = {
     "kvm://host/ui/query/find", "kvm://host/ui/command/click", "kvm://host/ui/command/fill",
     "kvm://host/ui/query/wait", "kvm://host/ui/query/verify", "kvm://host/ui/query/strategies",
     "kvm://host/cdp/session/command/ensure", "kvm://host/cdp/session/query/status",
+    "kvm://host/cdp/session/query/ready",
     "kvm://host/cdp/page/command/navigate", "kvm://host/cdp/page/query/ready",
     "kvm://host/ui/command/act", "kvm://host/env/query/profile", "kvm://host/surface/query/current", "kvm://host/display/query/info",
     "app://host/desktop/command/launch", "app://host/desktop/query/list",
@@ -411,3 +412,43 @@ def test_cdp_navigate_has_no_url_collision(monkeypatch) -> None:
     monkeypatch.setattr(core, "_cdp_mod", lambda: FakeCdp)
     r = core.cdp_navigate(url="https://x")
     assert r["ok"] is True and r["url"] == "https://x"   # no TypeError; url present exactly once
+
+
+# --------------------------------------------------------------------------- #
+# CDP launch/probe split (cold-start must not blow the node handler exec cap)
+# --------------------------------------------------------------------------- #
+def test_cdp_start_session_reuses_without_spawn(monkeypatch) -> None:
+    import subprocess
+    monkeypatch.setattr(cdp, "reachable", lambda: True)
+    spawned = []
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: spawned.append(a) or object())
+    r = cdp.start_session(url="")
+    assert r["reused"] is True and r["launching"] is False
+    assert spawned == []                                  # reuse never spawns
+
+
+def test_cdp_start_session_launches_and_returns_immediately(monkeypatch) -> None:
+    import subprocess
+    monkeypatch.setattr(cdp, "reachable", lambda: False)  # not up
+    monkeypatch.setattr(cdp, "_find_chrome", lambda: "/usr/bin/google-chrome")
+    monkeypatch.setattr(cdp.os, "makedirs", lambda *a, **k: None)
+
+    class _P:
+        pid = 555
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: _P())
+    r = cdp.start_session(url="https://example.com")
+    # returns AT ONCE with launching:true — does NOT block polling for the bind
+    assert r["ok"] is True and r["launching"] is True and r["reused"] is False and r["pid"] == 555
+
+
+def test_cdp_await_ready_polls_without_spawn(monkeypatch) -> None:
+    import subprocess, time as _t
+    monkeypatch.setattr(subprocess, "Popen",
+                        lambda *a, **k: (_ for _ in ()).throw(AssertionError("await_ready must not spawn")))
+    monkeypatch.setattr(_t, "sleep", lambda *_a: None)
+    monkeypatch.setattr(cdp, "reachable", lambda: True)
+    assert cdp.await_ready(timeout=1)["ready"] is True
+    # times out cleanly when never reachable (bounded; no spawn)
+    monkeypatch.setattr(cdp, "reachable", lambda: False)
+    out = cdp.await_ready(timeout=0)
+    assert out["ready"] is False and "timeout" in out["error"]

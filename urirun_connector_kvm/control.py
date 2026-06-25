@@ -191,7 +191,7 @@ _IRREVERSIBLE = ("post", "publish", "opublikuj", "send", "wyślij", "buy", "kup"
 def _verify_value(value: str, app: str) -> bool:
     if not value:
         return True
-    probe = "".join(ch for ch in value[:24] if ord(ch) < 128).strip() or value[:24]
+    probe = "".join(ch for ch in value[:24] if ord(ch) < 128).strip() or value[:24]  # noqa: PLR2004
     try:
         time.sleep(0.4)
         return bool(B.dispatch("locate", text=probe, app=app).get("found"))

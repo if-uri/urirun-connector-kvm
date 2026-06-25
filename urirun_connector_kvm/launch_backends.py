@@ -47,7 +47,7 @@ def _cdp_wait(port: str, wait: float) -> dict:
     while True:
         try:
             with urllib.request.urlopen(url + "/json/version", timeout=2.0) as r:
-                if r.status == 200:
+                if r.status == 200:  # noqa: PLR2004
                     return {"ready": True, "port": port, "endpoint": url}
         except Exception:  # noqa: BLE001 - not up yet; keep polling until the deadline
             pass
@@ -127,7 +127,7 @@ def _strip_field_codes(exec_line: str) -> list[str]:
         parts = exec_line.split()
     out = []
     for p in parts:
-        if len(p) == 2 and p[0] == "%":     # %f %u %F %U %i %c %k ...
+        if len(p) == 2 and p[0] == "%":  # noqa: PLR2004  # %f %u %F %U %i %c %k ...
             continue
         if p.startswith("@@"):               # flatpak arg wrappers
             continue

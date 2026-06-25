@@ -317,14 +317,17 @@ def task_run(steps: list | None = None) -> dict[str, Any]:
         op = str(st.get("op", ""))
         try:
             if op == "sleep":
-                time.sleep(min(float(st.get("seconds", 0.2)), 5.0)); log.append({"op": op}); continue
+                time.sleep(min(float(st.get("seconds", 0.2)), 5.0))
+                log.append({"op": op})
+                continue
             if op == "focus":
                 r = B.dispatch("focus", title=str(st.get("title", "")))
             elif op == "move":
                 r = B.dispatch("move", x=int(st["x"]), y=int(st["y"]))
             elif op == "click":
                 if "x" in st and "y" in st:
-                    B.dispatch("move", x=int(st["x"]), y=int(st["y"])); time.sleep(0.15)
+                    B.dispatch("move", x=int(st["x"]), y=int(st["y"]))
+                    time.sleep(0.15)
                 r = B.dispatch("click", button=str(st.get("button", "left")))
             elif op == "type":
                 r = B.dispatch("type", text=str(st.get("text", "")))
@@ -333,7 +336,8 @@ def task_run(steps: list | None = None) -> dict[str, Any]:
             elif op == "scroll":
                 r = B.dispatch("scroll", dy=int(st.get("dy", -3)))
             else:
-                log.append({"op": op, "skipped": "unknown op"}); continue
+                log.append({"op": op, "skipped": "unknown op"})
+                continue
             log.append({"op": op, "via": r.get("via"), "ok": True})
             time.sleep(float(st.get("after", 0.25)))
         except (B.BackendError, KeyError, ValueError) as exc:
@@ -366,18 +370,20 @@ def window_list() -> dict[str, Any]:
 @conn.handler("window/command/close", isolated=True,
               meta={"label": "Snapshot the active page, then close it (reversible: restore)"})
 def window_close(id: str = "") -> dict[str, Any]:
-    """Checkpoint-before-mutate: capture the page's SERIALIZABLE state (URL + scroll + form
-    values + sessionStorage) in one CDP round-trip and return it as ``snapshot``, then close
-    the tab. The reversible engine pairs this with ``window/command/restore {snapshot}`` as the
-    inverse. Fidelity is bounded to what the snapshot serialized — ephemeral in-memory state
-    (a live socket, JS-only vars) is OUTSIDE the edge and is NOT claimed restorable."""
+    """Checkpoint-before-mutate: capture the page's serializable state (URL, scroll, form
+    values, sessionStorage) in one CDP round-trip, return it as ``snapshot``, then close the
+    tab. The reversible engine pairs this with window/command/restore as the inverse. Fidelity
+    is bounded to what the snapshot serialized; ephemeral in-memory state (live sockets, JS-only
+    vars) is outside the edge and is not claimed restorable."""
     cdp = _cdp_mod()
+    snapshot_js = """(() => ({
+        url: location.href, scrollX: scrollX, scrollY: scrollY,
+        forms: [...document.querySelectorAll('input,textarea,[contenteditable]')].map(
+            (el, i) => ({i: i, ce: !!el.isContentEditable, v: el.isContentEditable ? el.textContent : el.value})),
+        session: Object.fromEntries(Object.entries(sessionStorage))
+    }))()"""
     try:
-        snap = cdp._evaluate(
-            "(() => ({url: location.href, scrollX: scrollX, scrollY: scrollY,"
-            " forms: [...document.querySelectorAll('input,textarea,[contenteditable]')]"
-            ".map((el,i)=>({i, ce: !!el.isContentEditable, v: el.isContentEditable?el.textContent:el.value})),"
-            " session: Object.fromEntries(Object.entries(sessionStorage))}))()")
+        snap = cdp._evaluate(snapshot_js)
     except B.BackendError as exc:
         return _fail_from("window-close", exc)
     if isinstance(snap, dict):
@@ -385,33 +391,42 @@ def window_close(id: str = "") -> dict[str, Any]:
     try:
         cdp._evaluate("window.close()")
     except B.BackendError:
-        pass  # some pages refuse window.close(); the tab may persist — the snapshot is still valid
+        # some pages refuse window.close(); the tab may persist, the snapshot stays valid
+        pass
     return _ok(action="window-close", did=f"close({id or 'active'})", reversible=True, snapshot=snap)
 
 
 @conn.handler("window/command/restore", isolated=True,
               meta={"label": "Reopen and rehydrate a window from a close snapshot"})
 def window_restore(snapshot: dict | None = None) -> dict[str, Any]:
-    """Inverse of ``window/command/close``: navigate to the snapshot URL, then rehydrate scroll
-    and form values (dispatching input/change so React/contenteditable register them). Honest
-    caveats: sessionStorage set post-load is missed by on-load scripts, and back/forward history
-    is not reconstructable by a single navigate — fidelity is bounded to the snapshot."""
+    """Inverse of window/command/close: navigate to the snapshot URL, then rehydrate scroll and
+    form values (dispatching input/change so React/contenteditable register them). Honest
+    caveats: sessionStorage set post-load is missed by on-load scripts and back/forward history
+    is not reconstructable by a single navigate; fidelity is bounded to the snapshot."""
     import json as _json
     s = snapshot or {}
     if not s.get("url"):
         return urirun.fail("snapshot.url is required to restore", connector=CONNECTOR_ID, action="window-restore")
+    rehydrate_js = """(() => {
+        scrollTo(__SX__, __SY__);
+        const f = __FORMS__;
+        const els = document.querySelectorAll('input,textarea,[contenteditable]');
+        f.forEach(x => {
+            const el = els[x.i];
+            if (!el) return;
+            if (x.ce) el.textContent = x.v; else el.value = x.v;
+            el.dispatchEvent(new Event('input', {bubbles: true}));
+            el.dispatchEvent(new Event('change', {bubbles: true}));
+        });
+    })()"""
+    expr = (rehydrate_js.replace("__SX__", str(int(s.get("scrollX", 0))))
+            .replace("__SY__", str(int(s.get("scrollY", 0))))
+            .replace("__FORMS__", _json.dumps(s.get("forms") or [])))
     cdp = _cdp_mod()
     try:
         cdp.navigate(s["url"])
         cdp.page_ready()
-        cdp._evaluate(
-            "(() => { scrollTo(%d,%d); const f=%s;"
-            " const els=document.querySelectorAll('input,textarea,[contenteditable]');"
-            " f.forEach(x => { const el=els[x.i]; if(!el) return;"
-            " if(x.ce) el.textContent=x.v; else el.value=x.v;"
-            " el.dispatchEvent(new Event('input',{bubbles:true}));"
-            " el.dispatchEvent(new Event('change',{bubbles:true})); }); })()"
-            % (int(s.get("scrollX", 0)), int(s.get("scrollY", 0)), _json.dumps(s.get("forms") or [])))
+        cdp._evaluate(expr)
     except B.BackendError as exc:
         return _fail_from("window-restore", exc)
     return _ok(action="window-restore", did=f"restore({s.get('id', '?')})", reversible=True)
@@ -430,7 +445,7 @@ def proc_kill(pid: int = 0, name: str = "", signal: str = "TERM") -> dict[str, A
     sig = getattr(_sig, signal if signal.startswith("SIG") else f"SIG{signal.upper()}", _sig.SIGTERM)
     targets: list[int] = []
     if name:
-        if len(name) < 3:
+        if len(name) < 3:  # noqa: PLR2004
             return urirun.fail("name must be >= 3 chars", connector=CONNECTOR_ID, action="kill")
         try:
             out = _sp.run(["pgrep", "-f", name], capture_output=True, text=True, timeout=8).stdout
@@ -444,7 +459,8 @@ def proc_kill(pid: int = 0, name: str = "", signal: str = "TERM") -> dict[str, A
     killed, errs = [], []
     for p in targets:
         try:
-            _os.kill(p, sig); killed.append(p)
+            _os.kill(p, sig)
+            killed.append(p)
         except ProcessLookupError:
             pass
         except PermissionError:
@@ -483,7 +499,7 @@ def _click_hit(hit: dict, app: str, role: str, text: str) -> dict:
     if not hit.get("found"):
         raise B.BackendError(f"ui-click: target not located (text={text!r} role={role!r})")
     center = hit.get("center")
-    if center and len(center) == 2:
+    if center and len(center) == 2:  # noqa: PLR2004
         cx, cy = int(center[0]), int(center[1])
     elif hit.get("bbox"):
         cx, cy = B.bbox_center(hit["bbox"])
@@ -568,18 +584,38 @@ def surface_current() -> dict[str, Any]:
 @conn.handler("cdp/session/command/ensure", isolated=True,
               meta={"label": "Reuse or launch a dedicated-profile CDP Chrome (so the router's cdp strategy is available)"})
 def cdp_ensure(url: str = "", user_data_dir: str = "", copy_from: str = "",
-               wait: float = 14.0) -> dict[str, Any]:
-    """Make the CDP control surface AVAILABLE: reuse a live debug endpoint or launch a
-    Chrome on a dedicated user-data-dir that binds the debug port (avoids the 'debugger did
-    not come up' collision). ``copy_from`` clones a profile's auth files for a logged-in
-    session. After this, ``ui/*`` route through the coordinate-free cdp DOM strategy."""
-    try:
-        from . import cdp as _cdp
-    except ImportError:
-        import cdp as _cdp  # type: ignore
-    r = _cdp.launch_session(url=url, user_data_dir=user_data_dir, copy_from=copy_from, wait=float(wait))
+               wait: float = 0.0) -> dict[str, Any]:
+    """Make the CDP control surface AVAILABLE — LAUNCH/PROBE SPLIT so Chrome's cold-start
+    can't blow the node handler's exec cap. Reuses a live endpoint, else FIRES the launch and
+    returns ``launching: True`` *without* awaiting the bind (default ``wait=0``). Poll
+    ``cdp/session/query/ready`` for readiness — it won't spawn a competing Chrome (re-calling
+    *this* would, fighting over the profile lock). ``wait>0`` blocks up to a cap-safe bound
+    (min(wait,25)s) for convenience, but a timeout there is ``pending``, NOT a failure — Chrome
+    may still be coming up. ``copy_from`` clones auth files for a logged-in session."""
+    _cdp = _cdp_mod()
+    r = _cdp.start_session(url=url, user_data_dir=user_data_dir, copy_from=copy_from)
+    if r.get("ok") and r.get("launching") and float(wait) > 0:
+        ready = _cdp.await_ready(timeout=min(float(wait), 25.0))
+        r["launching"] = not ready.get("ready")
+        if not ready.get("ready"):
+            r["pending"] = True                       # not an error: poll cdp/session/query/ready
+            r["readyError"] = ready.get("error")
     return _ok(action="cdp-ensure", **_spread(r)) if r.get("ok") else \
         urirun.fail(r.get("error", "cdp ensure failed"), connector=CONNECTOR_ID, action="cdp-ensure", **_spread(r))
+
+
+@conn.handler("cdp/session/query/ready", isolated=True,
+              meta={"label": "Poll until the CDP debug endpoint is reachable (no launch)"})
+def cdp_session_ready(timeout: float = 12.0) -> dict[str, Any]:
+    """Readiness half of the launch/probe split: poll the debug endpoint WITHOUT launching
+    (distinct from ``cdp/page/query/ready``, which waits on document load). Call after
+    ``cdp/session/command/ensure``; repeatable — a pure probe never spawns a competing Chrome.
+    ``timeout`` is capped under the node handler exec cap; call again if not ready yet."""
+    r = _cdp_mod().await_ready(timeout=min(float(timeout), 25.0))
+    return _ok(action="cdp-ready", **_spread(r)) if r.get("ready") else \
+        urirun.fail(r.get("error", "debugger not reachable within timeout"),
+                    connector=CONNECTOR_ID, action="cdp-ready",
+                    **{k: v for k, v in r.items() if k != "error"})
 
 
 def _cdp_mod():
@@ -709,12 +745,6 @@ def cdp_status() -> dict[str, Any]:
     except ImportError:
         import cdp as _cdp  # type: ignore
     reachable = _cdp.reachable()
-    page = None
-    if reachable:
-        try:
-            page = _cdp.find(text="", role="").get("name")  # cheap probe
-        except Exception:  # noqa: BLE001
-            page = None
     return _ok(action="cdp-status", reachable=reachable, endpoint=_cdp.endpoint())
 
 
