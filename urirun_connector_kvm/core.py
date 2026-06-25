@@ -380,7 +380,7 @@ def window_close(id: str = "") -> dict[str, Any]:
         url: location.href, scrollX: scrollX, scrollY: scrollY,
         forms: [...document.querySelectorAll('input,textarea,[contenteditable]')].map(
             (el, i) => ({i: i, ce: !!el.isContentEditable, v: el.isContentEditable ? el.textContent : el.value})),
-        session: Object.fromEntries(Object.entries(sessionStorage))
+        session: (() => { try { return Object.fromEntries(Object.entries(sessionStorage)); } catch (e) { return {}; } })()
     }))()"""
     try:
         snap = cdp._evaluate(snapshot_js)

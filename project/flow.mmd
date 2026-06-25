@@ -5,6 +5,11 @@ flowchart TD
     classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
 
     subgraph Core
+        urirun_connector_kvm__launch_backends___launch_xdg["_launch_xdg"]
+        urirun_connector_kvm__launch_backends___launch_macos["_launch_macos"]
+        urirun_connector_kvm__launch_backends___launch_windows["_launch_windows"]
+        urirun_connector_kvm__launch_backends___list_xdg["_list_xdg"]
+        urirun_connector_kvm__launch_backends___list_macos["_list_macos"]
         urirun_connector_kvm__strategies__CdpStrategy__available["available"]
         urirun_connector_kvm__strategies__CdpStrategy__locate["locate"]
         urirun_connector_kvm__strategies__CdpStrategy__click["click"]
@@ -15,12 +20,7 @@ flowchart TD
         urirun_connector_kvm__strategies__AtspiStrategy__fill["fill"]
         urirun_connector_kvm__strategies__VisionStrategy__available["available"]
         urirun_connector_kvm__strategies__VisionStrategy__locate["locate"]
-        urirun_connector_kvm__strategies__VisionStrategy___click_xy["_click_xy"]
-        urirun_connector_kvm__strategies__VisionStrategy__click["click"]
-        urirun_connector_kvm__strategies__VisionStrategy__fill["fill"]
-        urirun_connector_kvm__surface__current["current"]
-        computer_use_preview__agent__BrowserAgent___handle_scroll_at["_handle_scroll_at"]
-        ...["+175 more"]
+        ...["+221 more"]
     end
 
-    class urirun_connector_kvm__strategies__CdpStrategy__available,urirun_connector_kvm__strategies__CdpStrategy__locate,urirun_connector_kvm__strategies__CdpStrategy__click,urirun_connector_kvm__strategies__CdpStrategy__fill,urirun_connector_kvm__strategies__AtspiStrategy__available,urirun_connector_kvm__strategies__AtspiStrategy__locate,urirun_connector_kvm__strategies__AtspiStrategy__click,urirun_connector_kvm__strategies__AtspiStrategy__fill,urirun_connector_kvm__strategies__VisionStrategy__available,urirun_connector_kvm__strategies__VisionStrategy__locate entry
+    class urirun_connector_kvm__launch_backends___launch_xdg,urirun_connector_kvm__launch_backends___launch_macos,urirun_connector_kvm__launch_backends___launch_windows,urirun_connector_kvm__launch_backends___list_xdg,urirun_connector_kvm__launch_backends___list_macos,urirun_connector_kvm__strategies__CdpStrategy__available,urirun_connector_kvm__strategies__CdpStrategy__locate,urirun_connector_kvm__strategies__CdpStrategy__click,urirun_connector_kvm__strategies__CdpStrategy__fill,urirun_connector_kvm__strategies__AtspiStrategy__available entry

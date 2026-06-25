@@ -21,7 +21,7 @@ project_file('project.sh', 69, 'shell').
 project_file('tests/test_kvm.py', 464, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1292, 'python').
+project_file('urirun_connector_kvm/backends.py', 1293, 'python').
 project_file('urirun_connector_kvm/cdp.py', 349, 'python').
 project_file('urirun_connector_kvm/control.py', 215, 'python').
 project_file('urirun_connector_kvm/core.py', 919, 'python').

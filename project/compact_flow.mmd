@@ -1,5 +1,8 @@
 flowchart TD
 %% generated in 0.01s
-    computer_use_preview__computers["computer-use-preview.computers<br/>96 funcs"]
+    urirun_connector_kvm__backends["urirun_connector_kvm.backends<br/>79 funcs"]
+    urirun_connector_kvm__cdp["urirun_connector_kvm.cdp<br/>18 funcs"]
     urirun_connector_kvm__launch_backends["urirun_connector_kvm.launch_backends<br/>16 funcs"]
-    urirun_connector_kvm__launch_backends -->|2| computer_use_preview__computers
+    urirun_connector_kvm__launch_backends ==>|6| urirun_connector_kvm__backends
+    urirun_connector_kvm__launch_backends -->|2| urirun_connector_kvm__cdp
+    urirun_connector_kvm__cdp -->|1| urirun_connector_kvm__backends

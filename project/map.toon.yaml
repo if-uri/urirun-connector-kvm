@@ -1,4 +1,4 @@
-# urirun-connector-kvm | 27f 5782L | python:23,shell:3,less:1 | 2026-06-25
+# urirun-connector-kvm | 27f 5783L | python:23,shell:3,less:1 | 2026-06-25
 # stats: 224 func | 13 cls | 27 mod | CC̄=4.0 | critical:16 | cycles:0
 # alerts[5]: CC _locate_easyocr=14; CC _line_match=13; CC _wayland_present=13; CC route=13; CC task_run=13
 # hotspots[5]: _locate_easyocr fan=18; capture fan=16; uinput_abs_click fan=15; _tsv_lines fan=14; proc_kill fan=14
@@ -24,7 +24,7 @@ M[27]:
   tests/test_kvm.py,464
   tree.sh,5
   urirun_connector_kvm/__init__.py,39
-  urirun_connector_kvm/backends.py,1292
+  urirun_connector_kvm/backends.py,1293
   urirun_connector_kvm/cdp.py,349
   urirun_connector_kvm/control.py,215
   urirun_connector_kvm/core.py,919

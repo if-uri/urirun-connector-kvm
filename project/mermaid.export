@@ -94,6 +94,68 @@ flowchart TD
         examples__calibrate_abs__magenta_frac["magenta_frac"]
         examples__calibrate_abs__find_box["find_box"]
     end
+    subgraph urirun_connector_kvm__backends
+        urirun_connector_kvm__backends___runtime_dir["_runtime_dir"]
+        urirun_connector_kvm__backends___wayland_socket["_wayland_socket"]
+        urirun_connector_kvm__backends___x_display["_x_display"]
+        urirun_connector_kvm__backends__is_wayland["is_wayland"]
+        urirun_connector_kvm__backends__is_x11["is_x11"]
+        urirun_connector_kvm__backends__platform_tag["platform_tag"]
+        urirun_connector_kvm__backends__have_bin["have_bin"]
+        urirun_connector_kvm__backends__have_mod["have_mod"]
+        urirun_connector_kvm__backends__Backend__missing["missing"]
+        urirun_connector_kvm__backends__Backend__available["available"]
+        urirun_connector_kvm__backends__backend["backend"]
+        urirun_connector_kvm__backends__dispatch("dispatch CC=11")
+        urirun_connector_kvm__backends__registry_report["registry_report"]
+        urirun_connector_kvm__backends___run["_run"]
+        urirun_connector_kvm__backends___portal_python["_portal_python"]
+        urirun_connector_kvm__backends___cap_portal["_cap_portal"]
+        urirun_connector_kvm__backends___cap_grim["_cap_grim"]
+        urirun_connector_kvm__backends___cap_mss["_cap_mss"]
+        urirun_connector_kvm__backends___cap_pillow["_cap_pillow"]
+        urirun_connector_kvm__backends___cap_scrot["_cap_scrot"]
+        urirun_connector_kvm__backends___cap_im["_cap_im"]
+        urirun_connector_kvm__backends___cap_gnome["_cap_gnome"]
+        urirun_connector_kvm__backends___cap_macos["_cap_macos"]
+        urirun_connector_kvm__backends___ydotool_socket["_ydotool_socket"]
+        urirun_connector_kvm__backends__ensure_ydotoold["ensure_ydotoold"]
+        urirun_connector_kvm__backends___yd_env["_yd_env"]
+        urirun_connector_kvm__backends___yd_keyseq["_yd_keyseq"]
+        urirun_connector_kvm__backends__session_env("session_env CC=8")
+        urirun_connector_kvm__backends___clipboard_set["_clipboard_set"]
+        urirun_connector_kvm__backends___type_ydotool["_type_ydotool"]
+        urirun_connector_kvm__backends___type_wtype["_type_wtype"]
+        urirun_connector_kvm__backends___type_xdotool["_type_xdotool"]
+        urirun_connector_kvm__backends___type_pynput["_type_pynput"]
+        urirun_connector_kvm__backends___click_ydotool["_click_ydotool"]
+        urirun_connector_kvm__backends___click_xdotool["_click_xdotool"]
+        urirun_connector_kvm__backends___click_pynput["_click_pynput"]
+        urirun_connector_kvm__backends___move_uinput_abs["_move_uinput_abs"]
+        urirun_connector_kvm__backends___move_ydotool["_move_ydotool"]
+        urirun_connector_kvm__backends___move_xdotool["_move_xdotool"]
+        urirun_connector_kvm__backends___move_pynput["_move_pynput"]
+        urirun_connector_kvm__backends___key_ydotool["_key_ydotool"]
+        urirun_connector_kvm__backends___key_xdotool["_key_xdotool"]
+        urirun_connector_kvm__backends___key_pynput["_key_pynput"]
+        urirun_connector_kvm__backends___scroll_ydotool["_scroll_ydotool"]
+        urirun_connector_kvm__backends___scroll_pynput["_scroll_pynput"]
+        urirun_connector_kvm__backends___focus_wmctrl["_focus_wmctrl"]
+        urirun_connector_kvm__backends___focus_pgw["_focus_pgw"]
+        urirun_connector_kvm__backends___winlist_wmctrl["_winlist_wmctrl"]
+        urirun_connector_kvm__backends___atspi_python["_atspi_python"]
+        urirun_connector_kvm__backends___focus_atspi["_focus_atspi"]
+        urirun_connector_kvm__backends___a11y_atspi["_a11y_atspi"]
+        urirun_connector_kvm__backends___tsv_lines("_tsv_lines CC=8")
+        urirun_connector_kvm__backends___tesseract_words_by_line["_tesseract_words_by_line"]
+        urirun_connector_kvm__backends___line_match("_line_match CC=13")
+        urirun_connector_kvm__backends___tesseract_query_matches["_tesseract_query_matches"]
+        urirun_connector_kvm__backends___locate_tesseract("_locate_tesseract CC=9")
+        urirun_connector_kvm__backends___easyocr_reader["_easyocr_reader"]
+        urirun_connector_kvm__backends___locate_easyocr("_locate_easyocr CC=14")
+        urirun_connector_kvm__backends__bbox_center["bbox_center"]
+        urirun_connector_kvm__backends___locate_atspi("_locate_atspi CC=9")
+    end
     subgraph urirun_connector_kvm__cdp
         urirun_connector_kvm__cdp__endpoint["endpoint"]
         urirun_connector_kvm__cdp___pages("_pages CC=8")
@@ -229,10 +291,6 @@ flowchart TD
         urirun_connector_kvm__surface__current["current"]
     end
     examples__calibrate_abs__cap --> examples__calibrate_abs__run
-    urirun_connector_kvm__strategies__CdpStrategy__available --> urirun_connector_kvm__strategies__is_browser
-    urirun_connector_kvm__surface__current --> urirun_connector_kvm__surface___active_window
-    computer_use_preview__agent__BrowserAgent___dispatch_action --> computer_use_preview__agent__multiply_numbers
-    computer_use_preview__agent__BrowserAgent___dispatch_legacy_action --> computer_use_preview__agent__multiply_numbers
     urirun_connector_kvm__launch_backends___parse_desktop --> urirun_connector_kvm__launch_backends___parse_desktop_section
     urirun_connector_kvm__launch_backends___desktop_entries --> urirun_connector_kvm__launch_backends___xdg_app_dirs
     urirun_connector_kvm__launch_backends___desktop_entries --> urirun_connector_kvm__launch_backends___parse_desktop
@@ -241,12 +299,20 @@ flowchart TD
     urirun_connector_kvm__launch_backends___resolve_launch_argv --> urirun_connector_kvm__launch_backends___strip_field_codes
     urirun_connector_kvm__launch_backends___inject_chrome_flags --> urirun_connector_kvm__launch_backends___cdp_port
     urirun_connector_kvm__launch_backends___inject_chrome_flags --> urirun_connector_kvm__launch_backends___inject_cdp_profile
+    urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__launch_backends___resolve_launch_argv
     urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__launch_backends___inject_chrome_flags
     urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__launch_backends___cdp_wait
-    urirun_connector_kvm__launch_backends___launch_macos --> computer_use_preview__computers__kvm__kvm__KvmComputer___run
-    urirun_connector_kvm__launch_backends___launch_windows --> computer_use_preview__computers__kvm__kvm__KvmComputer___run
+    urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__backends__session_env
+    urirun_connector_kvm__launch_backends___launch_macos --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__launch_backends___launch_macos --> urirun_connector_kvm__cdp___run
+    urirun_connector_kvm__launch_backends___launch_windows --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__launch_backends___launch_windows --> urirun_connector_kvm__cdp___run
+    urirun_connector_kvm__launch_backends___list_xdg --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__launch_backends___list_xdg --> urirun_connector_kvm__launch_backends___desktop_entries
+    urirun_connector_kvm__launch_backends___list_macos --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__strategies__CdpStrategy__available --> urirun_connector_kvm__strategies__is_browser
+    urirun_connector_kvm__surface__current --> urirun_connector_kvm__surface___active_window
     urirun_connector_kvm__cdp___pages --> urirun_connector_kvm__cdp__endpoint
     urirun_connector_kvm__cdp__reachable --> urirun_connector_kvm__cdp___pages
     urirun_connector_kvm__cdp__navigate --> urirun_connector_kvm__cdp___evaluate
@@ -255,6 +321,7 @@ flowchart TD
     urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp__reachable
     urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp___copy_auth
     urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp___find_chrome
+    urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__backends__session_env
     urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp__navigate
     urirun_connector_kvm__cdp__await_ready --> urirun_connector_kvm__cdp__endpoint
     urirun_connector_kvm__cdp__await_ready --> urirun_connector_kvm__cdp__reachable
@@ -369,9 +436,128 @@ flowchart TD
     urirun_connector_kvm__control__act --> urirun_connector_kvm__control__route
     urirun_connector_kvm__control__act --> urirun_connector_kvm__control___check_post_condition
     urirun_connector_kvm__control__report --> urirun_connector_kvm__control___safe_avail
+    computer_use_preview__agent__BrowserAgent___dispatch_action --> computer_use_preview__agent__multiply_numbers
+    computer_use_preview__agent__BrowserAgent___dispatch_legacy_action --> computer_use_preview__agent__multiply_numbers
+    urirun_connector_kvm__backends___wayland_socket --> urirun_connector_kvm__backends___runtime_dir
+    urirun_connector_kvm__backends__is_wayland --> urirun_connector_kvm__backends___wayland_socket
+    urirun_connector_kvm__backends__is_x11 --> urirun_connector_kvm__backends__is_wayland
+    urirun_connector_kvm__backends__is_x11 --> urirun_connector_kvm__backends___x_display
+    urirun_connector_kvm__backends__platform_tag --> urirun_connector_kvm__backends__is_wayland
+    urirun_connector_kvm__backends__Backend__missing --> urirun_connector_kvm__backends__have_bin
+    urirun_connector_kvm__backends__Backend__missing --> urirun_connector_kvm__backends__have_mod
+    urirun_connector_kvm__backends__Backend__available --> urirun_connector_kvm__backends__platform_tag
+    urirun_connector_kvm__backends__dispatch --> urirun_connector_kvm__backends__platform_tag
+    urirun_connector_kvm__backends___run --> urirun_connector_kvm__backends__session_env
+    urirun_connector_kvm__backends___cap_portal --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_portal --> urirun_connector_kvm__backends___portal_python
+    urirun_connector_kvm__backends___cap_portal --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___cap_portal --> urirun_connector_kvm__backends__session_env
+    urirun_connector_kvm__backends___cap_grim --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_grim --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___cap_mss --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_pillow --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_scrot --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_scrot --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___cap_im --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_im --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___cap_gnome --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_gnome --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___cap_macos --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_macos --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends__ensure_ydotoold --> urirun_connector_kvm__backends___ydotool_socket
+    urirun_connector_kvm__backends___yd_env --> urirun_connector_kvm__backends__session_env
+    urirun_connector_kvm__backends___yd_env --> urirun_connector_kvm__backends__ensure_ydotoold
+    urirun_connector_kvm__backends__session_env --> urirun_connector_kvm__backends___runtime_dir
+    urirun_connector_kvm__backends__session_env --> urirun_connector_kvm__backends___x_display
+    urirun_connector_kvm__backends__session_env --> urirun_connector_kvm__backends___wayland_socket
+    urirun_connector_kvm__backends___clipboard_set --> urirun_connector_kvm__backends__have_bin
+    urirun_connector_kvm__backends___type_ydotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___type_ydotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___type_ydotool --> urirun_connector_kvm__backends___clipboard_set
+    urirun_connector_kvm__backends___type_ydotool --> urirun_connector_kvm__backends___yd_env
+    urirun_connector_kvm__backends___type_ydotool --> urirun_connector_kvm__backends___yd_keyseq
+    urirun_connector_kvm__backends___type_wtype --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___type_wtype --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___type_xdotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___type_xdotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___type_pynput --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___click_ydotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___click_ydotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___click_ydotool --> urirun_connector_kvm__backends___yd_env
+    urirun_connector_kvm__backends___click_xdotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___click_xdotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___click_pynput --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___move_uinput_abs --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___move_uinput_abs --> urirun_connector_kvm__backends___screen_wh
+    urirun_connector_kvm__backends___move_uinput_abs --> urirun_connector_kvm__backends__uinput_abs_click
+    urirun_connector_kvm__backends___move_ydotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___move_ydotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___move_ydotool --> urirun_connector_kvm__backends___yd_env
+    urirun_connector_kvm__backends___move_xdotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___move_xdotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___move_pynput --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___key_ydotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___key_ydotool --> urirun_connector_kvm__backends___yd_keyseq
+    urirun_connector_kvm__backends___key_ydotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___key_ydotool --> urirun_connector_kvm__backends___yd_env
+    urirun_connector_kvm__backends___key_xdotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___key_xdotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___key_pynput --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___scroll_ydotool --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___scroll_ydotool --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___scroll_ydotool --> urirun_connector_kvm__backends___yd_env
+    urirun_connector_kvm__backends___scroll_pynput --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___focus_wmctrl --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___focus_wmctrl --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___focus_pgw --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___winlist_wmctrl --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___winlist_wmctrl --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___focus_atspi --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___focus_atspi --> urirun_connector_kvm__backends___atspi_python
+    urirun_connector_kvm__backends___focus_atspi --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___focus_atspi --> urirun_connector_kvm__backends__session_env
+    urirun_connector_kvm__backends___a11y_atspi --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___a11y_atspi --> urirun_connector_kvm__backends___atspi_python
+    urirun_connector_kvm__backends___a11y_atspi --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___a11y_atspi --> urirun_connector_kvm__backends__session_env
+    urirun_connector_kvm__backends___tesseract_query_matches --> urirun_connector_kvm__backends___tesseract_words_by_line
+    urirun_connector_kvm__backends___tesseract_query_matches --> urirun_connector_kvm__backends___line_match
+    urirun_connector_kvm__backends___locate_tesseract --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___locate_tesseract --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___locate_tesseract --> urirun_connector_kvm__backends___capture_tmp
+    urirun_connector_kvm__backends___locate_tesseract --> urirun_connector_kvm__backends___tesseract_query_matches
+    urirun_connector_kvm__backends___locate_tesseract --> urirun_connector_kvm__backends___tsv_lines
+    urirun_connector_kvm__backends___locate_easyocr --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___locate_easyocr --> urirun_connector_kvm__backends___easyocr_reader
+    urirun_connector_kvm__backends___locate_easyocr --> urirun_connector_kvm__backends___capture_tmp
+    urirun_connector_kvm__backends___locate_atspi --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___locate_atspi --> urirun_connector_kvm__backends___a11y_atspi
+    urirun_connector_kvm__backends___capture_tmp --> urirun_connector_kvm__backends__dispatch
+    urirun_connector_kvm__backends___locate_imgl --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___locate_imgl --> urirun_connector_kvm__backends___capture_tmp
+    urirun_connector_kvm__backends___locate_imgl --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___locate_vql --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___locate_vql --> urirun_connector_kvm__backends___capture_tmp
+    urirun_connector_kvm__backends___locate_vql --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__backends___screen_wh --> urirun_connector_kvm__backends__dispatch
+    urirun_connector_kvm__backends___screen_wh --> urirun_connector_kvm__backends___read_text
+    urirun_connector_kvm__backends___compute_abs_coords --> urirun_connector_kvm__backends___calib
+    urirun_connector_kvm__backends__uinput_abs_click --> urirun_connector_kvm__backends___compute_abs_coords
+    urirun_connector_kvm__backends__uinput_abs_click --> urirun_connector_kvm__backends___uinput_create_abs
+    urirun_connector_kvm__backends__uinput_abs_click --> urirun_connector_kvm__backends__uinput_available
+    urirun_connector_kvm__backends__uinput_abs_click --> urirun_connector_kvm__backends___screen_wh
+    urirun_connector_kvm__backends___gnome_monitors --> urirun_connector_kvm__backends__have_bin
+    urirun_connector_kvm__backends___wayland_present --> urirun_connector_kvm__backends__have_bin
+    urirun_connector_kvm__backends___surface_flags --> urirun_connector_kvm__backends___os_level_reliable
+    urirun_connector_kvm__backends___surface_flags --> urirun_connector_kvm__backends__is_wayland
+    urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends__platform_tag
+    urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends___wayland_present
+    urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends___surface_flags
+    urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends___surface_warnings
+    urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends___gnome_monitors
     urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment___safe
     urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__atspi_ready
 
     classDef highCC fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef medCC fill:#ffd43b,stroke:#f08c00,color:#000
-    class computer_use_preview__agent__BrowserAgent___dispatch_action,computer_use_preview__agent__BrowserAgent___dispatch_legacy_action,computer_use_preview__agent__BrowserAgent___trim_old_screenshots,computer_use_preview__agent__BrowserAgent__run_one_iteration,computer_use_preview__computers__kvm__kvm__KvmComputer___run,urirun_connector_kvm__launch_backends___xdg_app_dirs,urirun_connector_kvm__launch_backends___parse_desktop_section,urirun_connector_kvm__launch_backends___find_app,urirun_connector_kvm__launch_backends___inject_chrome_flags,urirun_connector_kvm__cdp___pages,urirun_connector_kvm__cdp__start_session,urirun_connector_kvm__core___positioned_click,urirun_connector_kvm__core___apply_capture_postprocessing,urirun_connector_kvm__core__task_run,urirun_connector_kvm__core__proc_kill,urirun_connector_kvm__core___act_reject,urirun_connector_kvm__core__ui_click_text,urirun_connector_kvm__control___try_act_one,urirun_connector_kvm__control__route,urirun_connector_kvm__control__act,urirun_connector_kvm__environment__profile medCC
+    class urirun_connector_kvm__launch_backends___xdg_app_dirs,urirun_connector_kvm__launch_backends___parse_desktop_section,urirun_connector_kvm__launch_backends___find_app,urirun_connector_kvm__launch_backends___inject_chrome_flags,urirun_connector_kvm__cdp___pages,urirun_connector_kvm__cdp__start_session,urirun_connector_kvm__core___positioned_click,urirun_connector_kvm__core___apply_capture_postprocessing,urirun_connector_kvm__core__task_run,urirun_connector_kvm__core__proc_kill,urirun_connector_kvm__core___act_reject,urirun_connector_kvm__core__ui_click_text,urirun_connector_kvm__control___try_act_one,urirun_connector_kvm__control__route,urirun_connector_kvm__control__act,computer_use_preview__agent__BrowserAgent___dispatch_action,computer_use_preview__agent__BrowserAgent___dispatch_legacy_action,computer_use_preview__agent__BrowserAgent___trim_old_screenshots,computer_use_preview__agent__BrowserAgent__run_one_iteration,computer_use_preview__computers__kvm__kvm__KvmComputer___run,urirun_connector_kvm__backends__dispatch,urirun_connector_kvm__backends__session_env,urirun_connector_kvm__backends___tsv_lines,urirun_connector_kvm__backends___line_match,urirun_connector_kvm__backends___locate_tesseract,urirun_connector_kvm__backends___locate_easyocr,urirun_connector_kvm__backends___locate_atspi,urirun_connector_kvm__backends___locate_vql,urirun_connector_kvm__backends___screen_wh,urirun_connector_kvm__backends__uinput_abs_click medCC
