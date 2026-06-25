@@ -291,7 +291,8 @@ _YD_BUTTON = {"left": "0xC0", "right": "0xC1", "middle": "0xC2"}
 _YD_KEY = {"enter": "28", "return": "28", "tab": "15", "esc": "1", "escape": "1", "space": "57",
            "backspace": "14", "ctrl": "29", "shift": "42", "alt": "56", "super": "125", "meta": "125",
            "left": "105", "right": "106", "up": "103", "down": "108", "a": "30", "c": "46", "v": "47",
-           "x": "45", "z": "44", "t": "20", "w": "17", "l": "38", "f4": "62"}
+           "x": "45", "z": "44", "t": "20", "w": "17", "l": "38",
+           "f4": "62", "f5": "63", "f6": "64", "f11": "87", "f12": "88"}
 
 
 def _yd_keyseq(combo: str) -> list[str]:
@@ -928,15 +929,38 @@ def _read_text(path: str) -> str:
         return ""
 
 
+def _calib() -> tuple | None:
+    """Runtime calibration of the abs-device->screenshot transform, learned per display
+    (the uinput [0,65535] range does NOT map 1:1 to the portal screenshot under
+    fractional-HiDPI / multi-region Mutter). ``URIRUN_KVM_CALIB="ax,bx,ay,by"`` encodes
+    ``landing_pixel = a*commanded_pixel + b`` per axis (fit by the host calibration pass).
+    Returns the 4 floats, or ``None`` when unset/invalid (then coords are used as-is)."""
+    try:
+        ax, bx, ay, by = (float(v) for v in os.environ.get("URIRUN_KVM_CALIB", "").split(","))
+        return ax, bx, ay, by
+    except (ValueError, TypeError):
+        return None
+
+
 def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
-                     do_click: bool = True, settle: float = 0.9) -> dict:
+                     do_click: bool = True, settle: float = 0.9, clicks: int = 1) -> dict:
     if not uinput_available():
         raise BackendError("no write access to /dev/uinput (add user to 'input' group or udev rule)")
     if not sw or not sh:  # auto-detect from the capture surface when the caller omits it
         dsw, dsh = _screen_wh()
         sw, sh = sw or dsw, sh or dsh
-    ax = max(0, min(_ABS_RANGE, int(x / sw * _ABS_RANGE) if sw else int(x)))
-    ay = max(0, min(_ABS_RANGE, int(y / sh * _ABS_RANGE) if sh else int(y)))
+    px, py = float(x), float(y)
+    cal = _calib()
+    if cal:  # invert landing = a*commanded + b  ->  command (desired-b)/a so it LANDS at (x,y)
+        ca_x, cb_x, ca_y, cb_y = cal
+        if ca_x:
+            px = (px - cb_x) / ca_x
+        if ca_y:
+            py = (py - cb_y) / ca_y
+        px = max(0.0, min(float(sw), px))
+        py = max(0.0, min(float(sh), py))
+    ax = max(0, min(_ABS_RANGE, int(px / sw * _ABS_RANGE) if sw else int(px)))
+    ay = max(0, min(_ABS_RANGE, int(py / sh * _ABS_RANGE) if sh else int(py)))
 
     def ev(fd, t, c, v):
         os.write(fd, _struct.pack("llHHi", 0, 0, t, c, v))
@@ -947,11 +971,14 @@ def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
         time.sleep(0.25)
         if do_click:
             bc = _BTN_CODE.get(button, 0x110)
-            ev(fd, _EV_KEY, bc, 1); ev(fd, _EV_KEY, _BTN_TOUCH, 1); ev(fd, _EV_SYN, 0, 0)
-            time.sleep(0.08)
-            ev(fd, _EV_KEY, bc, 0); ev(fd, _EV_KEY, _BTN_TOUCH, 0); ev(fd, _EV_SYN, 0, 0)
+            for _i in range(max(1, int(clicks))):  # N presses on ONE device = real double/triple-click
+                ev(fd, _EV_KEY, bc, 1); ev(fd, _EV_KEY, _BTN_TOUCH, 1); ev(fd, _EV_SYN, 0, 0)
+                time.sleep(0.06)
+                ev(fd, _EV_KEY, bc, 0); ev(fd, _EV_KEY, _BTN_TOUCH, 0); ev(fd, _EV_SYN, 0, 0)
+                time.sleep(0.06)
         time.sleep(0.2)
-        return {"via": "uinput-absolute", "abs": [ax, ay], "pixel": [x, y], "clicked": bool(do_click)}
+        return {"via": "uinput-absolute", "abs": [ax, ay], "pixel": [x, y],
+                "clicked": bool(do_click), "clicks": int(clicks) if do_click else 0}
     finally:
         try:
             _fcntl.ioctl(fd, _UI_DEV_DESTROY)

@@ -58,6 +58,27 @@ def _fail_from(action: str, exc: Exception) -> dict[str, Any]:
     return urirun.fail(str(exc), connector=CONNECTOR_ID, action=action, platform=B.platform_tag())
 
 
+def _positioned_click(button: str, x, y, clicks: int = 1) -> dict[str, Any]:
+    """Position+click as ONE uinput absolute device when /dev/uinput is writable.
+    On a GNOME/Wayland node that lacks WAYLAND_DISPLAY, ydotool's ``mousemove -a``
+    mismaps and dumps the cursor at the top-left hot-corner (opens Activities); and a
+    split move(uinput-abs)+click(ydotool) clicks at the wrong place because the abs
+    device is destroyed before the click. ``uinput_abs_click`` does both atomically on
+    one device (auto-detecting screen size), so the click lands where we positioned.
+    Falls back to the move+click chain only when /dev/uinput is not writable."""
+    if x is not None and y is not None and B.uinput_available():
+        return B.uinput_abs_click(int(x), int(y), 0, 0, button=button, do_click=True, clicks=clicks)
+    moved = None
+    if x is not None and y is not None:
+        moved = B.dispatch("move", x=int(x), y=int(y))
+        time.sleep(0.15)
+    last: dict[str, Any] = {}
+    for _ in range(max(1, clicks)):
+        last = B.dispatch("click", button=button)
+        time.sleep(0.05)
+    return {**last, "moved": moved} if moved else last
+
+
 # --------------------------------------------------------------------------- #
 # screen capture
 # --------------------------------------------------------------------------- #
@@ -133,11 +154,7 @@ def click(button: str = "left", x: int | None = None, y: int | None = None) -> d
     if button not in ("left", "middle", "right"):
         return urirun.fail("button must be left|middle|right", connector=CONNECTOR_ID)
     try:
-        moved = None
-        if x is not None and y is not None:
-            moved = B.dispatch("move", x=int(x), y=int(y))
-            time.sleep(0.15)
-        return _ok(action="click", moved=moved, **B.dispatch("click", button=button))
+        return _ok(action="click", **_positioned_click(button, x, y))
     except B.BackendError as exc:
         return _fail_from("click", exc)
 
@@ -148,6 +165,20 @@ def move(x: int = 0, y: int = 0) -> dict[str, Any]:
         return _ok(action="move", **B.dispatch("move", x=int(x), y=int(y)))
     except B.BackendError as exc:
         return _fail_from("move", exc)
+
+
+@conn.handler("input/command/wait", isolated=True, meta={"label": "Pause for N seconds (let the UI settle)"})
+def wait(seconds: float = 1.0, ms: int = 0) -> dict[str, Any]:
+    """Sleep so a UI can settle between actions (page load, animation, focus change).
+    A primitive the NL planner reaches for between type/click steps — pass ``seconds``
+    (float) or ``ms``. Capped at 30s so a bad plan can't hang the node."""
+    try:
+        secs = min(30.0, max(0.0, float(ms) / 1000.0 if ms else float(seconds)))
+        time.sleep(secs)
+        return _ok(action="wait", seconds=secs)
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("wait", exc)
+
 
 
 @conn.handler("input/command/scroll", isolated=True, meta={"label": "Scroll the wheel (dy<0 = down)"})
@@ -161,14 +192,7 @@ def scroll(dy: int = -3) -> dict[str, Any]:
 @conn.handler("input/command/double-click", isolated=True, meta={"label": "Double click (optionally at x,y)"})
 def double_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
     try:
-        moved = None
-        if x is not None and y is not None:
-            moved = B.dispatch("move", x=int(x), y=int(y))
-            time.sleep(0.15)
-        B.dispatch("click", button="left")
-        time.sleep(0.05)
-        res = B.dispatch("click", button="left")
-        return _ok(action="double-click", moved=moved, **res)
+        return _ok(action="double-click", **_positioned_click("left", x, y, clicks=2))
     except B.BackendError as exc:
         return _fail_from("double-click", exc)
 
@@ -176,15 +200,7 @@ def double_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
 @conn.handler("input/command/triple-click", isolated=True, meta={"label": "Triple click (optionally at x,y)"})
 def triple_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
     try:
-        moved = None
-        if x is not None and y is not None:
-            moved = B.dispatch("move", x=int(x), y=int(y))
-            time.sleep(0.15)
-        for _ in range(2):
-            B.dispatch("click", button="left")
-            time.sleep(0.05)
-        res = B.dispatch("click", button="left")
-        return _ok(action="triple-click", moved=moved, **res)
+        return _ok(action="triple-click", **_positioned_click("left", x, y, clicks=3))
     except B.BackendError as exc:
         return _fail_from("triple-click", exc)
 
@@ -192,12 +208,7 @@ def triple_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
 @conn.handler("input/command/right-click", isolated=True, meta={"label": "Right click (optionally at x,y)"})
 def right_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
     try:
-        moved = None
-        if x is not None and y is not None:
-            moved = B.dispatch("move", x=int(x), y=int(y))
-            time.sleep(0.15)
-        res = B.dispatch("click", button="right")
-        return _ok(action="right-click", moved=moved, **res)
+        return _ok(action="right-click", **_positioned_click("right", x, y))
     except B.BackendError as exc:
         return _fail_from("right-click", exc)
 
@@ -205,12 +216,7 @@ def right_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
 @conn.handler("input/command/middle-click", isolated=True, meta={"label": "Middle click (optionally at x,y)"})
 def middle_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
     try:
-        moved = None
-        if x is not None and y is not None:
-            moved = B.dispatch("move", x=int(x), y=int(y))
-            time.sleep(0.15)
-        res = B.dispatch("click", button="middle")
-        return _ok(action="middle-click", moved=moved, **res)
+        return _ok(action="middle-click", **_positioned_click("middle", x, y))
     except B.BackendError as exc:
         return _fail_from("middle-click", exc)
 
@@ -234,13 +240,7 @@ def drag_and_drop(x: int, y: int, destination_x: int, destination_y: int) -> dic
         return _fail_from("drag-and-drop", exc)
 
 
-@conn.handler("input/command/wait", isolated=True, meta={"label": "Wait/sleep for a specified duration"})
-def wait(seconds: float = 1.0) -> dict[str, Any]:
-    try:
-        time.sleep(min(float(seconds), 30.0))
-        return _ok(action="wait", seconds=float(seconds))
-    except Exception as exc:  # noqa: BLE001
-        return _fail_from("wait", exc)
+
 
 
 @conn.handler("abs/command/click", isolated=True, meta={"label": "Pixel-accurate click via a uinput absolute device"})
@@ -338,12 +338,22 @@ def a11y_act(app: str = "", role: str = "", name: str = "", action: str = "focus
 # --------------------------------------------------------------------------- #
 def _click_hit(hit: dict, app: str, role: str, text: str) -> dict:
     """Act on a located hit: AT-SPI native click when actionable (no coords), else a
-    kvm click at the element's centre."""
+    kvm click at the element's centre. Prefers the locate ``center`` (OCR backends emit
+    it directly), falls back to the bbox centre, and raises a clean error when the target
+    was not located — instead of ``KeyError: 'bbox'`` on a tesseract miss, which returns
+    ``found: false`` with no bbox."""
     if hit.get("source") == "atspi" and hit.get("actionable"):
         return {"how": "atspi-action", **B.dispatch("a11y", app=app, role=role, name=text, op="click")}
-    cx, cy = B.bbox_center(hit["bbox"])
-    B.dispatch("move", x=cx, y=cy); time.sleep(0.15)
-    return {"how": "kvm-click", "at": [cx, cy], **B.dispatch("click", button="left")}
+    if not hit.get("found"):
+        raise B.BackendError(f"ui-click: target not located (text={text!r} role={role!r})")
+    center = hit.get("center")
+    if center and len(center) == 2:
+        cx, cy = int(center[0]), int(center[1])
+    elif hit.get("bbox"):
+        cx, cy = B.bbox_center(hit["bbox"])
+    else:
+        raise B.BackendError(f"ui-click: located hit has no center/bbox (source={hit.get('source')!r})")
+    return {"how": "kvm-click", "at": [cx, cy], **_positioned_click("left", cx, cy)}
 
 
 @conn.handler("ui/query/find", isolated=True, meta={"label": "Locate a UI element by text/role (AT-SPI→imgl→vql)"})
@@ -392,9 +402,16 @@ def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0
     while waited <= deadline:
         try:
             hit = B.dispatch("locate", text=text, role=role, app=app)
-            return _ok(action="wait", found=True, waited=round(waited, 1), **hit)
+            if hit.get("found"):
+                hit_clean = dict(hit)
+                hit_clean.pop("found", None)
+                hit_clean.pop("waited", None)
+                hit_clean.pop("action", None)
+                return _ok(action="wait", found=True, waited=round(waited, 1), **hit_clean)
         except B.BackendError:
-            time.sleep(float(interval)); waited += float(interval)
+            pass
+        time.sleep(float(interval))
+        waited += float(interval)
     return urirun.fail(f"target not found within {timeout}s", connector=CONNECTOR_ID, action="wait")
 
 
