@@ -1,0 +1,1219 @@
+project: /home/tom/github/if-uri/urirun-connector-kvm
+generated_from: code2llm call graph analysis
+stats:
+  total_nodes: 90
+  total_edges: 139
+  modules_count: 2
+nodes:
+  urirun_connector_kvm.backends._type_ydotool:
+    name: _type_ydotool
+    module: urirun_connector_kvm.backends
+    line: 304
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.backends.backend:
+    name: backend
+    module: urirun_connector_kvm.backends
+    line: 97
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 38
+  urirun_connector_kvm.backends._key_pynput:
+    name: _key_pynput
+    module: urirun_connector_kvm.backends
+    line: 376
+    cyclomatic_complexity: 6
+    calls_out: 10
+    calls_in: 0
+  urirun_connector_kvm.core.move:
+    name: move
+    module: urirun_connector_kvm.core
+    line: 146
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 0
+  urirun_connector_kvm.backends._type_pynput:
+    name: _type_pynput
+    module: urirun_connector_kvm.backends
+    line: 319
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.backends._easyocr_reader:
+    name: _easyocr_reader
+    module: urirun_connector_kvm.backends
+    line: 863
+    cyclomatic_complexity: 5
+    calls_out: 5
+    calls_in: 1
+  urirun_connector_kvm.backends._atspi_python:
+    name: _atspi_python
+    module: urirun_connector_kvm.backends
+    line: 596
+    cyclomatic_complexity: 5
+    calls_out: 4
+    calls_in: 2
+  urirun_connector_kvm.core.type_text:
+    name: type_text
+    module: urirun_connector_kvm.core
+    line: 111
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.backends.have_bin:
+    name: have_bin
+    module: urirun_connector_kvm.backends
+    line: 57
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 2
+  urirun_connector_kvm.backends._list_macos:
+    name: _list_macos
+    module: urirun_connector_kvm.backends
+    line: 579
+    cyclomatic_complexity: 5
+    calls_out: 9
+    calls_in: 0
+  urirun_connector_kvm.backends._launch_xdg:
+    name: _launch_xdg
+    module: urirun_connector_kvm.backends
+    line: 517
+    cyclomatic_complexity: 7
+    calls_out: 14
+    calls_in: 0
+  urirun_connector_kvm.backends._focus_atspi:
+    name: _focus_atspi
+    module: urirun_connector_kvm.backends
+    line: 645
+    cyclomatic_complexity: 5
+    calls_out: 10
+    calls_in: 0
+  urirun_connector_kvm.backends._scroll_pynput:
+    name: _scroll_pynput
+    module: urirun_connector_kvm.backends
+    line: 399
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.backends._scroll_ydotool:
+    name: _scroll_ydotool
+    module: urirun_connector_kvm.backends
+    line: 394
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.core.ui_locate:
+    name: ui_locate
+    module: urirun_connector_kvm.core
+    line: 341
+    cyclomatic_complexity: 3
+    calls_out: 8
+    calls_in: 0
+  urirun_connector_kvm.backends._cap_grim:
+    name: _cap_grim
+    module: urirun_connector_kvm.backends
+    line: 216
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.backends._ydotool_socket:
+    name: _ydotool_socket
+    module: urirun_connector_kvm.backends
+    line: 262
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 1
+  urirun_connector_kvm.backends.is_wayland:
+    name: is_wayland
+    module: urirun_connector_kvm.backends
+    line: 33
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 3
+  urirun_connector_kvm.backends.surface_report:
+    name: surface_report
+    module: urirun_connector_kvm.backends
+    line: 1085
+    cyclomatic_complexity: 11
+    calls_out: 7
+    calls_in: 0
+  urirun_connector_kvm.backends._cap_macos:
+    name: _cap_macos
+    module: urirun_connector_kvm.backends
+    line: 255
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.backends._cap_pillow:
+    name: _cap_pillow
+    module: urirun_connector_kvm.backends
+    line: 233
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  urirun_connector_kvm.core.launch:
+    name: launch
+    module: urirun_connector_kvm.core
+    line: 415
+    cyclomatic_complexity: 4
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.backends._move_xdotool:
+    name: _move_xdotool
+    module: urirun_connector_kvm.backends
+    line: 351
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  urirun_connector_kvm.backends._yd_env:
+    name: _yd_env
+    module: urirun_connector_kvm.backends
+    line: 283
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 5
+  urirun_connector_kvm.core.ui_fill:
+    name: ui_fill
+    module: urirun_connector_kvm.core
+    line: 283
+    cyclomatic_complexity: 5
+    calls_out: 13
+    calls_in: 0
+  urirun_connector_kvm.backends._click_pynput:
+    name: _click_pynput
+    module: urirun_connector_kvm.backends
+    line: 337
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  urirun_connector_kvm.backends._locate_vql:
+    name: _locate_vql
+    module: urirun_connector_kvm.backends
+    line: 971
+    cyclomatic_complexity: 11
+    calls_out: 21
+    calls_in: 0
+  urirun_connector_kvm.backends._cap_im:
+    name: _cap_im
+    module: urirun_connector_kvm.backends
+    line: 245
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.backends._launch_macos:
+    name: _launch_macos
+    module: urirun_connector_kvm.backends
+    line: 543
+    cyclomatic_complexity: 5
+    calls_out: 7
+    calls_in: 0
+  urirun_connector_kvm.backends._locate_tesseract:
+    name: _locate_tesseract
+    module: urirun_connector_kvm.backends
+    line: 805
+    cyclomatic_complexity: 26
+    calls_out: 41
+    calls_in: 0
+  urirun_connector_kvm.backends._click_ydotool:
+    name: _click_ydotool
+    module: urirun_connector_kvm.backends
+    line: 326
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.backends.uinput_available:
+    name: uinput_available
+    module: urirun_connector_kvm.backends
+    line: 1009
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 1
+  urirun_connector_kvm.backends._move_pynput:
+    name: _move_pynput
+    module: urirun_connector_kvm.backends
+    line: 356
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.core.click_abs:
+    name: click_abs
+    module: urirun_connector_kvm.core
+    line: 162
+    cyclomatic_complexity: 2
+    calls_out: 9
+    calls_in: 0
+  urirun_connector_kvm.backends._xdg_app_dirs:
+    name: _xdg_app_dirs
+    module: urirun_connector_kvm.backends
+    line: 432
+    cyclomatic_complexity: 8
+    calls_out: 11
+    calls_in: 1
+  urirun_connector_kvm.core._capture_native:
+    name: _capture_native
+    module: urirun_connector_kvm.core
+    line: 332
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 2
+  urirun_connector_kvm.backends._cap_mss:
+    name: _cap_mss
+    module: urirun_connector_kvm.backends
+    line: 221
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 0
+  urirun_connector_kvm.core.focus:
+    name: focus
+    module: urirun_connector_kvm.core
+    line: 217
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.backends._key_ydotool:
+    name: _key_ydotool
+    module: urirun_connector_kvm.backends
+    line: 363
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.core.ui_wait:
+    name: ui_wait
+    module: urirun_connector_kvm.core
+    line: 304
+    cyclomatic_complexity: 3
+    calls_out: 9
+    calls_in: 0
+  urirun_connector_kvm.core.ui_click_text:
+    name: ui_click_text
+    module: urirun_connector_kvm.core
+    line: 363
+    cyclomatic_complexity: 8
+    calls_out: 23
+    calls_in: 0
+  urirun_connector_kvm.backends.is_x11:
+    name: is_x11
+    module: urirun_connector_kvm.backends
+    line: 37
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 0
+  urirun_connector_kvm.backends._gnome_monitors:
+    name: _gnome_monitors
+    module: urirun_connector_kvm.backends
+    line: 1065
+    cyclomatic_complexity: 4
+    calls_out: 9
+    calls_in: 1
+  urirun_connector_kvm.backends._uinput_create_abs:
+    name: _uinput_create_abs
+    module: urirun_connector_kvm.backends
+    line: 1013
+    cyclomatic_complexity: 3
+    calls_out: 10
+    calls_in: 1
+  urirun_connector_kvm.backends.Backend.available:
+    name: available
+    module: urirun_connector_kvm.backends
+    line: 87
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.backends._focus_pgw:
+    name: _focus_pgw
+    module: urirun_connector_kvm.backends
+    line: 413
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.backends.dispatch:
+    name: dispatch
+    module: urirun_connector_kvm.backends
+    line: 112
+    cyclomatic_complexity: 11
+    calls_out: 17
+    calls_in: 1
+  urirun_connector_kvm.core._ok:
+    name: _ok
+    module: urirun_connector_kvm.core
+    line: 53
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 22
+  urirun_connector_kvm.backends._type_xdotool:
+    name: _type_xdotool
+    module: urirun_connector_kvm.backends
+    line: 314
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  urirun_connector_kvm.backends._launch_windows:
+    name: _launch_windows
+    module: urirun_connector_kvm.backends
+    line: 553
+    cyclomatic_complexity: 5
+    calls_out: 8
+    calls_in: 0
+  urirun_connector_kvm.backends._list_xdg:
+    name: _list_xdg
+    module: urirun_connector_kvm.backends
+    line: 565
+    cyclomatic_complexity: 7
+    calls_out: 10
+    calls_in: 0
+  urirun_connector_kvm.core.capture:
+    name: capture
+    module: urirun_connector_kvm.core
+    line: 65
+    cyclomatic_complexity: 15
+    calls_out: 43
+    calls_in: 0
+  urirun_connector_kvm.backends._cap_portal:
+    name: _cap_portal
+    module: urirun_connector_kvm.backends
+    line: 198
+    cyclomatic_complexity: 2
+    calls_out: 14
+    calls_in: 0
+  urirun_connector_kvm.core.task_run:
+    name: task_run
+    module: urirun_connector_kvm.core
+    line: 179
+    cyclomatic_complexity: 13
+    calls_out: 41
+    calls_in: 0
+  urirun_connector_kvm.backends._portal_python:
+    name: _portal_python
+    module: urirun_connector_kvm.backends
+    line: 183
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 1
+  urirun_connector_kvm.core.scroll:
+    name: scroll
+    module: urirun_connector_kvm.core
+    line: 154
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.backends.have_mod:
+    name: have_mod
+    module: urirun_connector_kvm.backends
+    line: 61
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 1
+  urirun_connector_kvm.backends.ensure_ydotoold:
+    name: ensure_ydotoold
+    module: urirun_connector_kvm.backends
+    line: 266
+    cyclomatic_complexity: 4
+    calls_out: 8
+    calls_in: 1
+  urirun_connector_kvm.backends.Backend.missing:
+    name: missing
+    module: urirun_connector_kvm.backends
+    line: 81
+    cyclomatic_complexity: 5
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.backends._move_ydotool:
+    name: _move_ydotool
+    module: urirun_connector_kvm.backends
+    line: 345
+    cyclomatic_complexity: 1
+    calls_out: 7
+    calls_in: 0
+  urirun_connector_kvm.backends._run:
+    name: _run
+    module: urirun_connector_kvm.backends
+    line: 152
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 25
+  urirun_connector_kvm.backends._parse_desktop:
+    name: _parse_desktop
+    module: urirun_connector_kvm.backends
+    line: 450
+    cyclomatic_complexity: 15
+    calls_out: 10
+    calls_in: 1
+  urirun_connector_kvm.core._click_hit:
+    name: _click_hit
+    module: urirun_connector_kvm.core
+    line: 254
+    cyclomatic_complexity: 3
+    calls_out: 7
+    calls_in: 2
+  urirun_connector_kvm.backends.platform_tag:
+    name: platform_tag
+    module: urirun_connector_kvm.backends
+    line: 41
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 5
+  urirun_connector_kvm.core.click:
+    name: click
+    module: urirun_connector_kvm.core
+    line: 132
+    cyclomatic_complexity: 5
+    calls_out: 9
+    calls_in: 0
+  urirun_connector_kvm.backends._key_xdotool:
+    name: _key_xdotool
+    module: urirun_connector_kvm.backends
+    line: 371
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  urirun_connector_kvm.backends._click_xdotool:
+    name: _click_xdotool
+    module: urirun_connector_kvm.backends
+    line: 331
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  urirun_connector_kvm.core.doctor:
+    name: doctor
+    module: urirun_connector_kvm.core
+    line: 402
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  urirun_connector_kvm.backends._locate_atspi:
+    name: _locate_atspi
+    module: urirun_connector_kvm.backends
+    line: 928
+    cyclomatic_complexity: 9
+    calls_out: 10
+    calls_in: 0
+  urirun_connector_kvm.core.ui_find:
+    name: ui_find
+    module: urirun_connector_kvm.core
+    line: 265
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.core.key:
+    name: key
+    module: urirun_connector_kvm.core
+    line: 121
+    cyclomatic_complexity: 4
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.backends._type_wtype:
+    name: _type_wtype
+    module: urirun_connector_kvm.backends
+    line: 309
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  urirun_connector_kvm.backends._cap_gnome:
+    name: _cap_gnome
+    module: urirun_connector_kvm.backends
+    line: 250
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.core.ui_click:
+    name: ui_click
+    module: urirun_connector_kvm.core
+    line: 273
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  urirun_connector_kvm.backends._locate_imgl:
+    name: _locate_imgl
+    module: urirun_connector_kvm.backends
+    line: 949
+    cyclomatic_complexity: 6
+    calls_out: 13
+    calls_in: 0
+  urirun_connector_kvm.core._fail_from:
+    name: _fail_from
+    module: urirun_connector_kvm.core
+    line: 57
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 18
+  urirun_connector_kvm.backends._desktop_entries:
+    name: _desktop_entries
+    module: urirun_connector_kvm.backends
+    line: 479
+    cyclomatic_complexity: 5
+    calls_out: 7
+    calls_in: 2
+  urirun_connector_kvm.backends._yd_keyseq:
+    name: _yd_keyseq
+    module: urirun_connector_kvm.backends
+    line: 296
+    cyclomatic_complexity: 6
+    calls_out: 6
+    calls_in: 1
+  urirun_connector_kvm.backends._winlist_wmctrl:
+    name: _winlist_wmctrl
+    module: urirun_connector_kvm.backends
+    line: 422
+    cyclomatic_complexity: 3
+    calls_out: 6
+    calls_in: 0
+  urirun_connector_kvm.backends.uinput_abs_click:
+    name: uinput_abs_click
+    module: urirun_connector_kvm.backends
+    line: 1030
+    cyclomatic_complexity: 6
+    calls_out: 31
+    calls_in: 0
+  urirun_connector_kvm.backends._capture_tmp:
+    name: _capture_tmp
+    module: urirun_connector_kvm.backends
+    line: 940
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 4
+  urirun_connector_kvm.core.window_list:
+    name: window_list
+    module: urirun_connector_kvm.core
+    line: 227
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.backends._focus_wmctrl:
+    name: _focus_wmctrl
+    module: urirun_connector_kvm.backends
+    line: 408
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.backends._a11y_atspi:
+    name: _a11y_atspi
+    module: urirun_connector_kvm.backends
+    line: 751
+    cyclomatic_complexity: 4
+    calls_out: 10
+    calls_in: 1
+  urirun_connector_kvm.backends._locate_easyocr:
+    name: _locate_easyocr
+    module: urirun_connector_kvm.backends
+    line: 875
+    cyclomatic_complexity: 14
+    calls_out: 26
+    calls_in: 0
+  urirun_connector_kvm.core.ui_verify:
+    name: ui_verify
+    module: urirun_connector_kvm.core
+    line: 317
+    cyclomatic_complexity: 3
+    calls_out: 8
+    calls_in: 0
+  urirun_connector_kvm.backends._cap_scrot:
+    name: _cap_scrot
+    module: urirun_connector_kvm.backends
+    line: 240
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  urirun_connector_kvm.core.a11y_act:
+    name: a11y_act
+    module: urirun_connector_kvm.core
+    line: 235
+    cyclomatic_complexity: 3
+    calls_out: 6
+    calls_in: 0
+  urirun_connector_kvm.core.list_apps:
+    name: list_apps
+    module: urirun_connector_kvm.core
+    line: 431
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  urirun_connector_kvm.backends._find_app:
+    name: _find_app
+    module: urirun_connector_kvm.backends
+    line: 504
+    cyclomatic_complexity: 8
+    calls_out: 6
+    calls_in: 1
+edges:
+- caller: urirun_connector_kvm.backends.is_x11
+  callee: urirun_connector_kvm.backends.is_wayland
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.platform_tag
+  callee: urirun_connector_kvm.backends.is_wayland
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.Backend.missing
+  callee: urirun_connector_kvm.backends.have_bin
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.Backend.missing
+  callee: urirun_connector_kvm.backends.have_mod
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.Backend.available
+  callee: urirun_connector_kvm.backends.platform_tag
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.dispatch
+  callee: urirun_connector_kvm.backends.platform_tag
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_portal
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_portal
+  callee: urirun_connector_kvm.backends._portal_python
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_portal
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_grim
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_grim
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_mss
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_pillow
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_scrot
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_scrot
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_im
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_im
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_gnome
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_gnome
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_macos
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._cap_macos
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.ensure_ydotoold
+  callee: urirun_connector_kvm.backends._ydotool_socket
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._yd_env
+  callee: urirun_connector_kvm.backends.ensure_ydotoold
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_ydotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_ydotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_ydotool
+  callee: urirun_connector_kvm.backends._yd_env
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_wtype
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_wtype
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_xdotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_xdotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._type_pynput
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._click_ydotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._click_ydotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._click_ydotool
+  callee: urirun_connector_kvm.backends._yd_env
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._click_xdotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._click_xdotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._click_pynput
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._move_ydotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._move_ydotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._move_ydotool
+  callee: urirun_connector_kvm.backends._yd_env
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._move_xdotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._move_xdotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._move_pynput
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._key_ydotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._key_ydotool
+  callee: urirun_connector_kvm.backends._yd_keyseq
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._key_ydotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._key_ydotool
+  callee: urirun_connector_kvm.backends._yd_env
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._key_xdotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._key_xdotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._key_pynput
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._scroll_ydotool
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._scroll_ydotool
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._scroll_ydotool
+  callee: urirun_connector_kvm.backends._yd_env
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._scroll_pynput
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._focus_wmctrl
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._focus_wmctrl
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._focus_pgw
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._winlist_wmctrl
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._winlist_wmctrl
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._desktop_entries
+  callee: urirun_connector_kvm.backends._xdg_app_dirs
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._desktop_entries
+  callee: urirun_connector_kvm.backends._parse_desktop
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._find_app
+  callee: urirun_connector_kvm.backends._desktop_entries
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._launch_xdg
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._launch_xdg
+  callee: urirun_connector_kvm.backends._find_app
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._launch_macos
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._launch_macos
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._launch_windows
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._launch_windows
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._list_xdg
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._list_xdg
+  callee: urirun_connector_kvm.backends._desktop_entries
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._list_macos
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._focus_atspi
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._focus_atspi
+  callee: urirun_connector_kvm.backends._atspi_python
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._focus_atspi
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._a11y_atspi
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._a11y_atspi
+  callee: urirun_connector_kvm.backends._atspi_python
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._a11y_atspi
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_tesseract
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_tesseract
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_tesseract
+  callee: urirun_connector_kvm.backends._capture_tmp
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_easyocr
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_easyocr
+  callee: urirun_connector_kvm.backends._easyocr_reader
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_easyocr
+  callee: urirun_connector_kvm.backends._capture_tmp
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_atspi
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_atspi
+  callee: urirun_connector_kvm.backends._a11y_atspi
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._capture_tmp
+  callee: urirun_connector_kvm.backends.dispatch
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_imgl
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_imgl
+  callee: urirun_connector_kvm.backends._capture_tmp
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_imgl
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_vql
+  callee: urirun_connector_kvm.backends.backend
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_vql
+  callee: urirun_connector_kvm.backends._capture_tmp
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._locate_vql
+  callee: urirun_connector_kvm.backends._run
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.uinput_abs_click
+  callee: urirun_connector_kvm.backends._uinput_create_abs
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.uinput_abs_click
+  callee: urirun_connector_kvm.backends.uinput_available
+  call_type: resolved
+- caller: urirun_connector_kvm.backends._gnome_monitors
+  callee: urirun_connector_kvm.backends.have_bin
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.surface_report
+  callee: urirun_connector_kvm.backends.platform_tag
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.surface_report
+  callee: urirun_connector_kvm.backends._gnome_monitors
+  call_type: resolved
+- caller: urirun_connector_kvm.backends.surface_report
+  callee: urirun_connector_kvm.backends.is_wayland
+  call_type: resolved
+- caller: urirun_connector_kvm.core.capture
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.capture
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.type_text
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.type_text
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.key
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.key
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.click
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.click
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.move
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.move
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.scroll
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.scroll
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.click_abs
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.click_abs
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.task_run
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.focus
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.focus
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.window_list
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.window_list
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.a11y_act
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.a11y_act
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_find
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_find
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_click
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_click
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_click
+  callee: urirun_connector_kvm.core._click_hit
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_fill
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_fill
+  callee: urirun_connector_kvm.core._click_hit
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_fill
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_wait
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_verify
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_locate
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_locate
+  callee: urirun_connector_kvm.core._capture_native
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_locate
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_click_text
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.ui_click_text
+  callee: urirun_connector_kvm.core._capture_native
+  call_type: resolved
+- caller: urirun_connector_kvm.core.doctor
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.launch
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.launch
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+- caller: urirun_connector_kvm.core.list_apps
+  callee: urirun_connector_kvm.core._ok
+  call_type: resolved
+- caller: urirun_connector_kvm.core.list_apps
+  callee: urirun_connector_kvm.core._fail_from
+  call_type: resolved
+modules:
+  urirun_connector_kvm.backends:
+  - urirun_connector_kvm.backends.Backend.available
+  - urirun_connector_kvm.backends.Backend.missing
+  - urirun_connector_kvm.backends._a11y_atspi
+  - urirun_connector_kvm.backends._atspi_python
+  - urirun_connector_kvm.backends._cap_gnome
+  - urirun_connector_kvm.backends._cap_grim
+  - urirun_connector_kvm.backends._cap_im
+  - urirun_connector_kvm.backends._cap_macos
+  - urirun_connector_kvm.backends._cap_mss
+  - urirun_connector_kvm.backends._cap_pillow
+  - urirun_connector_kvm.backends._cap_portal
+  - urirun_connector_kvm.backends._cap_scrot
+  - urirun_connector_kvm.backends._capture_tmp
+  - urirun_connector_kvm.backends._click_pynput
+  - urirun_connector_kvm.backends._click_xdotool
+  - urirun_connector_kvm.backends._click_ydotool
+  - urirun_connector_kvm.backends._desktop_entries
+  - urirun_connector_kvm.backends._easyocr_reader
+  - urirun_connector_kvm.backends._find_app
+  - urirun_connector_kvm.backends._focus_atspi
+  - urirun_connector_kvm.backends._focus_pgw
+  - urirun_connector_kvm.backends._focus_wmctrl
+  - urirun_connector_kvm.backends._gnome_monitors
+  - urirun_connector_kvm.backends._key_pynput
+  - urirun_connector_kvm.backends._key_xdotool
+  - urirun_connector_kvm.backends._key_ydotool
+  - urirun_connector_kvm.backends._launch_macos
+  - urirun_connector_kvm.backends._launch_windows
+  - urirun_connector_kvm.backends._launch_xdg
+  - urirun_connector_kvm.backends._list_macos
+  - urirun_connector_kvm.backends._list_xdg
+  - urirun_connector_kvm.backends._locate_atspi
+  - urirun_connector_kvm.backends._locate_easyocr
+  - urirun_connector_kvm.backends._locate_imgl
+  - urirun_connector_kvm.backends._locate_tesseract
+  - urirun_connector_kvm.backends._locate_vql
+  - urirun_connector_kvm.backends._move_pynput
+  - urirun_connector_kvm.backends._move_xdotool
+  - urirun_connector_kvm.backends._move_ydotool
+  - urirun_connector_kvm.backends._parse_desktop
+  - urirun_connector_kvm.backends._portal_python
+  - urirun_connector_kvm.backends._run
+  - urirun_connector_kvm.backends._scroll_pynput
+  - urirun_connector_kvm.backends._scroll_ydotool
+  - urirun_connector_kvm.backends._type_pynput
+  - urirun_connector_kvm.backends._type_wtype
+  - urirun_connector_kvm.backends._type_xdotool
+  - urirun_connector_kvm.backends._type_ydotool
+  - urirun_connector_kvm.backends._uinput_create_abs
+  - urirun_connector_kvm.backends._winlist_wmctrl
+  - urirun_connector_kvm.backends._xdg_app_dirs
+  - urirun_connector_kvm.backends._yd_env
+  - urirun_connector_kvm.backends._yd_keyseq
+  - urirun_connector_kvm.backends._ydotool_socket
+  - urirun_connector_kvm.backends.backend
+  - urirun_connector_kvm.backends.dispatch
+  - urirun_connector_kvm.backends.ensure_ydotoold
+  - urirun_connector_kvm.backends.have_bin
+  - urirun_connector_kvm.backends.have_mod
+  - urirun_connector_kvm.backends.is_wayland
+  - urirun_connector_kvm.backends.is_x11
+  - urirun_connector_kvm.backends.platform_tag
+  - urirun_connector_kvm.backends.surface_report
+  - urirun_connector_kvm.backends.uinput_abs_click
+  - urirun_connector_kvm.backends.uinput_available
+  urirun_connector_kvm.core:
+  - urirun_connector_kvm.core._capture_native
+  - urirun_connector_kvm.core._click_hit
+  - urirun_connector_kvm.core._fail_from
+  - urirun_connector_kvm.core._ok
+  - urirun_connector_kvm.core.a11y_act
+  - urirun_connector_kvm.core.capture
+  - urirun_connector_kvm.core.click
+  - urirun_connector_kvm.core.click_abs
+  - urirun_connector_kvm.core.doctor
+  - urirun_connector_kvm.core.focus
+  - urirun_connector_kvm.core.key
+  - urirun_connector_kvm.core.launch
+  - urirun_connector_kvm.core.list_apps
+  - urirun_connector_kvm.core.move
+  - urirun_connector_kvm.core.scroll
+  - urirun_connector_kvm.core.task_run
+  - urirun_connector_kvm.core.type_text
+  - urirun_connector_kvm.core.ui_click
+  - urirun_connector_kvm.core.ui_click_text
+  - urirun_connector_kvm.core.ui_fill
+  - urirun_connector_kvm.core.ui_find
+  - urirun_connector_kvm.core.ui_locate
+  - urirun_connector_kvm.core.ui_verify
+  - urirun_connector_kvm.core.ui_wait
+  - urirun_connector_kvm.core.window_list
+entry_points:
+- urirun_connector_kvm.backends.Backend.available
+- urirun_connector_kvm.backends.Backend.missing
+- urirun_connector_kvm.backends._cap_gnome
+- urirun_connector_kvm.backends._cap_grim
+- urirun_connector_kvm.backends._cap_im
+- urirun_connector_kvm.backends._cap_macos
+- urirun_connector_kvm.backends._cap_mss
+- urirun_connector_kvm.backends._cap_pillow
+- urirun_connector_kvm.backends._cap_portal
+- urirun_connector_kvm.backends._cap_scrot
+- urirun_connector_kvm.backends._click_pynput
+- urirun_connector_kvm.backends._click_xdotool
+- urirun_connector_kvm.backends._click_ydotool
+- urirun_connector_kvm.backends._focus_atspi
+- urirun_connector_kvm.backends._focus_pgw
+- urirun_connector_kvm.backends._focus_wmctrl
+- urirun_connector_kvm.backends._key_pynput
+- urirun_connector_kvm.backends._key_xdotool
+- urirun_connector_kvm.backends._key_ydotool
+- urirun_connector_kvm.backends._launch_macos
+- urirun_connector_kvm.backends._launch_windows
+- urirun_connector_kvm.backends._launch_xdg
+- urirun_connector_kvm.backends._list_macos
+- urirun_connector_kvm.backends._list_xdg
+- urirun_connector_kvm.backends._locate_atspi
+- urirun_connector_kvm.backends._locate_easyocr
+- urirun_connector_kvm.backends._locate_imgl
+- urirun_connector_kvm.backends._locate_tesseract
+- urirun_connector_kvm.backends._locate_vql
+- urirun_connector_kvm.backends._move_pynput
+- urirun_connector_kvm.backends._move_xdotool
+- urirun_connector_kvm.backends._move_ydotool
+- urirun_connector_kvm.backends._scroll_pynput
+- urirun_connector_kvm.backends._scroll_ydotool
+- urirun_connector_kvm.backends._type_pynput
+- urirun_connector_kvm.backends._type_wtype
+- urirun_connector_kvm.backends._type_xdotool
+- urirun_connector_kvm.backends._type_ydotool
+- urirun_connector_kvm.backends._ui_io
+- urirun_connector_kvm.backends._ui_iow
+- urirun_connector_kvm.backends._winlist_wmctrl
+- urirun_connector_kvm.backends.bbox_center
+- urirun_connector_kvm.backends.is_x11
+- urirun_connector_kvm.backends.registry_report
+- urirun_connector_kvm.backends.surface_report
+- urirun_connector_kvm.backends.uinput_abs_click
+- urirun_connector_kvm.core.a11y_act
+- urirun_connector_kvm.core.capture
+- urirun_connector_kvm.core.click
+- urirun_connector_kvm.core.click_abs
+- urirun_connector_kvm.core.connector_manifest
+- urirun_connector_kvm.core.doctor
+- urirun_connector_kvm.core.focus
+- urirun_connector_kvm.core.key
+- urirun_connector_kvm.core.launch
+- urirun_connector_kvm.core.list_apps
+- urirun_connector_kvm.core.main
+- urirun_connector_kvm.core.move
+- urirun_connector_kvm.core.scroll
+- urirun_connector_kvm.core.task_run
+- urirun_connector_kvm.core.type_text
+- urirun_connector_kvm.core.ui_click
+- urirun_connector_kvm.core.ui_click_text
+- urirun_connector_kvm.core.ui_fill
+- urirun_connector_kvm.core.ui_find
+- urirun_connector_kvm.core.ui_locate
+- urirun_connector_kvm.core.ui_verify
+- urirun_connector_kvm.core.ui_wait
+- urirun_connector_kvm.core.urirun_bindings
+- urirun_connector_kvm.core.window_list

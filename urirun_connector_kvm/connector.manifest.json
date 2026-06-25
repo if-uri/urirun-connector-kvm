@@ -3,15 +3,19 @@
   "name": "KVM",
   "status": "available",
   "category": "Remote",
-  "summary": "Send keyboard/mouse input and capture the screen through kvm:// URI routes.",
-  "description": "KVM is an external urirun connector that drives keyboard/mouse input and screen capture as kvm:// routes. Input and capture touch a real display, so routes default to dry-run; pass --execute (or mode=execute) to act via optional host tools (xdotool, scrot).",
+  "summary": "Capture the screen, drive keyboard/mouse, and ground UI targets (locate→click→verify) through kvm:// routes — cross-platform, auto-selecting the best backend.",
+  "description": "KVM is an external urirun connector for screen capture, keyboard/mouse control, and UI grounding on Linux (Wayland and X11), Windows and macOS. Every capability is served by a decorator-registered backend; at call time the connector picks the highest-priority backend available on the live session (XDG portal/grim on Wayland, mss/Pillow elsewhere for capture; ydotool/wtype/xdotool/pynput for input; AT-SPI/EasyOCR/tesseract/imgl for locating UI elements) and falls through on failure. On top of the input primitives it adds a perceive→locate→act→verify layer (ui/* + a11y), a focus-crop capture, and a pixel-accurate absolute click — the building blocks for vision/computer-use agents. Run kvm://host/doctor/query/report to see what is available and what to install.",
   "useCases": [
-    "Drive a remote desktop's keyboard/mouse from a URI flow.",
-    "Capture a screenshot of a host as part of an automation.",
+    "Drive a remote desktop's keyboard/mouse from a URI flow, on any OS.",
+    "Capture a screenshot of a host (Wayland portal included), or a zoomed focus crop, as part of an automation.",
+    "Locate a UI element by text/role and click it (ui/command/click-text, a11y/command/act) — OCR/accessibility grounding for vision agents.",
+    "Run a bounded focus→click→type→submit sequence in one session via task/command/run.",
     "Project KVM control to MCP/A2A so agents can operate a desktop."
   ],
   "flowExample": [
+    "app://host/desktop/command/launch",
     "kvm://host/screen/query/capture",
+    "kvm://host/input/command/type",
     "kvm://host/input/command/key"
   ],
   "requires": [
@@ -19,7 +23,7 @@
   ],
   "install": {
     "mode": "urirun-extra",
-    "pipSpec": "urirun-connector-kvm @ git+https://github.com/if-uri/urirun-connector-kvm.git@v0.1.0"
+    "pipSpec": "urirun-connector-kvm @ git+https://github.com/if-uri/urirun-connector-kvm.git@v0.3.0"
   },
   "provenance": "community",
   "publisher": {
@@ -33,14 +37,36 @@
     "remote",
     "input",
     "screenshot",
+    "wayland",
+    "x11",
+    "cross-platform",
     "connector"
   ],
   "routes": [
+    "kvm://host/screen/query/capture",
+    "kvm://host/input/command/type",
     "kvm://host/input/command/key",
+    "kvm://host/input/command/click",
     "kvm://host/input/command/move",
-    "kvm://host/screen/query/capture"
+    "kvm://host/input/command/scroll",
+    "kvm://host/abs/command/click",
+    "kvm://host/task/command/run",
+    "kvm://host/ui/query/find",
+    "kvm://host/ui/query/locate",
+    "kvm://host/ui/query/wait",
+    "kvm://host/ui/query/verify",
+    "kvm://host/ui/command/click",
+    "kvm://host/ui/command/click-text",
+    "kvm://host/ui/command/fill",
+    "kvm://host/a11y/command/act",
+    "kvm://host/window/command/focus",
+    "kvm://host/window/query/list",
+    "kvm://host/doctor/query/report",
+    "app://host/desktop/command/launch",
+    "app://host/desktop/query/list"
   ],
   "uriSchemes": [
+    "app",
     "kvm"
   ],
   "adapterKinds": [

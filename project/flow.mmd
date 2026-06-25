@@ -1,0 +1,26 @@
+flowchart TD
+%% generated in 0.00s
+
+    %% Entry points (blue)
+    classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
+
+    subgraph Core
+        urirun_connector_kvm__backends__is_wayland["is_wayland"]
+        urirun_connector_kvm__backends__is_x11["is_x11"]
+        urirun_connector_kvm__backends__platform_tag["platform_tag"]
+        urirun_connector_kvm__backends__Backend__missing["missing"]
+        urirun_connector_kvm__backends__Backend__available["available"]
+        urirun_connector_kvm__backends__dispatch("dispatch CC=11")
+        urirun_connector_kvm__backends__registry_report["registry_report"]
+        urirun_connector_kvm__backends___cap_portal["_cap_portal"]
+        urirun_connector_kvm__backends___cap_grim["_cap_grim"]
+        urirun_connector_kvm__backends___cap_mss["_cap_mss"]
+        urirun_connector_kvm__backends___cap_pillow["_cap_pillow"]
+        urirun_connector_kvm__backends___cap_scrot["_cap_scrot"]
+        urirun_connector_kvm__backends___cap_im["_cap_im"]
+        urirun_connector_kvm__backends___cap_gnome["_cap_gnome"]
+        urirun_connector_kvm__backends___cap_macos["_cap_macos"]
+        ...["+61 more"]
+    end
+
+    class urirun_connector_kvm__backends__is_x11,urirun_connector_kvm__backends__Backend__missing,urirun_connector_kvm__backends__Backend__available,urirun_connector_kvm__backends__registry_report,urirun_connector_kvm__backends___cap_portal,urirun_connector_kvm__backends___cap_grim,urirun_connector_kvm__backends___cap_mss,urirun_connector_kvm__backends___cap_pillow,urirun_connector_kvm__backends___cap_scrot,urirun_connector_kvm__backends___cap_im entry

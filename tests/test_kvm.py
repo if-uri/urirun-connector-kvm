@@ -28,7 +28,11 @@ EXPECTED_ROUTES = {
     ROUTE_KEY, ROUTE_MOVE, ROUTE_CAPTURE, ROUTE_TYPE, ROUTE_DOCTOR,
     "kvm://host/input/command/click", "kvm://host/input/command/scroll",
     "kvm://host/task/command/run", "kvm://host/window/command/focus",
-    "kvm://host/window/query/list",
+    "kvm://host/window/query/list", "kvm://host/a11y/command/act", "kvm://host/abs/command/click",
+    "kvm://host/ui/query/locate", "kvm://host/ui/command/click-text",
+    "kvm://host/ui/query/find", "kvm://host/ui/command/click", "kvm://host/ui/command/fill",
+    "kvm://host/ui/query/wait", "kvm://host/ui/query/verify",
+    "app://host/desktop/command/launch", "app://host/desktop/query/list",
 }
 
 
@@ -144,7 +148,7 @@ def test_manifest_prose_plus_derived_routes() -> None:
     m = connector_manifest()
     assert m["id"] == "kvm"
     assert set(m["routes"]) == EXPECTED_ROUTES
-    assert m["uriSchemes"] == ["kvm"]
+    assert m["uriSchemes"] == ["app", "kvm"]
     assert m["summary"]
 
 

@@ -1,0 +1,60 @@
+// LESS format — define @variables here as needed
+
+app {
+  name: urirun-connector-kvm;
+  version: 0.3.0;
+}
+
+dependencies {
+  runtime: urirun>=0.4.14;
+  test: pytest>=8;
+  capture: "mss>=9.0, Pillow>=10.0";
+  portal: "PyGObject>=3.42, dbus-python>=1.3";
+  input: pynput>=1.7;
+  ocr: "pytesseract>=0.3.10, Pillow>=10.0";
+  easyocr: "easyocr>=1.7, Pillow>=10.0";
+  windows: pygetwindow>=0.0.9;
+  full: "mss>=9.0, Pillow>=10.0, pynput>=1.7, pytesseract>=0.3.10";
+}
+
+interface[type="cli"] {
+  framework: argparse;
+}
+interface[type="cli"] page[name="urirun-kvm"] {
+  entry: urirun_connector_kvm.core:main;
+}
+
+workflow[name="manifest"] {
+  trigger: manual;
+  step-1: run cmd=urirun-connector-kvm manifest;
+}
+
+workflow[name="bindings"] {
+  trigger: manual;
+  step-1: run cmd=urirun-connector-kvm bindings;
+}
+
+workflow[name="smoke"] {
+  trigger: manual;
+  step-1: run cmd=urirun-connector-kvm bindings | urirun connectors smoke - \;
+  step-2: run cmd=--run 'kvm://host/screen/query/capture' --payload '{"output":"shot.png"}' \;
+  step-3: run cmd=--allow 'kvm://*' --name kvm;
+}
+
+workflow[name="test"] {
+  trigger: manual;
+  step-1: run cmd=pip install -e . && python3 -m pytest -q && $(MAKE) smoke;
+}
+
+tests {
+  import: testql-scenarios/**/*.testql.toon.yaml;
+}
+
+deploy {
+  target: makefile;
+}
+
+environment[name="local"] {
+  runtime: python;
+  python_version: >=3.10;
+}

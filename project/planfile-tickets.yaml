@@ -1,0 +1,706 @@
+source: code2llm
+# generated in 0.02s
+schema: code2llm.planfile_tickets.v1
+project_root: /home/tom/github/if-uri/urirun-connector-kvm
+tickets:
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.backends._locate_tesseract
+    (CC=26)'
+  description: 'code2llm reports `urirun_connector_kvm.backends._locate_tesseract`
+    at `urirun_connector_kvm/backends.py:805` with cyclomatic complexity 26 (limit
+    15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/backends.py:urirun_connector_kvm.backends._locate_tesseract
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _locate_easyocr'
+  description: 'code2llm reports `God Function: _locate_easyocr` in `urirun_connector_kvm/backends.py:875`.
+
+
+    Function ''_locate_easyocr'' is oversized: CC=14, fan-out=19, mutations=27.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:875:God
+    Function: _locate_easyocr'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _tsv_lines'
+  description: 'code2llm reports `God Function: _tsv_lines` in `urirun_connector_kvm/backends.py:771`.
+
+
+    Function ''_tsv_lines'' is oversized: CC=8, fan-out=15, mutations=36.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:771:God
+    Function: _tsv_lines'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: env'
+  description: 'code2llm reports `Shotgun Surgery: env` in `urirun_connector_kvm/backends.py:751`.
+
+
+    Mutation of variable ''env'' spans 6 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:751:Shotgun
+    Surgery: env'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: h'
+  description: 'code2llm reports `Shotgun Surgery: h` in `urirun_connector_kvm/backends.py:922`.
+
+
+    Mutation of variable ''h'' spans 5 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:922:Shotgun
+    Surgery: h'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: hit'
+  description: 'code2llm reports `Shotgun Surgery: hit` in `urirun_connector_kvm/core.py:304`.
+
+
+    Mutation of variable ''hit'' spans 5 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:304:Shotgun
+    Surgery: hit'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: out'
+  description: 'code2llm reports `Shotgun Surgery: out` in `urirun_connector_kvm/backends.py:489`.
+
+
+    Mutation of variable ''out'' spans 12 functions. Changing this logic requires
+    work in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:489:Shotgun
+    Surgery: out'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: p'
+  description: 'code2llm reports `Shotgun Surgery: p` in `urirun_connector_kvm/backends.py:949`.
+
+
+    Mutation of variable ''p'' spans 9 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:949:Shotgun
+    Surgery: p'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: q'
+  description: 'code2llm reports `Shotgun Surgery: q` in `urirun_connector_kvm/backends.py:805`.
+
+
+    Mutation of variable ''q'' spans 5 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:805:Shotgun
+    Surgery: q'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: res'
+  description: 'code2llm reports `Shotgun Surgery: res` in `urirun_connector_kvm/backends.py:751`.
+
+
+    Mutation of variable ''res'' spans 5 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:751:Shotgun
+    Surgery: res'
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.backends._parse_desktop
+    (CC=15)'
+  description: 'code2llm reports `urirun_connector_kvm.backends._parse_desktop` at
+    `urirun_connector_kvm/backends.py:450` with cyclomatic complexity 15 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/backends.py:urirun_connector_kvm.backends._parse_desktop
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: urirun_connector_kvm.core.capture (CC=15)'
+  description: 'code2llm reports `urirun_connector_kvm.core.capture` at `urirun_connector_kvm/core.py:65`
+    with cyclomatic complexity 15 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: code2llm:cc:urirun_connector_kvm/core.py:urirun_connector_kvm.core.capture
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: args, app, settle'
+  description: 'code2llm reports `Data Clump: args, app, settle` in `urirun_connector_kvm/backends.py:543`.
+
+
+    Arguments (args, app, settle) are used together in multiple functions: urirun_connector_kvm.backends._launch_macos,
+    urirun_connector_kvm.backends._launch_windows.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:543:Data
+    Clump: args, app, settle'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: args, app, settle'
+  description: 'code2llm reports `Data Clump: args, app, settle` in `urirun_connector_kvm/backends.py:553`.
+
+
+    Arguments (args, app, settle) are used together in multiple functions: urirun_connector_kvm.backends._launch_macos,
+    urirun_connector_kvm.backends._launch_windows.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:553:Data
+    Clump: args, app, settle'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: args, app, settle, compose'
+  description: 'code2llm reports `Data Clump: args, app, settle, compose` in `urirun_connector_kvm/backends.py:517`.
+
+
+    Arguments (args, app, settle, compose) are used together in multiple functions:
+    urirun_connector_kvm.backends._launch_xdg, urirun_connector_kvm.core.launch.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:517:Data
+    Clump: args, app, settle, compose'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: args, app, settle, compose'
+  description: 'code2llm reports `Data Clump: args, app, settle, compose` in `urirun_connector_kvm/core.py:415`.
+
+
+    Arguments (args, app, settle, compose) are used together in multiple functions:
+    urirun_connector_kvm.backends._launch_xdg, urirun_connector_kvm.core.launch.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/core.py:415:Data Clump:
+    args, app, settle, compose'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: nth, app, role, text'
+  description: 'code2llm reports `Data Clump: nth, app, role, text` in `urirun_connector_kvm/backends.py:928`.
+
+
+    Arguments (nth, app, role, text) are used together in multiple functions: urirun_connector_kvm.backends._locate_atspi,
+    urirun_connector_kvm.core.ui_find.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:928:Data
+    Clump: nth, app, role, text'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: nth, app, role, text'
+  description: 'code2llm reports `Data Clump: nth, app, role, text` in `urirun_connector_kvm/core.py:265`.
+
+
+    Arguments (nth, app, role, text) are used together in multiple functions: urirun_connector_kvm.backends._locate_atspi,
+    urirun_connector_kvm.core.ui_find.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/core.py:265:Data Clump:
+    nth, app, role, text'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: role, text, image, min_conf, query'
+  description: 'code2llm reports `Data Clump: role, text, image, min_conf, query`
+    in `urirun_connector_kvm/backends.py:805`.
+
+
+    Arguments (role, text, image, min_conf, query) are used together in multiple functions:
+    urirun_connector_kvm.backends._locate_tesseract, urirun_connector_kvm.backends._locate_easyocr.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:805:Data
+    Clump: role, text, image, min_conf, query'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: role, text, image, min_conf, query'
+  description: 'code2llm reports `Data Clump: role, text, image, min_conf, query`
+    in `urirun_connector_kvm/backends.py:875`.
+
+
+    Arguments (role, text, image, min_conf, query) are used together in multiple functions:
+    urirun_connector_kvm.backends._locate_tesseract, urirun_connector_kvm.backends._locate_easyocr.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/backends.py:875:Data
+    Clump: role, text, image, min_conf, query'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _a11y_atspi'
+  description: 'code2llm reports `God Function: _a11y_atspi` in `urirun_connector_kvm/backends.py:751`.
+
+
+    Function ''_a11y_atspi'' is oversized: CC=4, fan-out=10, mutations=7.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:751:God
+    Function: _a11y_atspi'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _cap_portal'
+  description: 'code2llm reports `God Function: _cap_portal` in `urirun_connector_kvm/backends.py:198`.
+
+
+    Function ''_cap_portal'' is oversized: CC=2, fan-out=13, mutations=6.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:198:God
+    Function: _cap_portal'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _gnome_monitors'
+  description: 'code2llm reports `God Function: _gnome_monitors` in `urirun_connector_kvm/backends.py:1065`.
+
+
+    Function ''_gnome_monitors'' is oversized: CC=4, fan-out=8, mutations=11.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1065:God
+    Function: _gnome_monitors'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _launch_xdg'
+  description: 'code2llm reports `God Function: _launch_xdg` in `urirun_connector_kvm/backends.py:517`.
+
+
+    Function ''_launch_xdg'' is oversized: CC=7, fan-out=14, mutations=12.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:517:God
+    Function: _launch_xdg'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _locate_atspi'
+  description: 'code2llm reports `God Function: _locate_atspi` in `urirun_connector_kvm/backends.py:928`.
+
+
+    Function ''_locate_atspi'' is oversized: CC=9, fan-out=5, mutations=9.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:928:God
+    Function: _locate_atspi'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _locate_imgl'
+  description: 'code2llm reports `God Function: _locate_imgl` in `urirun_connector_kvm/backends.py:949`.
+
+
+    Function ''_locate_imgl'' is oversized: CC=6, fan-out=9, mutations=8.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:949:God
+    Function: _locate_imgl'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _locate_vql'
+  description: 'code2llm reports `God Function: _locate_vql` in `urirun_connector_kvm/backends.py:971`.
+
+
+    Function ''_locate_vql'' is oversized: CC=11, fan-out=14, mutations=6.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:971:God
+    Function: _locate_vql'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _uinput_create_abs'
+  description: 'code2llm reports `God Function: _uinput_create_abs` in `urirun_connector_kvm/backends.py:1013`.
+
+
+    Function ''_uinput_create_abs'' is oversized: CC=3, fan-out=4, mutations=8.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1013:God
+    Function: _uinput_create_abs'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _xdg_app_dirs'
+  description: 'code2llm reports `God Function: _xdg_app_dirs` in `urirun_connector_kvm/backends.py:432`.
+
+
+    Function ''_xdg_app_dirs'' is oversized: CC=8, fan-out=8, mutations=11.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:432:God
+    Function: _xdg_app_dirs'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: bbox_center'
+  description: 'code2llm reports `God Function: bbox_center` in `urirun_connector_kvm/backends.py:922`.
+
+
+    Function ''bbox_center'' is oversized: CC=1, fan-out=1, mutations=8.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:922:God
+    Function: bbox_center'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: dispatch'
+  description: 'code2llm reports `God Function: dispatch` in `urirun_connector_kvm/backends.py:112`.
+
+
+    Function ''dispatch'' is oversized: CC=11, fan-out=11, mutations=14.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:112:God
+    Function: dispatch'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: surface_report'
+  description: 'code2llm reports `God Function: surface_report` in `urirun_connector_kvm/backends.py:1085`.
+
+
+    Function ''surface_report'' is oversized: CC=11, fan-out=6, mutations=8.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1085:God
+    Function: surface_report'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: task_run'
+  description: 'code2llm reports `God Function: task_run` in `urirun_connector_kvm/core.py:179`.
+
+
+    Function ''task_run'' is oversized: CC=13, fan-out=12, mutations=11.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:179:God Function:
+    task_run'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: ui_click_text'
+  description: 'code2llm reports `God Function: ui_click_text` in `urirun_connector_kvm/core.py:363`.
+
+
+    Function ''ui_click_text'' is oversized: CC=8, fan-out=12, mutations=11.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:363:God Function:
+    ui_click_text'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: uinput_abs_click'
+  description: 'code2llm reports `God Function: uinput_abs_click` in `urirun_connector_kvm/backends.py:1030`.
+
+
+    Function ''uinput_abs_click'' is oversized: CC=6, fan-out=15, mutations=4.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1030:God
+    Function: uinput_abs_click'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Module: urirun_connector_kvm.backends'
+  description: 'code2llm reports `God Module: urirun_connector_kvm.backends` in `urirun_connector_kvm/backends.py:1`.
+
+
+    Module ''urirun_connector_kvm.backends'' is too large (71 functions, 2 classes).
+    Consider splitting into sub-modules.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1:God
+    Module: urirun_connector_kvm.backends'
+applied: []
+skipped: []

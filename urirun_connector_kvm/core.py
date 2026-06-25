@@ -62,28 +62,41 @@ def _fail_from(action: str, exc: Exception) -> dict[str, Any]:
 # screen capture
 # --------------------------------------------------------------------------- #
 @conn.handler("screen/query/capture", isolated=True, meta={"label": "Capture the screen (auto backend)"})
-def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False) -> dict[str, Any]:
+def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
+            cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0) -> dict[str, Any]:
     """Capture the live screen via the best available backend. ``max_width`` downscales
-    (so coords map 1:1 to a logical screen on HiDPI); ``base64`` returns the PNG inline
-    so a remote caller can analyze it without a file fetch."""
+    (so coords map 1:1 to a logical screen on HiDPI); ``base64`` returns the PNG inline.
+    Focus crop: pass ``cx``/``cy`` (+ ``zoom`` N -> a full/N window, or explicit
+    ``crop_w``/``crop_h``) to return ONLY a zoomed tile around that point — so a
+    remote caller transfers a small region where the action is, not the whole screen.
+    ``crop`` in the result gives the tile's origin/size for mapping coords back."""
     out = output or os.path.join(tempfile.gettempdir(), f"urirun-kvm-shot-{os.getpid()}.png")
     try:
         res = B.dispatch("capture", output=out, monitor=monitor)
     except B.BackendError as exc:
         return _fail_from("capture", exc)
-    full = None
+    full = crop = None
     try:
         from PIL import Image
         with Image.open(out) as im:
             full = list(im.size)
-            if max_width and im.width > int(max_width):
+            wpx, hpx = im.size
+            want_crop = int(cx) >= 0 and int(cy) >= 0 and (int(zoom) > 1 or (crop_w and crop_h))
+            if want_crop:
+                cw = int(crop_w) if crop_w else max(64, wpx // int(zoom))
+                ch = int(crop_h) if crop_h else max(64, hpx // int(zoom))
+                x0 = max(0, min(int(cx) - cw // 2, wpx - cw))
+                y0 = max(0, min(int(cy) - ch // 2, hpx - ch))
+                im = im.crop((x0, y0, x0 + cw, y0 + ch))
+                crop = {"x": x0, "y": y0, "w": cw, "h": ch, "cx": int(cx), "cy": int(cy)}
+            elif max_width and im.width > int(max_width):
                 ratio = int(max_width) / im.width
                 im = im.resize((int(max_width), int(im.height * ratio)))
             im.convert("RGB").save(out, format="PNG", optimize=True)
     except Exception:  # noqa: BLE001 - PIL optional; keep raw capture
         pass
     payload: dict[str, Any] = {"path": out, "monitor": monitor, "via": res.get("via"),
-                               "backend": res.get("backend"), "fullSize": full,
+                               "backend": res.get("backend"), "fullSize": full, "crop": crop,
                                "bytes": os.path.getsize(out) if os.path.exists(out) else 0}
     if base64:
         with open(out, "rb") as fh:
@@ -145,6 +158,20 @@ def scroll(dy: int = -3) -> dict[str, Any]:
         return _fail_from("scroll", exc)
 
 
+@conn.handler("abs/command/click", isolated=True, meta={"label": "Pixel-accurate click via a uinput absolute device"})
+def click_abs(x: int = 0, y: int = 0, sw: int = 0, sh: int = 0, button: str = "left",
+              do_click: bool = True) -> dict[str, Any]:
+    """Click pixel (x,y) of a screenshot sized (sw,sh) using a raw uinput ABSOLUTE
+    device. Coordinates map by FRACTION onto the desktop, so HiDPI/multi-monitor scaling
+    and pointer acceleration (which break ydotool here) are bypassed — a screenshot pixel
+    maps straight to a click point. Linux only."""
+    try:
+        return _ok(action="click-abs", screen=[sw, sh],
+                   **B.uinput_abs_click(int(x), int(y), int(sw), int(sh), button, bool(do_click)))
+    except B.BackendError as exc:
+        return _fail_from("click-abs", exc)
+
+
 # --------------------------------------------------------------------------- #
 # batched task — one bounded sequence (move/click/type/key/scroll/focus/sleep)
 # --------------------------------------------------------------------------- #
@@ -204,9 +231,210 @@ def window_list() -> dict[str, Any]:
         return _fail_from("window_list", exc)
 
 
-@conn.handler("doctor/query/report", isolated=True, meta={"label": "Report available backends per action"})
+@conn.handler("a11y/command/act", isolated=True, meta={"label": "Find a UI element by role/name and focus/click/set-text it (AT-SPI)"})
+def a11y_act(app: str = "", role: str = "", name: str = "", action: str = "focus",
+             text: str = "", nth: int = 0) -> dict[str, Any]:
+    """Resolution-independent UI control via the accessibility tree: locate an element
+    by ``app``/``role``/``name`` and ``focus``/``click``/``settext`` it — no coordinates.
+    Web content (Chrome/Firefox) must have a11y enabled. Returns the element's screen
+    ``bbox`` so a caller can fall back to a ``kvm`` click when no action is exposed."""
+    if action not in ("focus", "click", "settext", "gettext"):
+        return urirun.fail("action must be focus|click|settext|gettext", connector=CONNECTOR_ID)
+    try:
+        res = B.dispatch("a11y", app=app, role=role, name=name, op=action, text=text, nth=int(nth))
+        return _ok(action="a11y", request={"app": app, "role": role, "name": name, "op": action}, **res)
+    except B.BackendError as exc:
+        return _fail_from("a11y", exc)
+
+
+# --------------------------------------------------------------------------- #
+# ui/* — semantic perceive → act → verify layer over locate (AT-SPI → imgl → vql)
+# + input. Targets are named by text/role/app, not coordinates.
+# --------------------------------------------------------------------------- #
+def _click_hit(hit: dict, app: str, role: str, text: str) -> dict:
+    """Act on a located hit: AT-SPI native click when actionable (no coords), else a
+    kvm click at the element's centre."""
+    if hit.get("source") == "atspi" and hit.get("actionable"):
+        return {"how": "atspi-action", **B.dispatch("a11y", app=app, role=role, name=text, op="click")}
+    cx, cy = B.bbox_center(hit["bbox"])
+    B.dispatch("move", x=cx, y=cy); time.sleep(0.15)
+    return {"how": "kvm-click", "at": [cx, cy], **B.dispatch("click", button="left")}
+
+
+@conn.handler("ui/query/find", isolated=True, meta={"label": "Locate a UI element by text/role (AT-SPI→imgl→vql)"})
+def ui_find(text: str = "", role: str = "", app: str = "", nth: int = 0) -> dict[str, Any]:
+    try:
+        return _ok(action="find", **B.dispatch("locate", text=text, role=role, app=app, nth=int(nth)))
+    except B.BackendError as exc:
+        return _fail_from("locate", exc)
+
+
+@conn.handler("ui/command/click", isolated=True, meta={"label": "Find a target and click it (a11y action or centre click)"})
+def ui_click(text: str = "", role: str = "", app: str = "") -> dict[str, Any]:
+    try:
+        hit = B.dispatch("locate", text=text, role=role, app=app)
+        return _ok(action="ui-click", target={"text": text, "role": role}, hit=hit,
+                   result=_click_hit(hit, app, role, text))
+    except B.BackendError as exc:
+        return _fail_from("ui-click", exc)
+
+
+@conn.handler("ui/command/fill", isolated=True, meta={"label": "Find a field, focus it and type a value (+verify)"})
+def ui_fill(text: str = "", role: str = "entry", app: str = "", value: str = "", verify: bool = False) -> dict[str, Any]:
+    """Locate a field by ``text``/``role``, focus it (AT-SPI grab or centre click), type
+    ``value``, and optionally verify the value landed."""
+    if not value:
+        return urirun.fail("value is required", connector=CONNECTOR_ID)
+    try:
+        hit = B.dispatch("locate", text=text, role=role, app=app)
+        focused = _click_hit(hit, app, role, text) if hit.get("source") != "atspi" else \
+            {"how": "atspi-focus", **B.dispatch("a11y", app=app, role=role, name=text, op="focus")}
+        time.sleep(0.3)
+        typed = B.dispatch("type", text=value)
+        out = {"action": "ui-fill", "hit": hit, "focused": focused, "typed": typed}
+        if verify:
+            v = B.dispatch("locate", text=value[:24], app=app)
+            out["verified"] = bool(v.get("found"))
+        return _ok(**out)
+    except B.BackendError as exc:
+        return _fail_from("ui-fill", exc)
+
+
+@conn.handler("ui/query/wait", isolated=True, meta={"label": "Poll until a target appears (or timeout)"})
+def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0, interval: float = 0.7) -> dict[str, Any]:
+    deadline = float(timeout)
+    waited = 0.0
+    while waited <= deadline:
+        try:
+            hit = B.dispatch("locate", text=text, role=role, app=app)
+            return _ok(action="wait", found=True, waited=round(waited, 1), **hit)
+        except B.BackendError:
+            time.sleep(float(interval)); waited += float(interval)
+    return urirun.fail(f"target not found within {timeout}s", connector=CONNECTOR_ID, action="wait")
+
+
+@conn.handler("ui/query/verify", isolated=True, meta={"label": "Assert a string is present on screen"})
+def ui_verify(expect: str = "", app: str = "") -> dict[str, Any]:
+    if not expect:
+        return urirun.fail("expect is required", connector=CONNECTOR_ID)
+    try:
+        hit = B.dispatch("locate", text=expect, app=app)
+        return _ok(action="verify", present=bool(hit.get("found")), via=hit.get("source"))
+    except B.BackendError:
+        return _ok(action="verify", present=False)
+
+
+# --------------------------------------------------------------------------- #
+# composite UI verbs — capture + locate (VQL/OCR) + KVM act, in one route
+# The "specialized commands wired to libraries" layer: a caller asks for a label,
+# not pixels. Coordinates from locate map 1:1 to a native-resolution capture.
+# --------------------------------------------------------------------------- #
+def _capture_native(monitor: int = 0) -> str:
+    """Capture at native resolution (no downscale) so OCR boxes are screen pixels."""
+    out = os.path.join(tempfile.gettempdir(), f"urirun-kvm-ui-{os.getpid()}.png")
+    B.dispatch("capture", output=out, monitor=monitor)
+    return out
+
+
+@conn.handler("ui/query/locate", isolated=True,
+              meta={"label": "Locate on-screen elements by text (capture + OCR/VQL) → coordinates"})
+def ui_locate(query: str = "", min_conf: int = 40, monitor: int = 0) -> dict[str, Any]:
+    """Screenshot the screen and return elements whose text matches ``query`` (empty =
+    all), each with a pixel ``box`` and click ``center`` — the perceive+locate half of
+    the autonomous loop. Feed a ``center`` straight into ui/command/click-text or a
+    kvm click."""
+    try:
+        shot = _capture_native(monitor)
+        loc = B.dispatch("locate", image=shot, query=query, min_conf=int(min_conf))
+    except B.BackendError as exc:
+        return _fail_from("locate", exc)
+    screen = None
+    try:
+        from PIL import Image
+        with Image.open(shot) as im:
+            screen = list(im.size)
+    except Exception:  # noqa: BLE001 - PIL optional
+        pass
+    return _ok(action="locate", screenshot=shot, screen=screen, **loc)
+
+
+@conn.handler("ui/command/click-text", isolated=True,
+              meta={"label": "Find on-screen text and click it via KVM (optionally type + submit)"})
+def ui_click_text(text: str = "", button: str = "left", nth: int = 0, min_conf: int = 40,
+                  then_type: str = "", then_key: str = "", monitor: int = 0) -> dict[str, Any]:
+    """Close the perceive→locate→act loop in one call: screenshot, OCR-locate ``text``,
+    move+click its center via KVM, then optionally type ``then_type`` and press
+    ``then_key`` (e.g. ctrl+enter to submit). ``nth`` picks among multiple matches
+    (sorted by confidence)."""
+    if not text:
+        return urirun.fail("text is required", connector=CONNECTOR_ID)
+    try:
+        shot = _capture_native(monitor)
+        loc = B.dispatch("locate", image=shot, query=text, min_conf=int(min_conf))
+    except B.BackendError as exc:
+        return _fail_from("locate", exc)
+    matches = loc.get("matches") or []
+    if not matches:
+        return urirun.fail(f"no on-screen text matches {text!r}", connector=CONNECTOR_ID,
+                           action="click-text", screenshot=shot, candidates=0)
+    target = matches[min(int(nth), len(matches) - 1)]
+    cx, cy = target["center"]
+    try:
+        B.dispatch("move", x=cx, y=cy)
+        time.sleep(0.15)
+        clicked = B.dispatch("click", button=button)
+        result: dict[str, Any] = {"clicked": target, "via": clicked.get("via"),
+                                  "screenshot": shot, "matchCount": len(matches)}
+        if then_type:
+            time.sleep(0.2)
+            B.dispatch("type", text=then_type)
+            result["typed"] = len(then_type)
+        if then_key:
+            time.sleep(0.2)
+            B.dispatch("key", keys=then_key)
+            result["submitted"] = then_key
+    except B.BackendError as exc:
+        return _fail_from("click-text", exc)
+    return _ok(action="click-text", text=text, **result)
+
+
+@conn.handler("doctor/query/report", isolated=True, meta={"label": "Report available backends + which surface to trust"})
 def doctor() -> dict[str, Any]:
-    return _ok(platform=B.platform_tag(), wayland=B.is_wayland(), backends=B.registry_report())
+    """Backends per action AND a surface report: whether OS-level pixel input is actually
+    reliable on this session (it is not on Wayland multi-monitor / fractional-HiDPI), with
+    the recommended surface (browser-cdp / remotedesktop-portal / vdisplay) and warnings."""
+    return _ok(platform=B.platform_tag(), wayland=B.is_wayland(),
+               surfaces=B.surface_report(), backends=B.registry_report())
+
+
+# --------------------------------------------------------------------------- #
+# desktop apps — launch / list the way the system app search does (XDG/open/start)
+# --------------------------------------------------------------------------- #
+@conn.handler("app://host/desktop/command/launch", isolated=True,
+              meta={"label": "Launch a desktop app (XDG .desktop / open / startfile)"})
+def launch(app: str = "", compose: str = "", args: list | None = None, settle: float = 0) -> dict[str, Any]:
+    """Launch a desktop app by resolving it the way the system app search does —
+    XDG ``.desktop`` entries on Linux (covers Flatpak/Snap/PATH), ``open -a`` on macOS,
+    ``startfile`` on Windows. ``compose`` appends Thunderbird's ``-compose`` draft;
+    ``settle`` seconds (<=30) are slept so a follow-up capture/keypress sees the window."""
+    if not app:
+        return urirun.fail("app is required", connector=CONNECTOR_ID)
+    try:
+        return _ok(action="launch", **B.dispatch("launch", app=app, compose=compose,
+                                                 args=args or [], settle=settle))
+    except B.BackendError as exc:
+        return _fail_from("launch", exc)
+
+
+@conn.handler("app://host/desktop/query/list", isolated=True,
+              meta={"label": "List launchable desktop apps"})
+def list_apps(filter: str = "") -> dict[str, Any]:  # noqa: A002 - route input field name
+    """The action space for launch: installed apps (id + name), so an LLM picks by name
+    instead of guessing a PATH binary."""
+    try:
+        return _ok(action="list_apps", **B.dispatch("launch_list", filter=filter))
+    except B.BackendError as exc:
+        return _fail_from("list_apps", exc)
 
 
 # --- authoring surface: bindings / manifest / CLI --------------------------

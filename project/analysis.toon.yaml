@@ -1,0 +1,141 @@
+# code2llm | 12f 2104L | shell:3,python:3,yaml:3,toml:1,json:1 | 2026-06-25
+# generated in 0.00s
+# CC̅=3.9 | critical:3/99 | dups:0 | cycles:0
+
+HEALTH[3]:
+  🟡 CC    _parse_desktop CC=15 (limit:15)
+  🟡 CC    _locate_tesseract CC=26 (limit:15)
+  🟡 CC    capture CC=15 (limit:15)
+
+REFACTOR[1]:
+  1. split 3 high-CC methods  (CC>15)
+
+PIPELINES[68]:
+  [1] Src [is_x11]: is_x11 → is_wayland
+      PURITY: 100% pure
+  [2] Src [missing]: missing → have_bin
+      PURITY: 100% pure
+  [3] Src [available]: available → platform_tag → is_wayland
+      PURITY: 100% pure
+  [4] Src [registry_report]: registry_report
+      PURITY: 100% pure
+  [5] Src [_cap_portal]: _cap_portal → backend
+      PURITY: 100% pure
+  [6] Src [_cap_grim]: _cap_grim → backend
+      PURITY: 100% pure
+  [7] Src [_cap_mss]: _cap_mss → backend
+      PURITY: 100% pure
+  [8] Src [_cap_pillow]: _cap_pillow → backend
+      PURITY: 100% pure
+  [9] Src [_cap_scrot]: _cap_scrot → backend
+      PURITY: 100% pure
+  [10] Src [_cap_im]: _cap_im → backend
+      PURITY: 100% pure
+  [11] Src [_cap_gnome]: _cap_gnome → backend
+      PURITY: 100% pure
+  [12] Src [_cap_macos]: _cap_macos → backend
+      PURITY: 100% pure
+  [13] Src [_type_ydotool]: _type_ydotool → backend
+      PURITY: 100% pure
+  [14] Src [_type_wtype]: _type_wtype → backend
+      PURITY: 100% pure
+  [15] Src [_type_xdotool]: _type_xdotool → backend
+      PURITY: 100% pure
+  [16] Src [_type_pynput]: _type_pynput → backend
+      PURITY: 100% pure
+  [17] Src [_click_ydotool]: _click_ydotool → backend
+      PURITY: 100% pure
+  [18] Src [_click_xdotool]: _click_xdotool → backend
+      PURITY: 100% pure
+  [19] Src [_click_pynput]: _click_pynput → backend
+      PURITY: 100% pure
+  [20] Src [_move_ydotool]: _move_ydotool → backend
+      PURITY: 100% pure
+  [21] Src [_move_xdotool]: _move_xdotool → backend
+      PURITY: 100% pure
+  [22] Src [_move_pynput]: _move_pynput → backend
+      PURITY: 100% pure
+  [23] Src [_key_ydotool]: _key_ydotool → backend
+      PURITY: 100% pure
+  [24] Src [_key_xdotool]: _key_xdotool → backend
+      PURITY: 100% pure
+  [25] Src [_key_pynput]: _key_pynput → backend
+      PURITY: 100% pure
+  [26] Src [_scroll_ydotool]: _scroll_ydotool → backend
+      PURITY: 100% pure
+  [27] Src [_scroll_pynput]: _scroll_pynput → backend
+      PURITY: 100% pure
+  [28] Src [_focus_wmctrl]: _focus_wmctrl → backend
+      PURITY: 100% pure
+  [29] Src [_focus_pgw]: _focus_pgw → backend
+      PURITY: 100% pure
+  [30] Src [_winlist_wmctrl]: _winlist_wmctrl → backend
+      PURITY: 100% pure
+  [31] Src [_launch_xdg]: _launch_xdg → backend
+      PURITY: 100% pure
+  [32] Src [_launch_macos]: _launch_macos → backend
+      PURITY: 100% pure
+  [33] Src [_launch_windows]: _launch_windows → backend
+      PURITY: 100% pure
+  [34] Src [_list_xdg]: _list_xdg → backend
+      PURITY: 100% pure
+  [35] Src [_list_macos]: _list_macos → backend
+      PURITY: 100% pure
+  [36] Src [_focus_atspi]: _focus_atspi → backend
+      PURITY: 100% pure
+  [37] Src [_locate_tesseract]: _locate_tesseract → backend
+      PURITY: 100% pure
+  [38] Src [_locate_easyocr]: _locate_easyocr → backend
+      PURITY: 100% pure
+  [39] Src [bbox_center]: bbox_center
+      PURITY: 100% pure
+  [40] Src [_locate_atspi]: _locate_atspi → backend
+      PURITY: 100% pure
+  [41] Src [_locate_imgl]: _locate_imgl → backend
+      PURITY: 100% pure
+  [42] Src [_locate_vql]: _locate_vql → backend
+      PURITY: 100% pure
+  [43] Src [uinput_abs_click]: uinput_abs_click → _uinput_create_abs
+      PURITY: 100% pure
+  [44] Src [surface_report]: surface_report → platform_tag → is_wayland
+      PURITY: 100% pure
+  [45] Src [capture]: capture → _ok
+      PURITY: 100% pure
+  [46] Src [type_text]: type_text → _ok
+      PURITY: 100% pure
+  [47] Src [key]: key → _ok
+      PURITY: 100% pure
+  [48] Src [click]: click → _ok
+      PURITY: 100% pure
+  [49] Src [move]: move → _ok
+      PURITY: 100% pure
+  [50] Src [scroll]: scroll → _ok
+      PURITY: 100% pure
+
+LAYERS:
+  urirun_connector_kvm/           CC̄=3.9    ←in:0  →out:0
+  │ !! backends                  1111L  2C   71m  CC=26     ←0
+  │ !! core                       457L  0C   28m  CC=15     ←0
+  │ connector.manifest.json     75L  0C    0m  CC=0.0    ←0
+  │ __init__                    30L  0C    0m  CC=0.0    ←0
+  │
+  ./                              CC̄=0.0    ←in:0  →out:0
+  │ planfile.yaml              188L  0C    0m  CC=0.0    ←0
+  │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
+  │ project.sh                  69L  0C    0m  CC=0.0    ←0
+  │ pyproject.toml              38L  0C    0m  CC=0.0    ←0
+  │ Makefile                    13L  0C    0m  CC=0.0    ←0
+  │ tree.sh                      4L  0C    0m  CC=0.0    ←0
+  │
+  examples/                       CC̄=0.0    ←in:0  →out:0
+  │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
+  │
+  testql-scenarios/               CC̄=0.0    ←in:0  →out:0
+  │ generated-cli-tests.testql.toon.yaml    20L  0C    0m  CC=0.0    ←0
+  │
+
+COUPLING: no cross-package imports detected
+
+EXTERNAL:
+  validation: run `vallm batch .` → validation.toon
+  duplication: run `redup scan .` → duplication.toon
