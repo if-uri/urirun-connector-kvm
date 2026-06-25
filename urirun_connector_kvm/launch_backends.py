@@ -122,11 +122,16 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     else:
         raise BackendError(f"no .desktop entry or PATH binary matches {app!r} "
                            "(call window/query/list or doctor for what's installed)")
-    # Chrome/Chromium: force the renderer accessibility tree on so AT-SPI (and thus the
-    # kvm ui/* locate path with real role/name) can see web elements — otherwise locate
-    # falls back to flat OCR which has no role/name concept. Off via URIRUN_KVM_NO_A11Y=1.
+    # Chrome/Chromium: enable the two control surfaces the universal router prefers —
+    #   --remote-debugging-port  → the `cdp` strategy drives the DOM (role/name exact,
+    #                              coordinate-free), the most reliable control tool;
+    #   --force-renderer-accessibility → the `atspi` strategy can see web elements.
+    # Both are no-ops if the flow already passed them. Off via URIRUN_KVM_NO_A11Y=1.
     if not os.environ.get("URIRUN_KVM_NO_A11Y") and any(
             b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge")):
+        port = os.environ.get("URIRUN_KVM_CDP_PORT", "9222")
+        if not any("remote-debugging-port" in a for a in argv):
+            argv.insert(1, f"--remote-debugging-port={port}")
         if not any("force-renderer-accessibility" in a for a in argv):
             argv.insert(1, "--force-renderer-accessibility")
     env = os.environ.copy()

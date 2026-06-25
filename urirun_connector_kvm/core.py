@@ -46,6 +46,11 @@ try:  # normal package import
 except ImportError:  # flat-module deploy (host `deploy --code core.py backends.py`)
     import backends as B  # type: ignore
 
+try:  # universal control-tool router (cdp -> atspi -> vision)
+    from . import control as C
+except ImportError:  # flat-module deploy (push control.py + cdp.py too)
+    import control as C  # type: ignore
+
 CONNECTOR_ID = "kvm"
 conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
 
@@ -356,73 +361,58 @@ def _click_hit(hit: dict, app: str, role: str, text: str) -> dict:
     return {"how": "kvm-click", "at": [cx, cy], **_positioned_click("left", cx, cy)}
 
 
-@conn.handler("ui/query/find", isolated=True, meta={"label": "Locate a UI element by text/role (AT-SPI→imgl→vql)"})
+def _router_return(action: str, r: dict[str, Any]) -> dict[str, Any]:
+    """Serialise a control-router result safely: drop the router's own ``ok``/``error``
+    (urirun.ok/fail set those) so spreading the rest never collides, and surface the
+    ``attempts`` trail either way so a miss explains which strategies were tried."""
+    body = {k: v for k, v in r.items() if k not in ("ok", "error")}
+    if r.get("ok") or r.get("found"):
+        return _ok(action=action, **body)
+    return urirun.fail(r.get("error", "no control strategy succeeded"),
+                       connector=CONNECTOR_ID, action=action, **body)
+
+
+@conn.handler("ui/query/find", isolated=True,
+              meta={"label": "Locate a UI element (router: cdp→atspi→vision)"})
 def ui_find(text: str = "", role: str = "", app: str = "", nth: int = 0, name: str = "") -> dict[str, Any]:
-    try:
-        return _ok(action="find", **B.dispatch("locate", text=text or name, role=role, app=app, nth=int(nth)))
-    except B.BackendError as exc:
-        return _fail_from("locate", exc)
+    return _router_return("find", C.route("locate", text=text, role=role, app=app, name=name))
 
 
-@conn.handler("ui/command/click", isolated=True, meta={"label": "Find a target and click it (a11y action or centre click)"})
+@conn.handler("ui/command/click", isolated=True,
+              meta={"label": "Find a target and click it (router: cdp→atspi→vision)"})
 def ui_click(text: str = "", role: str = "", app: str = "", name: str = "") -> dict[str, Any]:
-    text = text or name
-    try:
-        hit = B.dispatch("locate", text=text, role=role, app=app)
-        return _ok(action="ui-click", target={"text": text, "role": role}, hit=hit,
-                   result=_click_hit(hit, app, role, text))
-    except B.BackendError as exc:
-        return _fail_from("ui-click", exc)
+    return _router_return("ui-click", C.route("click", text=text, role=role, app=app, name=name))
 
 
-@conn.handler("ui/command/fill", isolated=True, meta={"label": "Find a field, focus it and type a value (+verify)"})
+@conn.handler("ui/command/fill", isolated=True,
+              meta={"label": "Find a field, focus it and type a value (router; verifies)"})
 def ui_fill(text: str = "", role: str = "entry", app: str = "", value: str = "",
             verify: bool = True, name: str = "") -> dict[str, Any]:
-    """Locate a field by ``text``/``role``/``name``, focus it (AT-SPI grab or centre
-    click), type ``value``, then verify the value actually landed. ``verify`` defaults
-    to True: if the typed text is NOT found on screen afterwards the fill is reported as a
-    FAILURE (it focused the wrong element / the field never opened) instead of a false ok."""
-    text = text or name
+    """Route a fill to the best control tool (cdp DOM → atspi → vision OCR+uinput): locate
+    the field by ``text``/``role``/``name``, focus it, type ``value``. The vision fallback
+    VERIFIES the value actually appeared and FAILS honestly if it focused the wrong
+    element; the cdp/atspi strategies act on the real element so they don't need it."""
     if not value:
         return urirun.fail("value is required", connector=CONNECTOR_ID)
-    try:
-        hit = B.dispatch("locate", text=text, role=role, app=app)
-        focused = _click_hit(hit, app, role, text) if hit.get("source") != "atspi" else \
-            {"how": "atspi-focus", **B.dispatch("a11y", app=app, role=role, name=text, op="focus")}
-        time.sleep(0.3)
-        typed = B.dispatch("type", text=value)
-        out = {"action": "ui-fill", "hit": hit, "focused": focused, "typed": typed}
-        if verify:
-            time.sleep(0.4)
-            probe = "".join(ch for ch in value[:24] if ord(ch) < 128).strip() or value[:24]
-            v = B.dispatch("locate", text=probe, app=app)
-            out["verified"] = bool(v.get("found"))
-            if not out["verified"]:
-                return urirun.fail(
-                    f"value not visible after typing (focused the wrong element? probe={probe!r})",
-                    connector=CONNECTOR_ID, action="ui-fill", **out)
-        return _ok(**out)
-    except B.BackendError as exc:
-        return _fail_from("ui-fill", exc)
+    return _router_return("ui-fill", C.route("fill", text=text, role=role, app=app,
+                                             name=name, value=value, verify=verify))
 
 
-@conn.handler("ui/query/wait", isolated=True, meta={"label": "Poll until a target appears (or timeout)"})
+@conn.handler("ui/query/strategies", isolated=True,
+              meta={"label": "Which control strategies are available right now"})
+def ui_strategies() -> dict[str, Any]:
+    return _ok(action="strategies", **C.report())
+
+
+@conn.handler("ui/query/wait", isolated=True, meta={"label": "Poll until a target appears (router)"})
 def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0,
             interval: float = 0.7, name: str = "") -> dict[str, Any]:
-    text = text or name
     deadline = float(timeout)
     waited = 0.0
     while waited <= deadline:
-        try:
-            hit = B.dispatch("locate", text=text, role=role, app=app)
-            if hit.get("found"):
-                hit_clean = dict(hit)
-                hit_clean.pop("found", None)
-                hit_clean.pop("waited", None)
-                hit_clean.pop("action", None)
-                return _ok(action="wait", found=True, waited=round(waited, 1), **hit_clean)
-        except B.BackendError:
-            pass
+        r = C.route("locate", text=text, role=role, app=app, name=name)
+        if r.get("found"):
+            return _ok(action="wait", found=True, waited=round(waited, 1), **r)
         time.sleep(float(interval))
         waited += float(interval)
     return urirun.fail(f"target not found within {timeout}s", connector=CONNECTOR_ID, action="wait")

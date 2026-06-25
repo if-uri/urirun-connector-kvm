@@ -35,7 +35,7 @@ EXPECTED_ROUTES = {
     "kvm://host/window/query/list", "kvm://host/a11y/command/act", "kvm://host/abs/command/click",
     "kvm://host/ui/query/locate", "kvm://host/ui/command/click-text",
     "kvm://host/ui/query/find", "kvm://host/ui/command/click", "kvm://host/ui/command/fill",
-    "kvm://host/ui/query/wait", "kvm://host/ui/query/verify",
+    "kvm://host/ui/query/wait", "kvm://host/ui/query/verify", "kvm://host/ui/query/strategies",
     "app://host/desktop/command/launch", "app://host/desktop/query/list",
 }
 
@@ -161,3 +161,39 @@ def test_cli_bindings_and_manifest(capsys) -> None:
     assert ROUTE_KEY in json.loads(capsys.readouterr().out)["bindings"]
     assert main(["manifest"]) == 0
     assert json.loads(capsys.readouterr().out)["id"] == "kvm"
+
+
+# --------------------------------------------------------------------------- #
+# universal control-tool router
+# --------------------------------------------------------------------------- #
+import urirun_connector_kvm.control as C  # noqa: E402
+import urirun_connector_kvm.cdp as cdp  # noqa: E402
+
+
+def test_router_prefers_cdp_when_reachable(monkeypatch) -> None:
+    monkeypatch.setattr(cdp, "reachable", lambda: True)
+    monkeypatch.setattr(cdp, "act", lambda op, text="", role="", name="", value="":
+                        {"ok": True, "found": True, "clicked": True, "via": "cdp", "role": role})
+    r = C.route("click", text="Post", role="button", app="google-chrome")
+    assert r["ok"] is True and r["strategy"] == "cdp" and r["clicked"] is True
+
+
+def test_router_falls_through_cdp_to_vision(monkeypatch) -> None:
+    # cdp reachable but the element is not in the DOM -> raises -> vision takes over
+    monkeypatch.setattr(cdp, "reachable", lambda: True)
+    def _boom(*a, **k):
+        raise B.BackendError("cdp: element not found")
+    monkeypatch.setattr(cdp, "act", _boom)
+    monkeypatch.setattr(B, "dispatch", lambda action, **k:
+                        {"source": "tesseract", "found": True, "center": [120, 240],
+                         "matches": [{"conf": 88.0}]} if action == "locate" else {"via": "stub"})
+    monkeypatch.setattr(B, "uinput_abs_click",
+                        lambda x, y, *a, **k: {"via": "uinput-absolute", "pixel": [x, y]})
+    r = C.route("click", text="Start a post", app="google-chrome")
+    assert r["ok"] is True and r["strategy"] == "vision" and r["at"] == [120, 240]
+    assert any(a.get("strategy") == "cdp" for a in r["attempts"])
+
+
+def test_router_empty_target_is_error() -> None:
+    r = C.route("click", text="", role="", name="")
+    assert r["ok"] is False and "required" in r["error"]
