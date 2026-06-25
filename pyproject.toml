@@ -36,3 +36,6 @@ include = ["urirun_connector_kvm*"]
 
 [tool.setuptools.package-data]
 urirun_connector_kvm = ["connector.manifest.json"]
+
+[tool.pytest.ini_options]
+norecursedirs = ["computer-use-preview", "venv", ".venv", "build", "dist"]

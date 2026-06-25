@@ -158,6 +158,91 @@ def scroll(dy: int = -3) -> dict[str, Any]:
         return _fail_from("scroll", exc)
 
 
+@conn.handler("input/command/double-click", isolated=True, meta={"label": "Double click (optionally at x,y)"})
+def double_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
+    try:
+        moved = None
+        if x is not None and y is not None:
+            moved = B.dispatch("move", x=int(x), y=int(y))
+            time.sleep(0.15)
+        B.dispatch("click", button="left")
+        time.sleep(0.05)
+        res = B.dispatch("click", button="left")
+        return _ok(action="double-click", moved=moved, **res)
+    except B.BackendError as exc:
+        return _fail_from("double-click", exc)
+
+
+@conn.handler("input/command/triple-click", isolated=True, meta={"label": "Triple click (optionally at x,y)"})
+def triple_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
+    try:
+        moved = None
+        if x is not None and y is not None:
+            moved = B.dispatch("move", x=int(x), y=int(y))
+            time.sleep(0.15)
+        for _ in range(2):
+            B.dispatch("click", button="left")
+            time.sleep(0.05)
+        res = B.dispatch("click", button="left")
+        return _ok(action="triple-click", moved=moved, **res)
+    except B.BackendError as exc:
+        return _fail_from("triple-click", exc)
+
+
+@conn.handler("input/command/right-click", isolated=True, meta={"label": "Right click (optionally at x,y)"})
+def right_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
+    try:
+        moved = None
+        if x is not None and y is not None:
+            moved = B.dispatch("move", x=int(x), y=int(y))
+            time.sleep(0.15)
+        res = B.dispatch("click", button="right")
+        return _ok(action="right-click", moved=moved, **res)
+    except B.BackendError as exc:
+        return _fail_from("right-click", exc)
+
+
+@conn.handler("input/command/middle-click", isolated=True, meta={"label": "Middle click (optionally at x,y)"})
+def middle_click(x: int | None = None, y: int | None = None) -> dict[str, Any]:
+    try:
+        moved = None
+        if x is not None and y is not None:
+            moved = B.dispatch("move", x=int(x), y=int(y))
+            time.sleep(0.15)
+        res = B.dispatch("click", button="middle")
+        return _ok(action="middle-click", moved=moved, **res)
+    except B.BackendError as exc:
+        return _fail_from("middle-click", exc)
+
+
+@conn.handler("input/command/hover", isolated=True, meta={"label": "Hover/move the mouse pointer to x,y"})
+def hover(x: int = 0, y: int = 0) -> dict[str, Any]:
+    try:
+        return _ok(action="hover", **B.dispatch("move", x=int(x), y=int(y)))
+    except B.BackendError as exc:
+        return _fail_from("hover", exc)
+
+
+@conn.handler("input/command/drag-and-drop", isolated=True, meta={"label": "Drag and drop (approximate move->click->move)"})
+def drag_and_drop(x: int, y: int, destination_x: int, destination_y: int) -> dict[str, Any]:
+    try:
+        B.dispatch("move", x=int(x), y=int(y))
+        time.sleep(0.1)
+        res = B.dispatch("move", x=int(destination_x), y=int(destination_y))
+        return _ok(action="drag-and-drop", **res)
+    except B.BackendError as exc:
+        return _fail_from("drag-and-drop", exc)
+
+
+@conn.handler("input/command/wait", isolated=True, meta={"label": "Wait/sleep for a specified duration"})
+def wait(seconds: float = 1.0) -> dict[str, Any]:
+    try:
+        time.sleep(min(float(seconds), 30.0))
+        return _ok(action="wait", seconds=float(seconds))
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("wait", exc)
+
+
 @conn.handler("abs/command/click", isolated=True, meta={"label": "Pixel-accurate click via a uinput absolute device"})
 def click_abs(x: int = 0, y: int = 0, sw: int = 0, sh: int = 0, button: str = "left",
               do_click: bool = True) -> dict[str, Any]:

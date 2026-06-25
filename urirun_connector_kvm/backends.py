@@ -22,6 +22,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
@@ -341,6 +342,20 @@ def _click_pynput(button: str = "left", **_) -> dict:
 
 
 # ---- move (absolute) ----
+# uinput-absolute wins over ydotool: a raw [0,65535] ABS device maps pixel->screen
+# deterministically, so capture-space == action-space regardless of the ydotool version's
+# coordinate convention. (ydotool `mousemove -a` takes RAW pixels on some builds and a
+# [0,65535] range on others; on the latter a raw pixel maps near (0,0) and trips the
+# GNOME hot-corner — observed live on the lenovo node.) Falls through to ydotool if
+# /dev/uinput is not writable. See `uinput_abs_click` / `_screen_wh` below.
+@backend("move", "uinput-abs", priority=90, platforms=("linux-wayland", "linux-x11"))
+def _move_uinput_abs(x: int, y: int, **_) -> dict:
+    sw, sh = _screen_wh()
+    settle = float(os.environ.get("URIRUN_KVM_ABS_SETTLE", "0.6"))
+    r = uinput_abs_click(int(x), int(y), sw, sh, do_click=False, settle=settle)
+    return {"via": "uinput-absolute", "x": x, "y": y, "abs": r.get("abs"), "screen": [sw, sh]}
+
+
 @backend("move", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
 def _move_ydotool(x: int, y: int, **_) -> dict:
     _run(["ydotool", "mousemove", "-a", "-x", str(int(x)), "-y", str(int(y))], env=_yd_env())
@@ -425,166 +440,8 @@ def _winlist_wmctrl(**_) -> dict:
     return {"via": "wmctrl", "windows": wins}
 
 
-# --------------------------------------------------------------------------- #
-# APP LAUNCH / LIST — resolve apps the way the system app search does, not which()
-# Linux: XDG .desktop entries (covers Flatpak/Snap/PATH); macOS: open/-a; Windows: startfile
-# --------------------------------------------------------------------------- #
-def _xdg_app_dirs() -> list[str]:
-    data_home = os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
-    data_dirs = os.environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share"
-    candidates = [os.path.join(data_home, "applications")]
-    candidates += [os.path.join(d, "applications") for d in data_dirs.split(":") if d]
-    candidates += [
-        "/var/lib/flatpak/exports/share/applications",
-        os.path.expanduser("~/.local/share/flatpak/exports/share/applications"),
-        "/var/lib/snapd/desktop/applications",
-    ]
-    seen, out = set(), []
-    for d in candidates:
-        if d not in seen and os.path.isdir(d):
-            seen.add(d)
-            out.append(d)
-    return out
-
-
-def _parse_desktop(path: str):
-    name = exec_line = ""
-    nodisplay = False
-    try:
-        with open(path, encoding="utf-8", errors="replace") as fh:
-            in_main = False
-            for raw in fh:
-                line = raw.rstrip("\n")
-                if line.startswith("["):
-                    in_main = line.strip() == "[Desktop Entry]"
-                    continue
-                if not in_main or "=" not in line:
-                    continue
-                k, v = line.split("=", 1)
-                if k == "Name" and not name:
-                    name = v
-                elif k == "Exec" and not exec_line:
-                    exec_line = v
-                elif k == "NoDisplay" and v.strip().lower() == "true":
-                    nodisplay = True
-    except OSError:
-        return None
-    if not exec_line:
-        return None
-    base = os.path.basename(path)
-    app_id = base[:-len(".desktop")] if base.endswith(".desktop") else base
-    return {"id": app_id, "name": name or app_id, "exec": exec_line, "nodisplay": nodisplay}
-
-
-def _desktop_entries() -> list[dict]:
-    seen: dict[str, dict] = {}
-    for d in _xdg_app_dirs():
-        for path in sorted(glob.glob(os.path.join(d, "*.desktop"))):
-            e = _parse_desktop(path)
-            if e and e["id"] not in seen:   # first-wins == XDG precedence
-                seen[e["id"]] = e
-    return list(seen.values())
-
-
-def _strip_field_codes(exec_line: str) -> list[str]:
-    try:
-        parts = shlex.split(exec_line)
-    except ValueError:
-        parts = exec_line.split()
-    out = []
-    for p in parts:
-        if len(p) == 2 and p[0] == "%":     # %f %u %F %U %i %c %k ...
-            continue
-        if p.startswith("@@"):               # flatpak arg wrappers
-            continue
-        out.append(p)
-    return out
-
-
-def _find_app(query: str):
-    q = (query or "").strip().lower()
-    entries = _desktop_entries()
-    for e in entries:                        # exact id
-        if e["id"].lower() == q:
-            return e
-    for e in entries:                        # id / name contains
-        if q and (q in e["id"].lower() or q in e["name"].lower()):
-            return e
-    return None
-
-
-@backend("launch", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
-def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, settle: float = 0, **_) -> dict:
-    extra = list(args or [])
-    if compose:
-        extra += ["-compose", compose]
-    entry = _find_app(app)
-    if entry:
-        argv = _strip_field_codes(entry["exec"]) + extra
-        resolved = {"id": entry["id"], "name": entry["name"], "how": "desktop-entry"}
-    elif shutil.which(app):
-        argv = [app, *extra]
-        resolved = {"id": app, "name": app, "how": "path"}
-    else:
-        raise BackendError(f"no .desktop entry or PATH binary matches {app!r} "
-                           "(call window/query/list or doctor for what's installed)")
-    env = os.environ.copy()
-    env.setdefault("WAYLAND_DISPLAY", "wayland-0")
-    p = subprocess.Popen(argv, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                         start_new_session=True)
-    settled = max(0.0, min(float(settle or 0), 30.0))
-    if settled:
-        time.sleep(settled)
-    return {"via": "xdg", "app": resolved, "pid": p.pid, "argv": argv,
-            "compose": bool(compose), "settled": settled}
-
-
-@backend("launch", "macos", priority=70, platforms=("macos",), needs_bin=("open",))
-def _launch_macos(app: str = "", args: list | None = None, settle: float = 0, **_) -> dict:
-    argv = ["open", "-a", app] + (["--args", *map(str, args or [])] if args else [])
-    _run(argv)
-    settled = max(0.0, min(float(settle or 0), 30.0))
-    if settled:
-        time.sleep(settled)
-    return {"via": "open", "app": {"id": app, "name": app, "how": "open"}, "settled": settled}
-
-
-@backend("launch", "windows", priority=70, platforms=("windows",))
-def _launch_windows(app: str = "", args: list | None = None, settle: float = 0, **_) -> dict:
-    try:
-        os.startfile(app)  # type: ignore[attr-defined]
-    except OSError:
-        _run(["cmd", "/c", "start", "", app, *map(str, args or [])])
-    settled = max(0.0, min(float(settle or 0), 30.0))
-    if settled:
-        time.sleep(settled)
-    return {"via": "startfile", "app": {"id": app, "name": app, "how": "startfile"}, "settled": settled}
-
-
-@backend("launch_list", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
-def _list_xdg(filter: str = "", **_) -> dict:  # noqa: A002 - matches route field name
-    q = (filter or "").lower()
-    out = []
-    for e in _desktop_entries():
-        if e.get("nodisplay"):
-            continue
-        if q and q not in e["id"].lower() and q not in e["name"].lower():
-            continue
-        out.append({"id": e["id"], "name": e["name"]})
-    out.sort(key=lambda x: x["name"].lower())
-    return {"via": "xdg", "count": len(out), "apps": out}
-
-
-@backend("launch_list", "macos", priority=70, platforms=("macos",))
-def _list_macos(filter: str = "", **_) -> dict:  # noqa: A002
-    q = (filter or "").lower()
-    out = []
-    for entry in sorted(glob.glob("/Applications/*.app")):
-        app_id = os.path.basename(entry)[:-len(".app")]
-        if q and q not in app_id.lower():
-            continue
-        out.append({"id": app_id, "name": app_id})
-    return {"via": "open", "count": len(out), "apps": out}
+# APP LAUNCH / LIST backends moved to launch_backends.py (own domain; app:// is logically
+# a separate connector). Imported at the end of this module so they register.
 
 
 # --------------------------------------------------------------------------- #
@@ -1027,10 +884,57 @@ def _uinput_create_abs() -> int:
     return fd
 
 
+_SCREEN_WH_CACHE = os.path.join(tempfile.gettempdir(), "urirun-kvm-screen-wh")
+
+
+def _screen_wh() -> tuple[int, int]:
+    """The full screen size in pixels that ``capture`` produces — the space callers'
+    coordinates live in (capture-space == action-space). Sources, in order: the
+    ``URIRUN_KVM_SCREEN=WxH`` env (set it at deploy time when known), a tmp cache, then
+    one portal capture (cached). ``isolated=True`` handlers re-import per call, so the
+    cache is a file, not a module global. Returns ``(0, 0)`` if it cannot be determined,
+    in which case ``uinput_abs_click`` treats the coords as already absolute."""
+    env = os.environ.get("URIRUN_KVM_SCREEN", "").lower()
+    for src in (env, _read_text(_SCREEN_WH_CACHE).lower()):
+        if "x" in src:
+            try:
+                w, h = src.split("x")[:2]
+                return int(w), int(h)
+            except ValueError:
+                pass
+    try:
+        out = os.path.join(tempfile.gettempdir(), "urirun-kvm-wh.png")
+        dispatch("capture", output=out, monitor=0)
+        from PIL import Image
+        with Image.open(out) as im:
+            w, h = int(im.size[0]), int(im.size[1])
+        if w and h:
+            try:
+                with open(_SCREEN_WH_CACHE, "w") as f:
+                    f.write(f"{w}x{h}")
+            except OSError:
+                pass
+            return w, h
+    except Exception:  # noqa: BLE001 - best effort; fall back to absolute coords
+        pass
+    return 0, 0
+
+
+def _read_text(path: str) -> str:
+    try:
+        with open(path) as f:
+            return f.read().strip()
+    except OSError:
+        return ""
+
+
 def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
                      do_click: bool = True, settle: float = 0.9) -> dict:
     if not uinput_available():
         raise BackendError("no write access to /dev/uinput (add user to 'input' group or udev rule)")
+    if not sw or not sh:  # auto-detect from the capture surface when the caller omits it
+        dsw, dsh = _screen_wh()
+        sw, sh = sw or dsw, sh or dsh
     ax = max(0, min(_ABS_RANGE, int(x / sw * _ABS_RANGE) if sw else int(x)))
     ay = max(0, min(_ABS_RANGE, int(y / sh * _ABS_RANGE) if sh else int(y)))
 
@@ -1066,12 +970,16 @@ def _gnome_monitors() -> list[dict]:
     """Best-effort logical-monitor geometry via Mutter DisplayConfig (gdbus); [] if absent."""
     if not have_bin("gdbus"):
         return []
+    env = os.environ.copy()   # a node process often lacks the session-bus env; point gdbus at it
+    if hasattr(os, "getuid"):
+        env.setdefault("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+        env.setdefault("DBUS_SESSION_BUS_ADDRESS", f"unix:path={env['XDG_RUNTIME_DIR']}/bus")
     try:
         out = subprocess.run(
             ["gdbus", "call", "--session", "--dest", "org.gnome.Mutter.DisplayConfig",
              "--object-path", "/org/gnome/Mutter/DisplayConfig",
              "--method", "org.gnome.Mutter.DisplayConfig.GetCurrentState"],
-            capture_output=True, text=True, timeout=8).stdout
+            capture_output=True, text=True, timeout=8, env=env).stdout
     except Exception:  # noqa: BLE001
         return []
     import re
@@ -1082,33 +990,74 @@ def _gnome_monitors() -> list[dict]:
     return mons
 
 
+def _wayland_present():
+    """True / False / None(unknown) — robust, env-independent (a node process often has
+    no WAYLAND_DISPLAY even on a live Wayland session)."""
+    if os.environ.get("WAYLAND_DISPLAY") or os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland":
+        return True
+    xrd = os.environ.get("XDG_RUNTIME_DIR") or (f"/run/user/{os.getuid()}" if hasattr(os, "getuid") else "")
+    try:
+        if xrd and any(n.startswith("wayland-") for n in os.listdir(xrd)):
+            return True
+    except OSError:
+        pass
+    if have_bin("loginctl"):
+        try:
+            o = subprocess.run(["loginctl", "show-session", "self", "-p", "Type"],
+                               capture_output=True, text=True, timeout=3).stdout.lower()
+            if "wayland" in o:
+                return True
+            if "x11" in o:
+                return False
+        except Exception:  # noqa: BLE001
+            pass
+    return None
+
+
 def surface_report() -> dict:
-    """Which execution surface to trust here, and why. Surfaces:
-    os-level (this connector's raw input), browser-cdp (Playwright/CDP), remotedesktop-portal,
-    vdisplay. On Wayland multi-monitor/fractional-HiDPI, os-level pixel input is unreliable."""
+    """Which execution surface to trust here, and why — env-independent so it is honest
+    even on a node process that can't see WAYLAND_DISPLAY. Surfaces: os-level (raw input,
+    this connector), browser-cdp (Playwright/CDP), remotedesktop-portal, vdisplay. On
+    Wayland multi-monitor / fractional-HiDPI, os-level pixel input is unreliable."""
     plat = platform_tag()
-    mons = _gnome_monitors() if plat == "linux-wayland" else []
+    linux = sys.platform.startswith("linux")
+    mons = _gnome_monitors() if linux else []     # ground truth via Mutter (works w/o WAYLAND_DISPLAY)
+    wl = _wayland_present()                         # True / False / None
     multi = len(mons) > 1
     fractional = any(m["scale"] not in (0, 1.0) for m in mons)
-    confirmed_simple = bool(mons) and not multi and not fractional  # POSITIVELY single + integer scale
+    # GNOME answered DisplayConfig and the session isn't positively X11 → treat as Wayland-ish.
+    waylandish = (wl is True) or is_wayland() or (bool(mons) and wl is not False)
+    unconfirmed = linux and not waylandish and wl is None and not os.environ.get("DISPLAY")
+    confirmed_simple = bool(mons) and not multi and not fractional and wl is False  # positively X11 single+integer
     warnings = []
-    if plat == "linux-wayland":
+    if waylandish:
         if multi or fractional or not mons:
-            why = ("multi-monitor" if multi else "") + ("/fractional-HiDPI" if fractional else "")
-            why = why or "layout unconfirmed (couldn't read Mutter geometry)"
+            why = ", ".join(p for p in ("multi-monitor" if multi else "",
+                                        "fractional-HiDPI" if fractional else "",
+                                        "layout unconfirmed (Mutter geometry unreadable)" if not mons else "") if p)
             warnings.append(
                 f"OS-level pixel input (move/click/abs/task) is UNRELIABLE here: Wayland + {why} — "
                 "screenshot pixels do not map to a fixed input coordinate and focus cannot be stolen. "
-                "Use a browser surface (CDP/Playwright) for web, or the RemoteDesktop portal / a "
-                "virtual display for native apps. capture (portal) is fine.")
+                "Use browser-cdp (web) or remotedesktop-portal / vdisplay (native). capture (portal) is fine.")
         else:
             warnings.append(
                 "Wayland single-monitor, integer scale: pixel input maps ~1:1 — usable, but keys "
-                "still reach only the ACTIVE window (no focus-stealing).")
-    os_reliable = (plat != "linux-wayland") or confirmed_simple  # conservative: unconfirmed Wayland = unreliable
+                "reach only the ACTIVE window (no focus-stealing).")
+    elif unconfirmed:
+        warnings.append(
+            "Session type unconfirmed (node env has no WAYLAND_DISPLAY/DISPLAY). If this is GNOME/Wayland, "
+            "OS-level pixel input is likely unreliable — prefer browser-cdp / remotedesktop-portal; verify "
+            "with a known-coordinate click before trusting move/click/abs.")
+    os_reliable = bool(confirmed_simple or (wl is False and not multi and not fractional and not unconfirmed))
     recommended = (["browser-cdp", "remotedesktop-portal", "vdisplay"]
-                   if (plat == "linux-wayland") else ["os-level", "browser-cdp"])
-    return {"platform": plat, "wayland": is_wayland(), "monitors": mons,
-            "multiMonitor": multi, "fractionalHiDPI": fractional,
-            "osLevelReliable": os_reliable,
+                   if (waylandish or unconfirmed) else ["os-level", "browser-cdp"])
+    return {"platform": plat, "wayland": waylandish, "waylandConfirmed": wl, "monitors": mons,
+            "multiMonitor": multi, "fractionalHiDPI": fractional, "osLevelReliable": os_reliable,
             "recommendedSurfaces": recommended, "warnings": warnings}
+
+
+# Register the launch/launch_list backends (their @backend decorators run on import).
+try:  # normal package import
+    from . import launch_backends  # noqa: E402,F401
+except ImportError:  # flat-module deploy (node pushes backends.py + launch_backends.py as flat modules)
+    import launch_backends  # type: ignore  # noqa: F401

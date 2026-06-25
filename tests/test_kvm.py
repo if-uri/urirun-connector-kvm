@@ -27,6 +27,10 @@ ROUTE_DOCTOR = "kvm://host/doctor/query/report"
 EXPECTED_ROUTES = {
     ROUTE_KEY, ROUTE_MOVE, ROUTE_CAPTURE, ROUTE_TYPE, ROUTE_DOCTOR,
     "kvm://host/input/command/click", "kvm://host/input/command/scroll",
+    "kvm://host/input/command/double-click", "kvm://host/input/command/triple-click",
+    "kvm://host/input/command/right-click", "kvm://host/input/command/middle-click",
+    "kvm://host/input/command/hover", "kvm://host/input/command/drag-and-drop",
+    "kvm://host/input/command/wait",
     "kvm://host/task/command/run", "kvm://host/window/command/focus",
     "kvm://host/window/query/list", "kvm://host/a11y/command/act", "kvm://host/abs/command/click",
     "kvm://host/ui/query/locate", "kvm://host/ui/command/click-text",
