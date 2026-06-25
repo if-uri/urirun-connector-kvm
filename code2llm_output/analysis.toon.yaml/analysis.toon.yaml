@@ -1,12 +1,12 @@
-# code2llm | 43f 7743L | python:19,md:14,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
+# code2llm | 44f 7940L | python:19,md:15,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
 # generated in 0.01s
-# CC̅=3.3 | critical:0/316 | dups:0 | cycles:0
+# CC̅=3.3 | critical:0/321 | dups:0 | cycles:0
 
 HEALTH[0]: ok
 
 REFACTOR[0]: none needed
 
-PIPELINES[197]:
+PIPELINES[200]:
   [1] Src [cap]: cap → run
       PURITY: 100% pure
   [2] Src [magenta_frac]: magenta_frac
@@ -110,13 +110,13 @@ PIPELINES[197]:
 
 LAYERS:
   urirun_connector_kvm/           CC̄=4.1    ←in:0  →out:0
-  │ !! backends                  1261L  2C   79m  CC=14     ←2
-  │ !! core                       832L  0C   55m  CC=13     ←0
-  │ cdp                        307L  0C   16m  CC=10     ←0
-  │ launch_backends            281L  0C   16m  CC=11     ←0
-  │ control                    216L  0C    9m  CC=13     ←0
+  │ !! backends                  1292L  2C   79m  CC=14     ←2
+  │ !! core                       918L  0C   58m  CC=13     ←0
+  │ cdp                        348L  0C   18m  CC=8      ←0
+  │ launch_backends            282L  0C   16m  CC=11     ←0
+  │ control                    214L  0C    9m  CC=13     ←0
   │ strategies                 129L  3C   14m  CC=4      ←0
-  │ environment                 93L  0C    3m  CC=13     ←0
+  │ environment                 94L  0C    3m  CC=13     ←0
   │ connector.manifest.json     89L  0C    0m  CC=0.0    ←0
   │ surface                     60L  0C    2m  CC=7      ←0
   │ __init__                    38L  0C    0m  CC=0.0    ←0
@@ -141,28 +141,29 @@ LAYERS:
   │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
-  │ !! planfile.yaml              929L  0C    0m  CC=0.0    ←0
+  │ !! planfile.yaml              890L  0C    0m  CC=0.0    ←0
   │ DESKTOPENV.md              198L  0C    0m  CC=0.0    ←0
-  │ TODO.md                    183L  0C    0m  CC=0.0    ←0
+  │ TODO.md                    160L  0C    0m  CC=0.0    ←0
   │ README.md                  139L  0C    0m  CC=0.0    ←0
   │ CHANGELOG.md               124L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ project.sh                  69L  0C    0m  CC=0.0    ←0
-  │ pyproject.toml              41L  0C    0m  CC=0.0    ←0
+  │ pyproject.toml              44L  0C    0m  CC=0.0    ←0
   │ CONTRIBUTING.md             21L  0C    0m  CC=0.0    ←0
   │ Makefile                    13L  0C    0m  CC=0.0    ←0
   │ tree.sh                      4L  0C    0m  CC=0.0    ←0
+  │
+  testql-scenarios/               CC̄=0.0    ←in:0  →out:0
+  │ generated-cli-tests.testql.toon.yaml    20L  0C    0m  CC=0.0    ←0
   │
   docs/                           CC̄=0.0    ←in:0  →out:0
   │ ARCHITECTURE-cross-platform-backends.md   238L  0C    0m  CC=0.0    ←0
   │ lenovo-control-runbook.md   148L  0C    0m  CC=0.0    ←0
   │ surface-architecture.md    113L  0C    0m  CC=0.0    ←0
+  │ reversibility-contract.md    98L  0C    0m  CC=0.0    ←0
   │ operational-layers-priorities.md    90L  0C    0m  CC=0.0    ←0
   │ autonomous-kvm-agent.md     81L  0C    0m  CC=0.0    ←0
   │ control-router-findings.md    68L  0C    0m  CC=0.0    ←0
-  │
-  testql-scenarios/               CC̄=0.0    ←in:0  →out:0
-  │ generated-cli-tests.testql.toon.yaml    20L  0C    0m  CC=0.0    ←0
   │
   ── zero ──
      computer-use-preview/computers/playwright/__init__.py  0L

@@ -883,8 +883,15 @@ def launch(app: str = "", compose: str = "", args: list | None = None, settle: f
     if not app:
         return urirun.fail("app is required", connector=CONNECTOR_ID)
     try:
-        return _ok(action="launch", **B.dispatch("launch", app=app, compose=compose,
-                                                 args=args or [], settle=settle))
+        res = B.dispatch("launch", app=app, compose=compose, args=args or [], settle=settle)
+        out = _ok(action="launch", **res)
+        # reversibility contract: launch ⟂ kill(pid). Returning the concrete inverse lets the host
+        # transition ledger undo this launch (close the app we opened) — create⟂delete, no CDP.
+        pid = res.get("pid")
+        if pid:
+            node = os.environ.get("URIRUN_NODE_NAME", "host")
+            out["inverse"] = {"uri": f"kvm://{node}/proc/command/kill", "args": {"pid": int(pid)}}
+        return out
     except B.BackendError as exc:
         return _fail_from("launch", exc)
 

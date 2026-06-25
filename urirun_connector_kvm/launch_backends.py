@@ -47,7 +47,7 @@ def _cdp_wait(port: str, wait: float) -> dict:
     deadline = time.monotonic() + max(0.0, float(wait))
     while True:
         try:
-            with urllib.request.urlopen(url + "/json/version", timeout=2.0) as r:
+            with urllib.request.urlopen(f"{url}/json/version", timeout=2.0) as r:
                 if r.status == 200:  # noqa: PLR2004
                     return {"ready": True, "port": port, "endpoint": url}
         except Exception:  # noqa: BLE001 - not up yet; keep polling until the deadline

@@ -39,7 +39,7 @@ _TIMEOUT = float(os.environ.get("URIRUN_KVM_CDP_TIMEOUT", "4"))  # keep a single
 
 
 def _pages() -> list:
-    with urllib.request.urlopen(endpoint() + "/json", timeout=min(_TIMEOUT, 2.5)) as r:
+    with urllib.request.urlopen(f"{endpoint()}/json", timeout=min(_TIMEOUT, 2.5)) as r:
         data = json.loads(r.read() or "[]")
     pages = [p for p in data if p.get("type") == "page" and p.get("webSocketDebuggerUrl")]
     # prefer a real http(s) page over about:blank/devtools (the active tab is usually first)
