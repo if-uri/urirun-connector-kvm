@@ -157,15 +157,20 @@ class VisionStrategy:
 # the router
 # --------------------------------------------------------------------------- #
 def route(op: str, text: str = "", role: str = "", app: str = "", name: str = "",
-          value: str = "", verify: bool = True) -> dict[str, Any]:
+          value: str = "", verify: bool = True, cheap: bool = False) -> dict[str, Any]:
     """Route a UI ``op`` (locate|click|fill) to the best available control strategy and
     return ``{ok, strategy, ...}``. Tries strategies highest-confidence-first; on a
-    strategy error or a 'not found' it falls through to the next, recording attempts."""
+    strategy error or a 'not found' it falls through to the next, recording attempts.
+    ``cheap=True`` skips the vision (OCR) strategy — used by polling waits so a single
+    poll stays fast (DOM/a11y presence checks only) and can't blow the node's exec cap."""
     target = {"text": text, "role": role, "app": app, "name": name, "value": value}
     if op != "locate" and not (text or name or role):
         return {"ok": False, "error": "a target (text/name/role) is required"}
     attempts = []
     for st in _STRATEGIES:
+        if cheap and st.name == "vision":
+            attempts.append({"strategy": st.name, "skipped": "cheap-mode"})
+            continue
         try:
             if not st.available(app):
                 attempts.append({"strategy": st.name, "skipped": "unavailable"})

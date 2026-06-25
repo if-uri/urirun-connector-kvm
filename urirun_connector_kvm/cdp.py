@@ -29,8 +29,11 @@ def endpoint() -> str:
     return (os.environ.get("URIRUN_KVM_CDP_URL") or "http://127.0.0.1:9222").rstrip("/")
 
 
+_TIMEOUT = float(os.environ.get("URIRUN_KVM_CDP_TIMEOUT", "4"))  # keep a single CDP call snappy
+
+
 def _pages() -> list:
-    with urllib.request.urlopen(endpoint() + "/json", timeout=3) as r:
+    with urllib.request.urlopen(endpoint() + "/json", timeout=min(_TIMEOUT, 2.5)) as r:
         data = json.loads(r.read() or "[]")
     pages = [p for p in data if p.get("type") == "page" and p.get("webSocketDebuggerUrl")]
     # prefer a real http(s) page over about:blank/devtools (the active tab is usually first)
@@ -45,13 +48,115 @@ def reachable() -> bool:
         return False
 
 
+def navigate(url: str) -> dict:
+    """Point the active page at ``url`` via the DOM (no Page domain enable needed)."""
+    _evaluate(f"(location.href={json.dumps(url)}, 'ok')")
+    return {"ok": True, "url": url}
+
+
+def page_ready(timeout: float = 8.0) -> dict:
+    """Poll until the active page finishes loading (``document.readyState==='complete'``).
+    Lets a caller wait for load DETERMINISTICALLY instead of a blind sleep — and avoids the
+    CDP-eval-on-a-navigating-page flakiness (a find issued mid-navigation can throw)."""
+    import time as _t
+    deadline = _t.monotonic() + max(0.0, float(timeout))
+    state = None
+    while _t.monotonic() < deadline:
+        try:
+            state = _evaluate("document.readyState")
+            if state == "complete":
+                return {"ok": True, "readyState": state, "waited": round(_t.monotonic() - (deadline - timeout), 1)}
+        except Exception:  # noqa: BLE001 - page mid-navigation; keep polling
+            state = "navigating"
+        _t.sleep(0.4)
+    return {"ok": False, "readyState": state}
+
+
+_CHROME_CANDIDATES = ("google-chrome-stable", "google-chrome", "chromium-browser",
+                      "chromium", "brave-browser", "microsoft-edge")
+# auth files copied to make a dedicated-profile CDP Chrome inherit a logged-in session
+# (the persistent-context trick); kept minimal so we never duplicate the whole profile.
+_AUTH_FILES = ("Local State", "Default/Cookies", "Default/Network/Cookies",
+               "Default/Login Data", "Default/Preferences", "Default/Web Data")
+
+
+def _find_chrome() -> str:
+    import shutil
+    for c in (os.environ.get("URIRUN_KVM_CHROME"), *_CHROME_CANDIDATES):
+        if c and shutil.which(c):
+            return shutil.which(c)
+    raise BackendError("no chrome/chromium binary found")
+
+
+def _copy_auth(src: str, dst: str) -> list:
+    """Copy the minimal auth files from a real Chrome profile dir into the dedicated CDP
+    profile so it opens already logged in. Best-effort per file."""
+    import shutil
+    copied = []
+    src = os.path.expanduser(src)
+    for rel in _AUTH_FILES:
+        s = os.path.join(src, rel)
+        d = os.path.join(dst, rel)
+        if os.path.exists(s):
+            os.makedirs(os.path.dirname(d), exist_ok=True)
+            try:
+                shutil.copy2(s, d)
+                copied.append(rel)
+            except Exception:  # noqa: BLE001
+                pass
+    return copied
+
+
+def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
+                   wait: float = 14.0) -> dict:
+    """Reuse a live CDP endpoint, or launch a DEDICATED-profile Chrome that binds the debug
+    port (a fresh user-data-dir forces a separate instance, avoiding the 'debugger did not
+    come up' collision with the user's daily Chrome), then poll until it is reachable.
+    ``copy_from`` clones a profile's auth files first so the session is logged in."""
+    import subprocess
+    import time as _t
+    base = endpoint()
+    if reachable():                                   # already up — reuse, just navigate
+        nav = None
+        if url:
+            try:
+                nav = navigate(url)
+            except Exception as exc:  # noqa: BLE001
+                nav = {"ok": False, "error": str(exc)}
+        return {"ok": True, "reused": True, "endpoint": base, "navigate": nav}
+    port = base.rsplit(":", 1)[-1].split("/")[0]
+    ddir = user_data_dir or f"/tmp/urirun-kvm-cdp-{port}"
+    os.makedirs(ddir, exist_ok=True)
+    copied = _copy_auth(copy_from, ddir) if copy_from else []
+    argv = [_find_chrome(), f"--remote-debugging-port={port}", f"--user-data-dir={ddir}",
+            "--no-first-run", "--no-default-browser-check", "--force-renderer-accessibility"]
+    if url:
+        argv.append(url)
+    try:
+        from .backends import session_env
+    except ImportError:  # pragma: no cover - flat deploy
+        from backends import session_env  # type: ignore
+    proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                            start_new_session=True, env=session_env())
+    deadline = _t.monotonic() + float(wait)
+    while _t.monotonic() < deadline:
+        if reachable():
+            return {"ok": True, "reused": False, "endpoint": base, "pid": proc.pid,
+                    "userDataDir": ddir, "authCopied": copied}
+        _t.sleep(0.5)
+    return {"ok": False, "error": "debugger did not come up within timeout",
+            "endpoint": base, "pid": proc.pid, "userDataDir": ddir, "authCopied": copied}
+
+
 # ---- websocket (stdlib, client frames are masked) ------------------------- #
-def _ws_connect(ws_url: str, timeout: float = 10.0):
+def _ws_connect(ws_url: str, timeout: float | None = None):
+    timeout = _TIMEOUT if timeout is None else timeout
     if not ws_url.startswith("ws://"):
         raise BackendError(f"unsupported cdp ws url: {ws_url}")
     hostport, _, path = ws_url[5:].partition("/")
     host, _, port = hostport.partition(":")
     s = socket.create_connection((host, int(port or 80)), timeout=timeout)
+    s.settimeout(timeout)  # bound every recv so a stalled eval can't hang the node subprocess
     key = base64.b64encode(os.urandom(16)).decode()
     s.sendall((f"GET /{path} HTTP/1.1\r\nHost: {hostport}\r\nUpgrade: websocket\r\n"
                f"Connection: Upgrade\r\nSec-WebSocket-Key: {key}\r\n"

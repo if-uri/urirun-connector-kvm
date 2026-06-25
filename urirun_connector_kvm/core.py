@@ -321,24 +321,39 @@ def window_list() -> dict[str, Any]:
         return _fail_from("window_list", exc)
 
 
-@conn.handler("proc/command/kill", isolated=True, meta={"label": "Terminate a process by PID (node lifecycle control)"})
-def proc_kill(pid: int = 0, signal: str = "TERM") -> dict[str, Any]:
+@conn.handler("proc/command/kill", isolated=True, meta={"label": "Terminate a process by PID or name (node lifecycle control)"})
+def proc_kill(pid: int = 0, name: str = "", signal: str = "TERM") -> dict[str, Any]:
     """Send a signal to a process so process lifecycle is controllable *via a URI*, not a
-    side-channel shell — e.g. close a stray CDP/headless browser the agent launched. Defaults
-    to SIGTERM (graceful); pass ``signal="KILL"`` to force. Refuses pid<=1."""
+    side-channel shell — e.g. close a stray CDP/headless browser or restart Chrome with a
+    debug port. Target by ``pid`` OR by ``name`` (pgrep -f pattern → signals every match).
+    Defaults to SIGTERM (graceful); pass ``signal="KILL"`` to force. Refuses pid<=1 and a
+    name shorter than 3 chars (avoid over-broad kills)."""
     import os as _os
     import signal as _sig
-    pid = int(pid)
-    if pid <= 1:
-        return urirun.fail("pid must be > 1", connector=CONNECTOR_ID, action="kill")
+    import subprocess as _sp
     sig = getattr(_sig, signal if signal.startswith("SIG") else f"SIG{signal.upper()}", _sig.SIGTERM)
-    try:
-        _os.kill(pid, sig)
-        return _ok(action="kill", pid=pid, signal=sig.name)
-    except ProcessLookupError:
-        return urirun.fail(f"no such process {pid}", connector=CONNECTOR_ID, action="kill")
-    except PermissionError:
-        return urirun.fail(f"not permitted to signal {pid}", connector=CONNECTOR_ID, action="kill")
+    targets: list[int] = []
+    if name:
+        if len(name) < 3:
+            return urirun.fail("name must be >= 3 chars", connector=CONNECTOR_ID, action="kill")
+        try:
+            out = _sp.run(["pgrep", "-f", name], capture_output=True, text=True, timeout=8).stdout
+            targets = [int(x) for x in out.split() if x.isdigit() and int(x) != _os.getpid()]
+        except Exception as exc:  # noqa: BLE001
+            return urirun.fail(f"pgrep failed: {exc}", connector=CONNECTOR_ID, action="kill")
+    elif int(pid) > 1:
+        targets = [int(pid)]
+    else:
+        return urirun.fail("pass pid>1 or name>=3 chars", connector=CONNECTOR_ID, action="kill")
+    killed, errs = [], []
+    for p in targets:
+        try:
+            _os.kill(p, sig); killed.append(p)
+        except ProcessLookupError:
+            pass
+        except PermissionError:
+            errs.append(p)
+    return _ok(action="kill", signal=sig.name, matched=len(targets), killed=killed, denied=errs)
 
 
 @conn.handler("a11y/command/act", isolated=True, meta={"label": "Find a UI element by role/name and focus/click/set-text it (AT-SPI)"})
@@ -424,18 +439,131 @@ def ui_strategies() -> dict[str, Any]:
     return _ok(action="strategies", **C.report())
 
 
+@conn.handler("cdp/session/command/ensure", isolated=True,
+              meta={"label": "Reuse or launch a dedicated-profile CDP Chrome (so the router's cdp strategy is available)"})
+def cdp_ensure(url: str = "", user_data_dir: str = "", copy_from: str = "",
+               wait: float = 14.0) -> dict[str, Any]:
+    """Make the CDP control surface AVAILABLE: reuse a live debug endpoint or launch a
+    Chrome on a dedicated user-data-dir that binds the debug port (avoids the 'debugger did
+    not come up' collision). ``copy_from`` clones a profile's auth files for a logged-in
+    session. After this, ``ui/*`` route through the coordinate-free cdp DOM strategy."""
+    try:
+        from . import cdp as _cdp
+    except ImportError:
+        import cdp as _cdp  # type: ignore
+    r = _cdp.launch_session(url=url, user_data_dir=user_data_dir, copy_from=copy_from, wait=float(wait))
+    return _ok(action="cdp-ensure", **r) if r.get("ok") else \
+        urirun.fail(r.get("error", "cdp ensure failed"), connector=CONNECTOR_ID, action="cdp-ensure", **r)
+
+
+def _cdp_mod():
+    try:
+        from . import cdp as _cdp
+    except ImportError:
+        import cdp as _cdp  # type: ignore
+    return _cdp
+
+
+@conn.handler("cdp/page/command/navigate", isolated=True,
+              meta={"label": "Navigate the CDP page and wait until it finishes loading"})
+def cdp_navigate(url: str = "", ready_timeout: float = 8.0) -> dict[str, Any]:
+    if not url:
+        return urirun.fail("url is required", connector=CONNECTOR_ID)
+    cdp = _cdp_mod()
+    try:
+        nav = cdp.navigate(url)
+        ready = cdp.page_ready(timeout=float(ready_timeout))
+        return _ok(action="cdp-navigate", url=url, ready=ready, **nav)
+    except Exception as exc:  # noqa: BLE001
+        return urirun.fail(str(exc), connector=CONNECTOR_ID, action="cdp-navigate")
+
+
+@conn.handler("cdp/page/query/ready", isolated=True,
+              meta={"label": "Wait until the CDP page document is fully loaded"})
+def cdp_ready(timeout: float = 8.0) -> dict[str, Any]:
+    r = _cdp_mod().page_ready(timeout=float(timeout))
+    return _ok(action="cdp-ready", **r) if r.get("ok") else \
+        urirun.fail("page not ready within timeout", connector=CONNECTOR_ID, action="cdp-ready", **r)
+
+
+@conn.handler("ui/command/act", isolated=True,
+              meta={"label": "Self-orchestrating UI action: wait-ready → route → retry → verify"})
+def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", value: str = "",
+           app: str = "", retries: int = 3, settle: float = 0.7, ready_timeout: float = 6.0) -> dict[str, Any]:
+    """ONE high-level URI an LLM planner can target instead of hand-assembling
+    wait+find+click+verify (which it gets wrong: dumb sleeps, OCR label guesses, no verify).
+    Internally: (1) if a CDP page is reachable, wait for it to finish loading; (2) route the
+    action (click|fill|find|wait) through cdp→atspi→vision with up to ``retries`` attempts and
+    a ``settle`` pause between (covers spinners / late-rendered elements); (3) return the
+    winning strategy + the per-try trail. Acting via the router means it's role/name exact on
+    CDP and degrades to OCR only when it must."""
+    if do not in ("click", "fill", "find", "wait"):
+        return urirun.fail("do must be click|fill|find|wait", connector=CONNECTOR_ID)
+    if do == "fill" and not value:
+        return urirun.fail("value is required for fill", connector=CONNECTOR_ID)
+    cdp = _cdp_mod()
+    ready = None
+    if cdp.reachable():
+        try:
+            ready = cdp.page_ready(timeout=float(ready_timeout))
+        except Exception:  # noqa: BLE001
+            ready = {"ok": False}
+    op = "locate" if do in ("find", "wait") else do
+    tries = []
+    last: dict[str, Any] = {}
+    for attempt in range(max(1, int(retries))):
+        last = C.route(op, text=text, role=role, app=app, name=name, value=value)
+        ok = last.get("ok") or last.get("found")
+        tries.append({"attempt": attempt + 1, "ok": bool(ok), "strategy": last.get("strategy")})
+        if ok:
+            body = {k: v for k, v in last.items() if k not in ("ok", "error", "attempts")}
+            return _ok(action="act", do=do, ready=ready, tries=tries,
+                       strategyAttempts=last.get("attempts"), **body)
+        time.sleep(float(settle))
+    return urirun.fail(last.get("error", f"act:{do} failed after {retries} tries"),
+                       connector=CONNECTOR_ID, action="act", do=do, ready=ready, tries=tries,
+                       strategyAttempts=last.get("attempts"))
+
+
+@conn.handler("cdp/session/query/status", isolated=True,
+              meta={"label": "Is a CDP debug endpoint reachable, and on what page"})
+def cdp_status() -> dict[str, Any]:
+    try:
+        from . import cdp as _cdp
+    except ImportError:
+        import cdp as _cdp  # type: ignore
+    reachable = _cdp.reachable()
+    page = None
+    if reachable:
+        try:
+            page = _cdp.find(text="", role="").get("name")  # cheap probe
+        except Exception:  # noqa: BLE001
+            page = None
+    return _ok(action="cdp-status", reachable=reachable, endpoint=_cdp.endpoint())
+
+
 @conn.handler("ui/query/wait", isolated=True, meta={"label": "Poll until a target appears (router)"})
 def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0,
             interval: float = 0.7, name: str = "") -> dict[str, Any]:
-    deadline = float(timeout)
-    waited = 0.0
-    while waited <= deadline:
-        r = C.route("locate", text=text, role=role, app=app, name=name)
-        if r.get("found"):
-            return _ok(action="wait", found=True, waited=round(waited, 1), **r)
-        time.sleep(float(interval))
-        waited += float(interval)
-    return urirun.fail(f"target not found within {timeout}s", connector=CONNECTOR_ID, action="wait")
+    # Bound by REAL elapsed time, capped below the node's ~30s subprocess cap: counting
+    # `interval` increments let a slow CDP/OCR poll run far past `timeout` and the node
+    # killed core:ui_wait with TimeoutExpired. Poll the CHEAP strategies only (cdp/atspi
+    # DOM-presence) so a single poll can't stall — OCR is reserved for the click itself.
+    budget = max(0.0, min(float(timeout), 22.0))
+    start = time.monotonic()
+    last: dict[str, Any] = {}
+    while True:
+        last = C.route("locate", text=text, role=role, app=app, name=name, cheap=True)
+        elapsed = time.monotonic() - start
+        if last.get("found"):
+            body = {k: v for k, v in last.items() if k not in ("ok", "error")}
+            return _ok(action="wait", found=True, waited=round(elapsed, 1), **body)
+        if elapsed >= budget:
+            break
+        time.sleep(min(float(interval), max(0.0, budget - elapsed)))
+    return urirun.fail(f"target not found within {timeout}s", connector=CONNECTOR_ID,
+                       action="wait", waited=round(time.monotonic() - start, 1),
+                       attempts=last.get("attempts"))
 
 
 @conn.handler("ui/query/verify", isolated=True, meta={"label": "Assert a string is present on screen"})

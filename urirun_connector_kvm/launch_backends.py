@@ -18,9 +18,29 @@ import subprocess
 import time
 
 try:  # normal package import
-    from .backends import BackendError, _run, backend
+    from .backends import BackendError, _run, backend, session_env
 except ImportError:  # flat-module deploy (node `host deploy --code backends.py launch_backends.py`)
-    from backends import BackendError, _run, backend  # type: ignore
+    from backends import BackendError, _run, backend, session_env  # type: ignore
+
+
+def _cdp_wait(port: str, wait: float) -> dict:
+    """Poll the CDP debug endpoint until it is reachable (early-exit) so a chrome launch
+    can honestly report whether the debug socket actually bound — instead of assuming the
+    injected ``--remote-debugging-port`` took effect."""
+    import urllib.request
+    url = (os.environ.get("URIRUN_KVM_CDP_URL") or f"http://127.0.0.1:{port}").rstrip("/")
+    deadline = time.monotonic() + max(0.0, float(wait))
+    while True:
+        try:
+            with urllib.request.urlopen(url + "/json/version", timeout=2.0) as r:
+                if r.status == 200:
+                    return {"ready": True, "port": port, "endpoint": url}
+        except Exception:  # noqa: BLE001 - not up yet; keep polling until the deadline
+            pass
+        if time.monotonic() >= deadline:
+            return {"ready": False, "port": port, "endpoint": url,
+                    "error": "debugger did not come up within timeout"}
+        time.sleep(0.5)
 
 
 def _xdg_app_dirs() -> list[str]:
@@ -127,22 +147,40 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     #                              coordinate-free), the most reliable control tool;
     #   --force-renderer-accessibility → the `atspi` strategy can see web elements.
     # Both are no-ops if the flow already passed them. Off via URIRUN_KVM_NO_A11Y=1.
+    cdp_port = ""
     if not os.environ.get("URIRUN_KVM_NO_A11Y") and any(
             b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge")):
-        port = os.environ.get("URIRUN_KVM_CDP_PORT", "9222")
+        cdp_port = os.environ.get("URIRUN_KVM_CDP_PORT", "9222")
         if not any("remote-debugging-port" in a for a in argv):
-            argv.insert(1, f"--remote-debugging-port={port}")
+            argv.insert(1, f"--remote-debugging-port={cdp_port}")
+        # A bare --remote-debugging-port is SILENTLY DROPPED when a Chrome on the default
+        # profile is already running: the launch just forwards the URL to the live instance
+        # and no debug socket ever binds ("debugger did not come up"). Force a separate
+        # instance with a dedicated profile so the port actually opens — same recipe as
+        # cdp.launch_session(). Skip if the flow already chose its own profile.
+        if not any("user-data-dir" in a for a in argv):
+            ddir = os.environ.get("URIRUN_KVM_CDP_PROFILE") or f"/tmp/urirun-kvm-cdp-{cdp_port}"
+            argv.insert(1, f"--user-data-dir={ddir}")
+            for flag in ("--no-first-run", "--no-default-browser-check"):
+                if flag not in argv:
+                    argv.insert(1, flag)
         if not any("force-renderer-accessibility" in a for a in argv):
             argv.insert(1, "--force-renderer-accessibility")
-    env = os.environ.copy()
-    env.setdefault("WAYLAND_DISPLAY", "wayland-0")
-    p = subprocess.Popen(argv, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    # session_env() points the child at the live compositor/X/D-Bus; a node process is
+    # often spawned without those, and the old hardcoded WAYLAND_DISPLAY=wayland-0 was
+    # wrong on any seat whose socket isn't wayland-0.
+    p = subprocess.Popen(argv, env=session_env(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True)
     settled = max(0.0, min(float(settle or 0), 30.0))
-    if settled:
+    result = {"via": "xdg", "app": resolved, "pid": p.pid, "argv": argv,
+              "compose": bool(compose), "settled": settled}
+    if cdp_port:
+        # Spend the settle window (or a short default) polling for the debug port so the
+        # result honestly reports whether CDP came up instead of assuming it did.
+        result["cdp"] = _cdp_wait(cdp_port, max(settled, 8.0))
+    elif settled:
         time.sleep(settled)
-    return {"via": "xdg", "app": resolved, "pid": p.pid, "argv": argv,
-            "compose": bool(compose), "settled": settled}
+    return result
 
 
 @backend("launch", "macos", priority=70, platforms=("macos",), needs_bin=("open",))

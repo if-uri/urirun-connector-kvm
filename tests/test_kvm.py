@@ -30,12 +30,15 @@ EXPECTED_ROUTES = {
     "kvm://host/input/command/double-click", "kvm://host/input/command/triple-click",
     "kvm://host/input/command/right-click", "kvm://host/input/command/middle-click",
     "kvm://host/input/command/hover", "kvm://host/input/command/drag-and-drop",
-    "kvm://host/input/command/wait",
+    "kvm://host/input/command/wait", "kvm://host/proc/command/kill",
     "kvm://host/task/command/run", "kvm://host/window/command/focus",
     "kvm://host/window/query/list", "kvm://host/a11y/command/act", "kvm://host/abs/command/click",
     "kvm://host/ui/query/locate", "kvm://host/ui/command/click-text",
     "kvm://host/ui/query/find", "kvm://host/ui/command/click", "kvm://host/ui/command/fill",
     "kvm://host/ui/query/wait", "kvm://host/ui/query/verify", "kvm://host/ui/query/strategies",
+    "kvm://host/cdp/session/command/ensure", "kvm://host/cdp/session/query/status",
+    "kvm://host/cdp/page/command/navigate", "kvm://host/cdp/page/query/ready",
+    "kvm://host/ui/command/act",
     "app://host/desktop/command/launch", "app://host/desktop/query/list",
 }
 
@@ -197,3 +200,25 @@ def test_router_falls_through_cdp_to_vision(monkeypatch) -> None:
 def test_router_empty_target_is_error() -> None:
     r = C.route("click", text="", role="", name="")
     assert r["ok"] is False and "required" in r["error"]
+
+
+def test_ui_act_retries_then_succeeds(monkeypatch) -> None:
+    # orchestrator: page-ready probe + retry loop through the router until ok
+    import urirun_connector_kvm.cdp as _cdp
+    monkeypatch.setattr(_cdp, "reachable", lambda: True)
+    monkeypatch.setattr(_cdp, "page_ready", lambda timeout=8.0: {"ok": True, "readyState": "complete"})
+    calls = {"n": 0}
+    def _route(op, **k):
+        calls["n"] += 1
+        if calls["n"] < 2:                       # first try misses, second wins
+            return {"ok": False, "error": "not yet", "attempts": []}
+        return {"ok": True, "strategy": "cdp", "clicked": True}
+    monkeypatch.setattr(core.C, "route", _route)
+    monkeypatch.setattr(core.time, "sleep", lambda *_a: None)
+    r = core.ui_act(do="click", text="Post", retries=3)
+    assert r["ok"] is True and r["do"] == "click"
+    assert len(r["tries"]) == 2 and r["tries"][-1]["ok"] is True
+
+
+def test_ui_act_rejects_bad_verb() -> None:
+    assert core.ui_act(do="frobnicate", text="x")["ok"] is False

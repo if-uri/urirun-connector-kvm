@@ -31,12 +31,45 @@ from typing import Any, Callable
 # --------------------------------------------------------------------------- #
 # platform / session detection
 # --------------------------------------------------------------------------- #
+def _runtime_dir() -> str:
+    return os.environ.get("XDG_RUNTIME_DIR") or (f"/run/user/{os.getuid()}" if hasattr(os, "getuid") else "")
+
+
+def _wayland_socket() -> str | None:
+    """Name of a live ``wayland-*`` socket under the runtime dir, if any."""
+    xrd = _runtime_dir()
+    if not xrd:
+        return None
+    try:
+        socks = sorted(n for n in os.listdir(xrd)
+                       if n.startswith("wayland-") and not n.endswith(".lock"))
+    except OSError:
+        return None
+    return socks[0] if socks else None
+
+
+def _x_display() -> str | None:
+    """First X display socket under ``/tmp/.X11-unix``, as a ``:N`` display string."""
+    try:
+        socks = sorted(n for n in os.listdir("/tmp/.X11-unix") if n.startswith("X") and n[1:].isdigit())
+    except OSError:
+        return None
+    return f":{socks[0][1:]}" if socks else None
+
+
 def is_wayland() -> bool:
-    return bool(os.environ.get("WAYLAND_DISPLAY")) or os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
+    if bool(os.environ.get("WAYLAND_DISPLAY")) or os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland":
+        return True
+    # A node process is usually spawned without the graphical session's env, so the
+    # vars above are empty even on a live Wayland seat — which mis-tags the box as
+    # linux-x11 and drops grim/portal from the capture candidates. Probe the
+    # compositor socket under the runtime dir as ground truth (same discovery the
+    # input/capture paths already use via session_env()).
+    return _wayland_socket() is not None
 
 
 def is_x11() -> bool:
-    return bool(os.environ.get("DISPLAY")) and not is_wayland()
+    return (bool(os.environ.get("DISPLAY")) or _x_display() is not None) and not is_wayland()
 
 
 def platform_tag() -> str:
@@ -151,7 +184,12 @@ def registry_report() -> dict:
 
 
 def _run(argv: list[str], *, env=None, timeout: float = 30) -> subprocess.CompletedProcess:
-    p = subprocess.run(argv, capture_output=True, text=True, env=env, timeout=timeout)
+    # Default to the discovered session env so display-dependent tools (grim, scrot,
+    # gnome-screenshot, wtype, xdotool…) can reach the compositor/X server even when the
+    # node process was spawned without graphical session vars. Callers that pass an
+    # explicit env (ydotool's _yd_env) keep full control.
+    p = subprocess.run(argv, capture_output=True, text=True,
+                       env=session_env() if env is None else env, timeout=timeout)
     if p.returncode != 0:
         raise BackendError((p.stderr or f"{argv[0]} exit {p.returncode}").strip()[:200])
     return p
@@ -204,9 +242,9 @@ def _cap_portal(output: str, **_) -> dict:
         raise BackendError("portal needs python3 with dbus+gi (install python3-gobject python3-dbus)")
     import urllib.parse
     from pathlib import Path
-    env = os.environ.copy()
-    env.setdefault("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    p = _run([py, "-c", _PORTAL_SCRIPT], env=env, timeout=20)
+    # Needs the session D-Bus address + XDG_RUNTIME_DIR to reach the portal; session_env()
+    # fills both in from the runtime dir when the node process was started without them.
+    p = _run([py, "-c", _PORTAL_SCRIPT], env=session_env(), timeout=20)
     src = Path(urllib.parse.urlparse(p.stdout.strip()).path)
     data = src.read_bytes()
     Path(output).write_bytes(data)
@@ -282,7 +320,7 @@ def ensure_ydotoold() -> str:
 
 
 def _yd_env() -> dict:
-    env = os.environ.copy(); env["YDOTOOL_SOCKET"] = ensure_ydotoold(); return env
+    env = session_env(); env["YDOTOOL_SOCKET"] = ensure_ydotoold(); return env
 
 
 _YD_BUTTON = {"left": "0xC0", "right": "0xC1", "middle": "0xC2"}
@@ -302,23 +340,31 @@ def _yd_keyseq(combo: str) -> list[str]:
 
 
 # ---- type ----
-def _wayland_env() -> dict:
-    """A child-process env that can reach the Wayland compositor. A urirun node process
-    usually has no WAYLAND_DISPLAY, so wl-copy/wtype hang on connect; point them at the
-    live socket discovered under XDG_RUNTIME_DIR (same trick as the portal capture path)."""
+def session_env() -> dict:
+    """A child-process env that can reach the live graphical session — the Wayland
+    compositor, the X display, and the session D-Bus (which the screenshot portal
+    needs). A urirun node process is usually spawned without any of these, so
+    wl-copy/wtype/grim hang on connect and the portal's SessionBus() fails — point
+    every backend at the sockets discovered under XDG_RUNTIME_DIR / /tmp/.X11-unix."""
     env = os.environ.copy()
-    xrd = env.get("XDG_RUNTIME_DIR") or (f"/run/user/{os.getuid()}" if hasattr(os, "getuid") else "")
+    xrd = _runtime_dir()
     if xrd:
         env["XDG_RUNTIME_DIR"] = xrd
         if not env.get("WAYLAND_DISPLAY"):
-            try:
-                socks = sorted(n for n in os.listdir(xrd)
-                               if n.startswith("wayland-") and not n.endswith(".lock"))
-                if socks:
-                    env["WAYLAND_DISPLAY"] = socks[0]
-            except OSError:
-                pass
+            sock = _wayland_socket()
+            if sock:
+                env["WAYLAND_DISPLAY"] = sock
+        if not env.get("DBUS_SESSION_BUS_ADDRESS") and os.path.exists(f"{xrd}/bus"):
+            env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path={xrd}/bus"
+    if not env.get("DISPLAY"):
+        disp = _x_display()
+        if disp:
+            env["DISPLAY"] = disp
     return env
+
+
+# Back-compat alias: earlier code called this the wayland env.
+_wayland_env = session_env
 
 
 def _clipboard_set(text: str) -> str:
@@ -561,9 +607,9 @@ def _focus_atspi(title: str, **_) -> dict:
     py = _atspi_python()
     if not py:
         raise BackendError("AT-SPI focus needs python3 with gi + Atspi (install python3-gobject + gnome a11y)")
-    env = os.environ.copy()
-    env.setdefault("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    p = _run([py, "-c", _ATSPI_FOCUS_SCRIPT, title], env=env, timeout=12)
+    # AT-SPI talks over the session bus; session_env() supplies DBUS_SESSION_BUS_ADDRESS
+    # (and XDG_RUNTIME_DIR) when the node process was started without them.
+    p = _run([py, "-c", _ATSPI_FOCUS_SCRIPT, title], env=session_env(), timeout=12)
     import json as _json
     hit = _json.loads((p.stdout or "{}").strip() or "{}")
     if not hit:
@@ -669,10 +715,9 @@ def _a11y_atspi(app: str = "", role: str = "", name: str = "", op: str = "focus"
     if not py:
         raise BackendError("AT-SPI needs python3 with gi + Atspi (install python3-gobject + gnome a11y)")
     import json as _json
-    env = os.environ.copy()
-    env.setdefault("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    # AT-SPI talks over the session bus — session_env() supplies DBUS_SESSION_BUS_ADDRESS.
     cmd = _json.dumps({"app": app, "role": role, "name": name, "op": op, "text": text, "nth": nth})
-    p = _run([py, "-c", _ATSPI_ACT_SCRIPT, cmd], env=env, timeout=15)
+    p = _run([py, "-c", _ATSPI_ACT_SCRIPT, cmd], env=session_env(), timeout=15)
     res = _json.loads((p.stdout or "{}").strip() or "{}")
     res["via"] = "atspi"
     return res
