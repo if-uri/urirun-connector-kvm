@@ -635,9 +635,18 @@ def cdp_navigate(url: str = "", ready_timeout: float = 8.0) -> dict[str, Any]:
         return urirun.fail("url is required", connector=CONNECTOR_ID)
     cdp = _cdp_mod()
     try:
+        prev = None
+        try:
+            prev = cdp._evaluate("location.href")   # capture before leaving, for the inverse
+        except Exception:  # noqa: BLE001 - no page yet -> the inverse is simply unavailable
+            prev = None
         nav = cdp.navigate(url)
         ready = cdp.page_ready(timeout=float(ready_timeout))
-        return _ok(action="cdp-navigate", url=url, ready=ready, **_spread(nav, "url"))
+        out = _ok(action="cdp-navigate", url=url, ready=ready, **_spread(nav, "url"))
+        if isinstance(prev, str) and prev and prev != url:
+            # navigate(new) reverse navigate(old): return to the URL we left
+            out["inverse"] = {"path": "cdp/page/command/navigate", "args": {"url": prev}}
+        return out
     except Exception as exc:  # noqa: BLE001
         return urirun.fail(str(exc), connector=CONNECTOR_ID, action="cdp-navigate")
 

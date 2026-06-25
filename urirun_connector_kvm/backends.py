@@ -14,7 +14,6 @@ install hints surfaced by the ``doctor`` route.
 
 from __future__ import annotations
 
-import importlib.util
 import os
 import shutil
 import subprocess
@@ -24,6 +23,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 from collections.abc import Callable
+
+from urirun.connectors.backend_registry import BackendError, have_bin, have_mod  # noqa: F401
 
 
 # --------------------------------------------------------------------------- #
@@ -89,22 +90,11 @@ _MAX_SCREEN_COORD = 100_000 # sanity bound: reject AT-SPI bboxes outside plausib
 
 
 # --------------------------------------------------------------------------- #
-# registry + @backend decorator
+# registry + @backend decorator — have_bin / have_mod / BackendError re-exported
+# from urirun.connectors.backend_registry (generic kernel); Backend / @backend /
+# dispatch stay kvm-local so test patches on B.have_mod / B.platform_tag reach
+# the right lookup in kvm's module globals.
 # --------------------------------------------------------------------------- #
-def have_bin(name: str) -> bool:
-    return shutil.which(name) is not None
-
-
-def have_mod(name: str) -> bool:
-    # find_spec, not import_module: checking availability must not *execute* a heavy
-    # module (e.g. importing easyocr pulls in torch). The actual import happens lazily
-    # inside the backend fn, wrapped by dispatch's try/except.
-    try:
-        return importlib.util.find_spec(name) is not None
-    except (ImportError, ValueError, ModuleNotFoundError):
-        return False
-
-
 @dataclass
 class Backend:
     action: str
@@ -140,10 +130,6 @@ def backend(action: str, name: str, *, priority: int = 50, platforms: tuple = AL
         _REGISTRY[action].sort(key=lambda b: -b.priority)
         return fn
     return deco
-
-
-class BackendError(RuntimeError):
-    pass
 
 
 def dispatch(action: str, **kwargs: Any) -> dict:
