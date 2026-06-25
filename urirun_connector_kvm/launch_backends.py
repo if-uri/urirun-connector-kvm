@@ -16,6 +16,7 @@ import shlex
 import shutil
 import subprocess
 import time
+from typing import Any
 
 try:  # normal package import
     from .backends import BackendError, _run, backend, session_env
@@ -75,7 +76,7 @@ def _xdg_app_dirs() -> list[str]:
     return out
 
 
-def _parse_desktop_section(fh) -> tuple[str, str, bool]:
+def _parse_desktop_section(fh: Any) -> tuple[str, str, bool]:
     """Parse [Desktop Entry] lines for Name, Exec, NoDisplay. Returns (name, exec, nodisplay)."""
     name = exec_line = ""
     nodisplay = False
@@ -97,7 +98,7 @@ def _parse_desktop_section(fh) -> tuple[str, str, bool]:
     return name, exec_line, nodisplay
 
 
-def _parse_desktop(path: str):
+def _parse_desktop(path: str) -> dict | None:
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
             name, exec_line, nodisplay = _parse_desktop_section(fh)
@@ -135,7 +136,7 @@ def _strip_field_codes(exec_line: str) -> list[str]:
     return out
 
 
-def _find_app(query: str):
+def _find_app(query: str) -> dict | None:
     q = (query or "").strip().lower()
     entries = _desktop_entries()
     for e in entries:                        # exact id
@@ -147,7 +148,7 @@ def _find_app(query: str):
     return None
 
 
-def _resolve_launch_argv(app: str, extra: list):
+def _resolve_launch_argv(app: str, extra: list) -> tuple[list, dict]:
     """Resolve ``app`` to a runnable ``argv`` + ``resolved`` descriptor the way the system app
     search does: prefer a matching XDG ``.desktop`` entry (field codes stripped), then a PATH
     binary, else raise. Shared boundary for ``_launch_xdg``."""
@@ -196,7 +197,7 @@ def _inject_chrome_flags(argv: list, debug: bool) -> str:
 
 @backend("launch", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
 def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, settle: float = 0,
-                debug: bool = False, **_) -> dict:
+                debug: bool = False, **_: Any) -> dict:
     extra = list(args or [])
     if compose:
         extra += ["-compose", compose]
@@ -234,7 +235,7 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
 
 
 @backend("launch", "macos", priority=70, platforms=("macos",), needs_bin=("open",))
-def _launch_macos(app: str = "", args: list | None = None, settle: float = 0, **_) -> dict:
+def _launch_macos(app: str = "", args: list | None = None, settle: float = 0, **_: Any) -> dict:
     argv = ["open", "-a", app] + (["--args", *map(str, args or [])] if args else [])
     _run(argv)
     settled = max(0.0, min(float(settle or 0), 30.0))
@@ -244,7 +245,7 @@ def _launch_macos(app: str = "", args: list | None = None, settle: float = 0, **
 
 
 @backend("launch", "windows", priority=70, platforms=("windows",))
-def _launch_windows(app: str = "", args: list | None = None, settle: float = 0, **_) -> dict:
+def _launch_windows(app: str = "", args: list | None = None, settle: float = 0, **_: Any) -> dict:
     try:
         os.startfile(app)  # type: ignore[attr-defined]
     except OSError:
@@ -256,7 +257,7 @@ def _launch_windows(app: str = "", args: list | None = None, settle: float = 0, 
 
 
 @backend("launch_list", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
-def _list_xdg(filter: str = "", **_) -> dict:  # noqa: A002 - matches route field name
+def _list_xdg(filter: str = "", **_: Any) -> dict:  # noqa: A002 - matches route field name
     q = (filter or "").lower()
     out = []
     for e in _desktop_entries():
@@ -270,7 +271,7 @@ def _list_xdg(filter: str = "", **_) -> dict:  # noqa: A002 - matches route fiel
 
 
 @backend("launch_list", "macos", priority=70, platforms=("macos",))
-def _list_macos(filter: str = "", **_) -> dict:  # noqa: A002
+def _list_macos(filter: str = "", **_: Any) -> dict:  # noqa: A002
     q = (filter or "").lower()
     out = []
     for entry in sorted(glob.glob("/Applications/*.app")):

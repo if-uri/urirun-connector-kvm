@@ -452,3 +452,12 @@ def test_cdp_await_ready_polls_without_spawn(monkeypatch) -> None:
     monkeypatch.setattr(cdp, "reachable", lambda: False)
     out = cdp.await_ready(timeout=0)
     assert out["ready"] is False and "timeout" in out["error"]
+
+
+def test_ui_wait_success_has_no_found_collision(monkeypatch) -> None:
+    # the route hit carries `found` -> _ok(found=True, **hit) used to raise
+    # "_ok() got multiple values for keyword argument 'found'" on the SUCCESS path
+    monkeypatch.setattr(core.C, "route",
+                        lambda op, **k: {"ok": True, "found": True, "strategy": "cdp", "name": "X"})
+    r = core.ui_wait(text="X", timeout=1)
+    assert r["ok"] is True and r["found"] is True and r["waited"] is not None and r["strategy"] == "cdp"

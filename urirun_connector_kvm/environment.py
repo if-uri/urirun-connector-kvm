@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import shutil
+from collections.abc import Callable
 
 try:  # normal package import / flat deploy
     from . import backends as B
@@ -21,7 +22,7 @@ except ImportError:  # pragma: no cover
     import cdp as _cdp  # type: ignore
 
 
-def _safe(fn) -> bool:
+def _safe(fn: Callable) -> bool:
     try:
         return bool(fn())
     except Exception:  # noqa: BLE001

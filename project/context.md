@@ -5,22 +5,17 @@
 
 - **Project**: /home/tom/github/if-uri/urirun-connector-kvm
 - **Primary Language**: python
-- **Languages**: python: 19, yaml: 3, shell: 3, toml: 1, json: 1
+- **Languages**: python: 18, shell: 3, yaml: 3, json: 1, txt: 1
 - **Analysis Mode**: static
-- **Total Functions**: 318
-- **Total Classes**: 11
-- **Modules**: 29
-- **Entry Points**: 232
+- **Total Functions**: 242
+- **Total Classes**: 9
+- **Modules**: 28
+- **Entry Points**: 191
 
 ## Architecture by Module
 
-### urirun_connector_kvm.backends
-- **Functions**: 79
-- **Classes**: 2
-- **File**: `backends.py`
-
 ### urirun_connector_kvm.core
-- **Functions**: 57
+- **Functions**: 58
 - **File**: `core.py`
 
 ### computer-use-preview.computers.playwright.playwright
@@ -43,13 +38,13 @@
 - **Classes**: 1
 - **File**: `agent.py`
 
+### urirun_connector_kvm.cdp
+- **Functions**: 18
+- **File**: `cdp.py`
+
 ### urirun_connector_kvm.launch_backends
 - **Functions**: 16
 - **File**: `launch_backends.py`
-
-### urirun_connector_kvm.cdp
-- **Functions**: 16
-- **File**: `cdp.py`
 
 ### urirun_connector_kvm.strategies
 - **Functions**: 14
@@ -64,14 +59,14 @@
 - **Functions**: 4
 - **File**: `calibrate_abs.py`
 
-### urirun_connector_kvm.environment
-- **Functions**: 3
-- **File**: `environment.py`
-
 ### computer-use-preview.computers.browserbase.browserbase
 - **Functions**: 3
 - **Classes**: 1
 - **File**: `browserbase.py`
+
+### urirun_connector_kvm.environment
+- **Functions**: 3
+- **File**: `environment.py`
 
 ### urirun_connector_kvm.surface
 - **Functions**: 2
@@ -90,11 +85,6 @@ Main execution flows into the system:
 type→submit flow shares the same ydotoold session). ops: focus, move, cl
 - **Calls**: conn.handler, urirun_connector_kvm.core._ok, str, st.get, log.append, time.sleep, time.sleep, log.append
 
-### urirun_connector_kvm.backends._locate_easyocr
-> OCR-locate via EasyOCR (CRAFT detector + CRNN) — stronger than tesseract on UI
-fonts, low contrast, and non-Latin scripts, with no a11y permissions. R
-- **Calls**: urirun_connector_kvm.backends.backend, None.strip, urirun_connector_kvm.backends._easyocr_reader, reader.readtext, q.lower, matches.sort, urirun_connector_kvm.backends._capture_tmp, float
-
 ### urirun_connector_kvm.environment.profile
 > Capabilities of the current session, plus a derived ``controlStrategies`` map saying
 which router strategy CAN work here (cdp needs a reachable debug 
@@ -105,8 +95,10 @@ which router strategy CAN work here (cdp needs a reachable debug
 move+click its center via KVM, then optionally type ``then_type`` and
 - **Calls**: conn.handler, urirun_connector_kvm.core._ok, urirun.fail, urirun_connector_kvm.core._capture_native, B.dispatch, loc.get, urirun.fail, min
 
-### urirun_connector_kvm.backends._locate_vql
-- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._capture_tmp, urirun_connector_kvm.backends._run, _json.loads, None.lower, BackendError, None.get, layer.get
+### urirun_connector_kvm.core.window_restore
+> Inverse of window/command/close: navigate to the snapshot URL, then rehydrate scroll and
+form values (dispatching input/change so React/contenteditabl
+- **Calls**: conn.handler, None.replace, urirun_connector_kvm.core._cdp_mod, urirun_connector_kvm.core._ok, s.get, urirun.fail, _json.dumps, cdp.navigate
 
 ### urirun_connector_kvm.core.proc_kill
 > Send a signal to a process so process lifecycle is controllable *via a URI*, not a
@@ -120,13 +112,10 @@ side-channel shell — e.g. close a stray CDP/headless browser or res
 ### urirun_connector_kvm.core.ui_wait
 - **Calls**: conn.handler, max, time.monotonic, urirun.fail, min, C.route, last.get, time.sleep
 
-### urirun_connector_kvm.cdp.launch_session
-> Reuse a live CDP endpoint, or launch a DEDICATED-profile Chrome that binds the debug
-port (a fresh user-data-dir forces a separate instance, avoiding 
-- **Calls**: urirun_connector_kvm.cdp.endpoint, urirun_connector_kvm.cdp.reachable, os.makedirs, subprocess.Popen, None.split, urirun_connector_kvm.cdp._copy_auth, urirun_connector_kvm.cdp._find_chrome, argv.append
-
-### computer-use-preview.computers.kvm.kvm.KvmComputer._run
-- **Calls**: None.encode, urllib.request.Request, env.get, urllib.request.urlopen, json.loads, env.get, RuntimeError, isinstance
+### urirun_connector_kvm.core.cdp_ensure
+> Make the CDP control surface AVAILABLE — LAUNCH/PROBE SPLIT so Chrome's cold-start
+can't blow the node handler's exec cap. Reuses a live endpoint, els
+- **Calls**: conn.handler, urirun_connector_kvm.core._cdp_mod, _cdp.start_session, r.get, r.get, _cdp.await_ready, r.get, urirun_connector_kvm.core._ok
 
 ### urirun_connector_kvm.core.capture
 > Capture the live screen via the best available backend. ``max_width`` downscales
@@ -138,19 +127,9 @@ port (a fresh user-data-dir forces a separate instance, avoiding
 wait+find+click+verify (which it gets wrong: dumb sleeps, OCR label guesses, n
 - **Calls**: conn.handler, urirun_connector_kvm.core._act_reject, urirun_connector_kvm.core._resolve_act_app, time.monotonic, urirun_connector_kvm.core._act_ready, urirun_connector_kvm.core._act_retry_loop, urirun.fail, last.get
 
-### urirun_connector_kvm.backends._locate_tesseract
-> OCR-locate on-screen text. Unlike a saliency detector this GENUINELY matches the
-query against recognised text, so it is preferred (priority 65 > imgl
-- **Calls**: urirun_connector_kvm.backends.backend, None.strip, urirun_connector_kvm.backends._run, q.lower, urirun_connector_kvm.backends._capture_tmp, sorted, urirun_connector_kvm.backends._tesseract_query_matches, len
-
 ### computer-use-preview.agent.BrowserAgent._dispatch_action
 > Dispatch a non-legacy action by name.
 - **Calls**: ValueError, self.denormalize_x, self.denormalize_y, self._handle_scroll_at, self._handle_drag_and_drop, bc.type_text, bc.wait, bc.navigate
-
-### urirun_connector_kvm.core.window_restore
-> Inverse of ``window/command/close``: navigate to the snapshot URL, then rehydrate scroll
-and form values (dispatching input/change so React/contentedi
-- **Calls**: conn.handler, urirun_connector_kvm.core._cdp_mod, urirun_connector_kvm.core._ok, s.get, urirun.fail, cdp.navigate, cdp.page_ready, cdp._evaluate
 
 ### computer-use-preview.agent.BrowserAgent.run_one_iteration
 - **Calls**: self._generate_response, self.get_text, self.extract_function_calls, self._render_turn, self._execute_function_calls, self._contents.append, self._trim_old_screenshots, print
@@ -172,17 +151,7 @@ kvm click at the element's centre. Prefers the locate ``center`` (OCR ba
 - **Calls**: hit.get, hit.get, hit.get, B.BackendError, hit.get, urirun_connector_kvm.core._positioned_click, hit.get, B.dispatch
 
 ### urirun_connector_kvm.launch_backends._launch_xdg
-- **Calls**: urirun_connector_kvm.backends.backend, list, urirun_connector_kvm.launch_backends._resolve_launch_argv, urirun_connector_kvm.launch_backends._inject_chrome_flags, subprocess.Popen, max, min, bool
-
-### urirun_connector_kvm.backends._locate_imgl
-> Vision locate: screenshot → imgl find by text → bbox (image-px). Cross-platform;
-on HiDPI the caller should scale image-px → logical coords (see fullS
-- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._capture_tmp, urirun_connector_kvm.backends._run, _json.loads, BackendError, h.get, h.get, cap.get
-
-### urirun_connector_kvm.backends._cap_portal
-> XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
-Wayland. Runs via a system python with dbus+gi; needs a one-time permiss
-- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._portal_python, urirun_connector_kvm.backends._run, Path, src.read_bytes, None.write_bytes, BackendError, len
+- **Calls**: backend, list, urirun_connector_kvm.launch_backends._resolve_launch_argv, urirun_connector_kvm.launch_backends._inject_chrome_flags, subprocess.Popen, max, min, bool
 
 ### urirun_connector_kvm.control.act
 > Orchestrated perceive→act→verify→retry over ``route()`` — the closed loop the bare
@@ -198,16 +167,37 @@ router lacks. Runs the op, waits ``settle``, then VERIFIES a post-c
 ### urirun_connector_kvm.core.drag_and_drop
 - **Calls**: conn.handler, B.dispatch, time.sleep, B.dispatch, urirun_connector_kvm.core._ok, urirun_connector_kvm.core._fail_from, int, int
 
-### urirun_connector_kvm.launch_backends._list_xdg
-- **Calls**: urirun_connector_kvm.backends.backend, None.lower, urirun_connector_kvm.launch_backends._desktop_entries, out.sort, e.get, out.append, len, None.lower
+### urirun_connector_kvm.core.cdp_session_ready
+> Readiness half of the launch/probe split: poll the debug endpoint WITHOUT launching
+(distinct from ``cdp/page/query/ready``, which waits on document l
+- **Calls**: conn.handler, None.await_ready, r.get, urirun_connector_kvm.core._ok, urirun.fail, urirun_connector_kvm.core._cdp_mod, min, r.get
 
 ### urirun_connector_kvm.surface.current
 > Foreground surface: ``{kind: browser|desktop, app, recommend, ...}``. ``recommend`` is the
 control strategy the router should use; ``app`` is what to 
 - **Calls**: None.get, urirun_connector_kvm.surface._active_window, None.lower, next, _cdp.reachable, _env.profile, _cdp._pages, win.get
 
-### urirun_connector_kvm.backends._type_ydotool
-- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._run, text.isascii, urirun_connector_kvm.backends._clipboard_set, urirun_connector_kvm.backends._run, len, len, urirun_connector_kvm.backends._yd_env
+### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop
+- **Calls**: self.highlight_mouse, self._page.mouse.move, self._page.wait_for_load_state, self._page.mouse.down, self._page.wait_for_load_state, self.highlight_mouse, self._page.mouse.move, self._page.wait_for_load_state
+
+### urirun_connector_kvm.launch_backends._list_xdg
+- **Calls**: backend, None.lower, urirun_connector_kvm.launch_backends._desktop_entries, out.sort, e.get, out.append, len, None.lower
+
+### urirun_connector_kvm.core.cdp_navigate
+- **Calls**: conn.handler, urirun_connector_kvm.core._cdp_mod, urirun.fail, cdp.navigate, cdp.page_ready, urirun_connector_kvm.core._ok, urirun.fail, float
+
+### examples.calibrate_abs.cap
+- **Calls**: None.get, None.astype, None.get, np.asarray, None.convert, examples.calibrate_abs.run, Image.open, io.BytesIO
+
+### urirun_connector_kvm.strategies.AtspiStrategy.click
+- **Calls**: self.locate, B.BackendError, hit.get, hit.get, B.dispatch, t.get, t.get, t.get
+
+### computer-use-preview.agent.BrowserAgent._render_turn
+> Render the reasoning + function-call(s) table (printed only when verbose).
+- **Calls**: Table, table.add_column, table.add_column, table.add_row, function_call_strs.append, None.join, console.print, print
+
+### computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__enter__
+- **Calls**: print, None.start, browserbase.Browserbase, self._browserbase.sessions.create, self._playwright.chromium.connect_over_cdp, self._page.goto, self._context.on, termcolor.cprint
 
 ## Process Flows
 
@@ -219,63 +209,61 @@ task_run [urirun_connector_kvm.core]
   └─> _ok
 ```
 
-### Flow 2: _locate_easyocr
-```
-_locate_easyocr [urirun_connector_kvm.backends]
-  └─> backend
-  └─> _easyocr_reader
-```
-
-### Flow 3: profile
+### Flow 2: profile
 ```
 profile [urirun_connector_kvm.environment]
   └─> _safe
   └─> atspi_ready
 ```
 
-### Flow 4: ui_click_text
+### Flow 3: ui_click_text
 ```
 ui_click_text [urirun_connector_kvm.core]
   └─> _ok
   └─> _capture_native
 ```
 
-### Flow 5: _locate_vql
+### Flow 4: window_restore
 ```
-_locate_vql [urirun_connector_kvm.backends]
-  └─> backend
-  └─> _capture_tmp
-      └─> dispatch
+window_restore [urirun_connector_kvm.core]
+  └─> _cdp_mod
+  └─> _ok
 ```
 
-### Flow 6: proc_kill
+### Flow 5: proc_kill
 ```
 proc_kill [urirun_connector_kvm.core]
   └─> _ok
 ```
 
-### Flow 7: _dispatch_legacy_action
+### Flow 6: _dispatch_legacy_action
 ```
 _dispatch_legacy_action [computer-use-preview.agent.BrowserAgent]
 ```
 
-### Flow 8: ui_wait
+### Flow 7: ui_wait
 ```
 ui_wait [urirun_connector_kvm.core]
 ```
 
-### Flow 9: launch_session
+### Flow 8: cdp_ensure
 ```
-launch_session [urirun_connector_kvm.cdp]
-  └─> endpoint
-  └─> reachable
-      └─> _pages
-          └─> endpoint
+cdp_ensure [urirun_connector_kvm.core]
+  └─> _cdp_mod
 ```
 
-### Flow 10: _run
+### Flow 9: capture
 ```
-_run [computer-use-preview.computers.kvm.kvm.KvmComputer]
+capture [urirun_connector_kvm.core]
+  └─> _apply_capture_postprocessing
+```
+
+### Flow 10: ui_act
+```
+ui_act [urirun_connector_kvm.core]
+  └─> _act_reject
+  └─> _resolve_act_app
+      └─> _surface_mod
 ```
 
 ## Key Classes
@@ -319,14 +307,6 @@ _run [computer-use-preview.computers.kvm.kvm.KvmComputer]
 - **Key Methods**: computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__init__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__enter__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__
 - **Inherits**: PlaywrightComputer
 
-### urirun_connector_kvm.backends.Backend
-- **Methods**: 2
-- **Key Methods**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
-
-### urirun_connector_kvm.backends.BackendError
-- **Methods**: 0
-- **Inherits**: RuntimeError
-
 ### computer-use-preview.computers.computer.EnvState
 - **Methods**: 0
 - **Inherits**: pydantic.BaseModel
@@ -364,11 +344,6 @@ Returns (full_size, crop_info) — both may be None when
 - **Confidence**: 0.70
 - **Functions**: urirun_connector_kvm.strategies.VisionStrategy.available, urirun_connector_kvm.strategies.VisionStrategy.locate, urirun_connector_kvm.strategies.VisionStrategy._click_xy, urirun_connector_kvm.strategies.VisionStrategy.click, urirun_connector_kvm.strategies.VisionStrategy.fill
 
-### state_machine_Backend
-- **Type**: state_machine
-- **Confidence**: 0.70
-- **Functions**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
-
 ### state_machine_PlaywrightComputer
 - **Type**: state_machine
 - **Confidence**: 0.70
@@ -391,20 +366,20 @@ Functions exposed as public API (no underscore prefix):
 - `urirun_connector_kvm.core.task_run` - 41 calls
 - `urirun_connector_kvm.environment.profile` - 25 calls
 - `urirun_connector_kvm.core.ui_click_text` - 23 calls
-- `urirun_connector_kvm.backends.uinput_abs_click` - 21 calls
+- `urirun_connector_kvm.core.window_restore` - 22 calls
 - `urirun_connector_kvm.core.proc_kill` - 21 calls
 - `urirun_connector_kvm.core.ui_wait` - 19 calls
-- `urirun_connector_kvm.backends.dispatch` - 17 calls
-- `urirun_connector_kvm.cdp.launch_session` - 17 calls
+- `urirun_connector_kvm.core.cdp_ensure` - 18 calls
 - `urirun_connector_kvm.core.capture` - 17 calls
 - `urirun_connector_kvm.core.ui_act` - 17 calls
-- `urirun_connector_kvm.core.window_restore` - 16 calls
 - `computer-use-preview.agent.BrowserAgent.run_one_iteration` - 15 calls
 - `computer-use-preview.main.main` - 15 calls
 - `urirun_connector_kvm.core.display_info` - 14 calls
+- `urirun_connector_kvm.cdp.start_session` - 12 calls
 - `urirun_connector_kvm.control.act` - 12 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at` - 11 calls
 - `urirun_connector_kvm.core.drag_and_drop` - 11 calls
+- `urirun_connector_kvm.core.cdp_session_ready` - 11 calls
 - `urirun_connector_kvm.surface.current` - 10 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop` - 10 calls
 - `urirun_connector_kvm.core.cdp_navigate` - 10 calls
@@ -412,22 +387,22 @@ Functions exposed as public API (no underscore prefix):
 - `urirun_connector_kvm.strategies.AtspiStrategy.click` - 9 calls
 - `computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at` - 9 calls
 - `urirun_connector_kvm.core.click_abs` - 9 calls
-- `urirun_connector_kvm.core.cdp_ensure` - 9 calls
 - `urirun_connector_kvm.core.cdp_ready` - 9 calls
 - `urirun_connector_kvm.core.ui_locate` - 9 calls
-- `urirun_connector_kvm.backends.ensure_ydotoold` - 8 calls
-- `urirun_connector_kvm.backends.session_env` - 8 calls
-- `urirun_connector_kvm.cdp.page_ready` - 8 calls
-- `urirun_connector_kvm.control.route` - 8 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.key_combination` - 8 calls
+- `urirun_connector_kvm.cdp.page_ready` - 8 calls
+- `urirun_connector_kvm.cdp.launch_session` - 8 calls
 - `urirun_connector_kvm.core.wait` - 8 calls
 - `urirun_connector_kvm.core.ui_verify` - 8 calls
+- `urirun_connector_kvm.control.route` - 8 calls
 - `examples.calibrate_abs.find_box` - 7 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at` - 7 calls
+- `urirun_connector_kvm.cdp.await_ready` - 7 calls
 - `urirun_connector_kvm.core.window_close` - 7 calls
 - `urirun_connector_kvm.core.a11y_act` - 7 calls
 - `urirun_connector_kvm.strategies.VisionStrategy.click` - 6 calls
-- `urirun_connector_kvm.backends.backend` - 6 calls
+- `computer-use-preview.agent.BrowserAgent.get_model_response` - 6 calls
+- `computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop` - 6 calls
 
 ## System Interactions
 
@@ -440,11 +415,6 @@ graph TD
     task_run --> str
     task_run --> get
     task_run --> append
-    _locate_easyocr --> backend
-    _locate_easyocr --> strip
-    _locate_easyocr --> _easyocr_reader
-    _locate_easyocr --> readtext
-    _locate_easyocr --> lower
     profile --> _safe
     profile --> any
     profile --> atspi_ready
@@ -454,17 +424,22 @@ graph TD
     ui_click_text --> fail
     ui_click_text --> _capture_native
     ui_click_text --> dispatch
-    _locate_vql --> backend
-    _locate_vql --> _capture_tmp
-    _locate_vql --> _run
-    _locate_vql --> loads
-    _locate_vql --> lower
+    window_restore --> handler
+    window_restore --> replace
+    window_restore --> _cdp_mod
+    window_restore --> _ok
+    window_restore --> get
     proc_kill --> handler
     proc_kill --> getattr
     proc_kill --> _ok
     proc_kill --> startswith
     proc_kill --> len
     _dispatch_legacy_act --> ValueError
+    _dispatch_legacy_act --> click_at
+    _dispatch_legacy_act --> hover_at
+    _dispatch_legacy_act --> type_text_at
+    _dispatch_legacy_act --> scroll_document
+    ui_wait --> handler
 ```
 
 ## Reverse Engineering Guidelines

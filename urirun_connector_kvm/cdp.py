@@ -18,6 +18,7 @@ import os
 import socket
 import struct
 import urllib.request
+from typing import Any
 
 try:
     from .backends import BackendError
@@ -187,7 +188,7 @@ def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
 
 
 # ---- websocket (stdlib, client frames are masked) ------------------------- #
-def _ws_connect(ws_url: str, timeout: float | None = None):
+def _ws_connect(ws_url: str, timeout: float | None = None) -> socket.socket:
     timeout = _TIMEOUT if timeout is None else timeout
     if not ws_url.startswith("ws://"):
         raise BackendError(f"unsupported cdp ws url: {ws_url}")
@@ -208,7 +209,7 @@ def _ws_connect(ws_url: str, timeout: float | None = None):
     return s
 
 
-def _ws_send(s, data: str) -> None:
+def _ws_send(s: socket.socket, data: str) -> None:
     payload = data.encode()
     n = len(payload)
     header = bytearray([0x81])  # FIN + text
@@ -225,7 +226,7 @@ def _ws_send(s, data: str) -> None:
     s.sendall(bytes(header) + bytes(b ^ mask[i % 4] for i, b in enumerate(payload)))
 
 
-def _ws_recv(s) -> str:
+def _ws_recv(s: socket.socket) -> str:
     def rd(n: int) -> bytes:
         b = b""
         while len(b) < n:
@@ -247,7 +248,7 @@ def _ws_recv(s) -> str:
             return out.decode("utf-8", "replace")
 
 
-def _call(s, _id: int, method: str, params: dict | None = None) -> dict:
+def _call(s: socket.socket, _id: int, method: str, params: dict | None = None) -> dict:
     _ws_send(s, json.dumps({"id": _id, "method": method, "params": params or {}}))
     for _ in range(300):                       # skip async events until our reply
         msg = json.loads(_ws_recv(s))
@@ -256,7 +257,7 @@ def _call(s, _id: int, method: str, params: dict | None = None) -> dict:
     raise BackendError("no cdp response")
 
 
-def _evaluate(expr: str):
+def _evaluate(expr: str) -> Any:
     pages = _pages()
     if not pages:
         raise BackendError("no CDP page (launch chrome with --remote-debugging-port)")

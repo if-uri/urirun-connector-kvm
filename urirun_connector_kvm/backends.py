@@ -22,7 +22,8 @@ import sys
 import tempfile
 import time
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 
 # --------------------------------------------------------------------------- #
@@ -145,7 +146,7 @@ class BackendError(RuntimeError):
     pass
 
 
-def dispatch(action: str, **kwargs) -> dict:
+def dispatch(action: str, **kwargs: Any) -> dict:
     """Run ``action`` through the best available backend, returning a result dict
     with ``backend`` set, or raising ``BackendError`` with per-backend diagnostics."""
     candidates = _REGISTRY.get(action, [])
@@ -185,7 +186,7 @@ def registry_report() -> dict:
     return out
 
 
-def _run(argv: list[str], *, env=None, timeout: float = 30) -> subprocess.CompletedProcess:
+def _run(argv: list[str], *, env: dict | None = None, timeout: float = 30) -> subprocess.CompletedProcess:
     # Default to the discovered session env so display-dependent tools (grim, scrot,
     # gnome-screenshot, wtype, xdotool…) can reach the compositor/X server even when the
     # node process was spawned without graphical session vars. Callers that pass an
@@ -241,7 +242,7 @@ def _portal_python() -> str | None:
 
 
 @backend("capture", "portal", priority=95, platforms=("linux-wayland", "linux-x11"))
-def _cap_portal(output: str, **_) -> dict:
+def _cap_portal(output: str, **_: Any) -> dict:
     """XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
     Wayland. Runs via a system python with dbus+gi; needs a one-time permission grant."""
     py = _portal_python()
@@ -259,13 +260,13 @@ def _cap_portal(output: str, **_) -> dict:
 
 
 @backend("capture", "grim", priority=85, platforms=("linux-wayland",), needs_bin=("grim",))
-def _cap_grim(output: str, **_) -> dict:
+def _cap_grim(output: str, **_: Any) -> dict:
     _run(["grim", output])
     return {"path": output, "via": "grim"}
 
 
 @backend("capture", "mss", priority=70, platforms=("linux-x11", "windows", "macos"), needs_mod=("mss",))
-def _cap_mss(output: str, monitor: int = 0, **_) -> dict:
+def _cap_mss(output: str, monitor: int = 0, **_: Any) -> dict:
     import mss as _mss
     import mss.tools as _mss_tools  # `import mss` alone does not expose mss.tools
     with _mss.mss() as sct:
@@ -277,32 +278,32 @@ def _cap_mss(output: str, monitor: int = 0, **_) -> dict:
 
 
 @backend("capture", "pillow", priority=65, platforms=("windows", "macos"), needs_mod=("PIL",))
-def _cap_pillow(output: str, **_) -> dict:
+def _cap_pillow(output: str, **_: Any) -> dict:
     from PIL import ImageGrab
     ImageGrab.grab().save(output)
     return {"path": output, "via": "PIL.ImageGrab"}
 
 
 @backend("capture", "scrot", priority=60, platforms=("linux-x11",), needs_bin=("scrot",))
-def _cap_scrot(output: str, **_) -> dict:
+def _cap_scrot(output: str, **_: Any) -> dict:
     _run(["scrot", "-o", output])
     return {"path": output, "via": "scrot"}
 
 
 @backend("capture", "imagemagick", priority=40, platforms=("linux-x11",), needs_bin=("import",))
-def _cap_im(output: str, **_) -> dict:
+def _cap_im(output: str, **_: Any) -> dict:
     _run(["import", "-window", "root", output])
     return {"path": output, "via": "imagemagick"}
 
 
 @backend("capture", "gnome-screenshot", priority=35, platforms=("linux-x11",), needs_bin=("gnome-screenshot",))
-def _cap_gnome(output: str, **_) -> dict:
+def _cap_gnome(output: str, **_: Any) -> dict:
     _run(["gnome-screenshot", "-f", output], timeout=20)
     return {"path": output, "via": "gnome-screenshot"}
 
 
 @backend("capture", "screencapture", priority=80, platforms=("macos",), needs_bin=("screencapture",))
-def _cap_macos(output: str, **_) -> dict:
+def _cap_macos(output: str, **_: Any) -> dict:
     _run(["screencapture", "-x", output])
     return {"path": output, "via": "screencapture"}
 
@@ -414,7 +415,7 @@ def _clipboard_set(text: str) -> str:
 
 
 @backend("type", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
-def _type_ydotool(text: str, **_) -> dict:
+def _type_ydotool(text: str, **_: Any) -> dict:
     # Non-ASCII: ydotool drops it, so set the clipboard and paste it verbatim instead — or fail
     # loudly (no clipboard tool) rather than silently corrupt the string.
     if not text.isascii():
@@ -426,19 +427,19 @@ def _type_ydotool(text: str, **_) -> dict:
 
 
 @backend("type", "wtype", priority=60, platforms=("linux-wayland",), needs_bin=("wtype",))
-def _type_wtype(text: str, **_) -> dict:
+def _type_wtype(text: str, **_: Any) -> dict:
     _run(["wtype", "--", text])
     return {"via": "wtype", "chars": len(text)}
 
 
 @backend("type", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
-def _type_xdotool(text: str, **_) -> dict:
+def _type_xdotool(text: str, **_: Any) -> dict:
     _run(["xdotool", "type", "--", text])
     return {"via": "xdotool", "chars": len(text)}
 
 
 @backend("type", "pynput", priority=40, needs_mod=("pynput",))
-def _type_pynput(text: str, **_) -> dict:
+def _type_pynput(text: str, **_: Any) -> dict:
     from pynput.keyboard import Controller
     Controller().type(text)
     return {"via": "pynput", "chars": len(text)}
@@ -446,19 +447,19 @@ def _type_pynput(text: str, **_) -> dict:
 
 # ---- click ----
 @backend("click", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
-def _click_ydotool(button: str = "left", **_) -> dict:
+def _click_ydotool(button: str = "left", **_: Any) -> dict:
     _run(["ydotool", "click", _YD_BUTTON.get(button, "0xC0")], env=_yd_env())
     return {"via": "ydotool", "button": button}
 
 
 @backend("click", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
-def _click_xdotool(button: str = "left", **_) -> dict:
+def _click_xdotool(button: str = "left", **_: Any) -> dict:
     _run(["xdotool", "click", {"left": "1", "middle": "2", "right": "3"}.get(button, "1")])
     return {"via": "xdotool", "button": button}
 
 
 @backend("click", "pynput", priority=40, needs_mod=("pynput",))
-def _click_pynput(button: str = "left", **_) -> dict:
+def _click_pynput(button: str = "left", **_: Any) -> dict:
     from pynput.mouse import Button, Controller
     Controller().click({"left": Button.left, "right": Button.right, "middle": Button.middle}[button])
     return {"via": "pynput", "button": button}
@@ -472,7 +473,7 @@ def _click_pynput(button: str = "left", **_) -> dict:
 # GNOME hot-corner — observed live on the lenovo node.) Falls through to ydotool if
 # /dev/uinput is not writable. See `uinput_abs_click` / `_screen_wh` below.
 @backend("move", "uinput-abs", priority=90, platforms=("linux-wayland", "linux-x11"))
-def _move_uinput_abs(x: int, y: int, **_) -> dict:
+def _move_uinput_abs(x: int, y: int, **_: Any) -> dict:
     sw, sh = _screen_wh()
     settle = float(os.environ.get("URIRUN_KVM_ABS_SETTLE", "0.6"))
     r = uinput_abs_click(int(x), int(y), sw, sh, do_click=False, settle=settle)
@@ -480,19 +481,19 @@ def _move_uinput_abs(x: int, y: int, **_) -> dict:
 
 
 @backend("move", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
-def _move_ydotool(x: int, y: int, **_) -> dict:
+def _move_ydotool(x: int, y: int, **_: Any) -> dict:
     _run(["ydotool", "mousemove", "-a", "-x", str(int(x)), "-y", str(int(y))], env=_yd_env())
     return {"via": "ydotool", "x": x, "y": y}
 
 
 @backend("move", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
-def _move_xdotool(x: int, y: int, **_) -> dict:
+def _move_xdotool(x: int, y: int, **_: Any) -> dict:
     _run(["xdotool", "mousemove", str(int(x)), str(int(y))])
     return {"via": "xdotool", "x": x, "y": y}
 
 
 @backend("move", "pynput", priority=40, needs_mod=("pynput",))
-def _move_pynput(x: int, y: int, **_) -> dict:
+def _move_pynput(x: int, y: int, **_: Any) -> dict:
     from pynput.mouse import Controller
     Controller().position = (int(x), int(y))
     return {"via": "pynput", "x": x, "y": y}
@@ -500,7 +501,7 @@ def _move_pynput(x: int, y: int, **_) -> dict:
 
 # ---- key / hotkey ----
 @backend("key", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
-def _key_ydotool(keys: str, **_) -> dict:
+def _key_ydotool(keys: str, **_: Any) -> dict:
     seq = _yd_keyseq(keys)
     if not seq:
         raise BackendError(f"unknown key combo {keys!r}")
@@ -509,13 +510,13 @@ def _key_ydotool(keys: str, **_) -> dict:
 
 
 @backend("key", "xdotool", priority=70, platforms=("linux-x11",), needs_bin=("xdotool",))
-def _key_xdotool(keys: str, **_) -> dict:
+def _key_xdotool(keys: str, **_: Any) -> dict:
     _run(["xdotool", "key", keys.replace("+", "+")])
     return {"via": "xdotool", "keys": keys}
 
 
 @backend("key", "pynput", priority=40, needs_mod=("pynput",))
-def _key_pynput(keys: str, **_) -> dict:
+def _key_pynput(keys: str, **_: Any) -> dict:
     from pynput.keyboard import Controller, Key
     kb = Controller()
     parts = keys.replace("-", "+").split("+")
@@ -534,13 +535,13 @@ def _key_pynput(keys: str, **_) -> dict:
 
 # ---- scroll ----
 @backend("scroll", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
-def _scroll_ydotool(dy: int = -3, **_) -> dict:
+def _scroll_ydotool(dy: int = -3, **_: Any) -> dict:
     _run(["ydotool", "mousemove", "-w", "-x", "0", "-y", str(int(dy))], env=_yd_env())
     return {"via": "ydotool", "dy": dy}
 
 
 @backend("scroll", "pynput", priority=40, needs_mod=("pynput",))
-def _scroll_pynput(dy: int = -3, **_) -> dict:
+def _scroll_pynput(dy: int = -3, **_: Any) -> dict:
     from pynput.mouse import Controller
     Controller().scroll(0, int(dy))
     return {"via": "pynput", "dy": dy}
@@ -550,13 +551,13 @@ def _scroll_pynput(dy: int = -3, **_) -> dict:
 # WINDOW focus / list
 # --------------------------------------------------------------------------- #
 @backend("focus", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
-def _focus_wmctrl(title: str, **_) -> dict:
+def _focus_wmctrl(title: str, **_: Any) -> dict:
     _run(["wmctrl", "-a", title])
     return {"via": "wmctrl", "title": title}
 
 
 @backend("focus", "pygetwindow", priority=40, platforms=("windows", "macos"), needs_mod=("pygetwindow",))
-def _focus_pgw(title: str, **_) -> dict:
+def _focus_pgw(title: str, **_: Any) -> dict:
     import pygetwindow as gw
     wins = gw.getWindowsWithTitle(title)
     if not wins:
@@ -566,7 +567,7 @@ def _focus_pgw(title: str, **_) -> dict:
 
 
 @backend("window_list", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
-def _winlist_wmctrl(**_) -> dict:
+def _winlist_wmctrl(**_: Any) -> dict:
     p = _run(["wmctrl", "-l"])
     wins = [" ".join(line.split()[3:]) for line in p.stdout.splitlines() if line.strip()]
     return {"via": "wmctrl", "windows": wins}
@@ -631,7 +632,7 @@ print(json.dumps(hit or {}))
 
 
 @backend("focus", "atspi", priority=85, platforms=("linux-wayland", "linux-x11"))
-def _focus_atspi(title: str, **_) -> dict:
+def _focus_atspi(title: str, **_: Any) -> dict:
     py = _atspi_python()
     if not py:
         raise BackendError("AT-SPI focus needs python3 with gi + Atspi (install python3-gobject + gnome a11y)")
@@ -738,7 +739,7 @@ print(json.dumps(info))
 
 @backend("a11y", "atspi", priority=90, platforms=("linux-wayland", "linux-x11"))
 def _a11y_atspi(app: str = "", role: str = "", name: str = "", op: str = "focus",
-                text: str = "", nth: int = 0, **_) -> dict:
+                text: str = "", nth: int = 0, **_: Any) -> dict:
     py = _atspi_python()
     if not py:
         raise BackendError("AT-SPI needs python3 with gi + Atspi (install python3-gobject + gnome a11y)")
@@ -841,7 +842,7 @@ def _tesseract_query_matches(tsv_stdout: str, ql: str, min_conf: float) -> list[
 
 @backend("locate", "tesseract", priority=65, needs_bin=("tesseract",))
 def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: str = "",
-                      name: str = "", min_conf: float = 40, **_) -> dict:
+                      name: str = "", min_conf: float = 40, **_: Any) -> dict:
     """OCR-locate on-screen text. Unlike a saliency detector this GENUINELY matches the
     query against recognised text, so it is preferred (priority 65 > imgl 60) for text
     targets. Returns the unified ``found``/``bbox``/``center`` schema AND the full
@@ -878,7 +879,7 @@ def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: st
 _EASYOCR_READER = None
 
 
-def _easyocr_reader():
+def _easyocr_reader() -> Any:
     """Cache the EasyOCR reader (model load is ~5-10s the first time). Languages from
     URIRUN_KVM_OCR_LANGS (default 'en'); CPU mode for portability."""
     global _EASYOCR_READER
@@ -891,7 +892,7 @@ def _easyocr_reader():
 
 @backend("locate", "easyocr", priority=70, needs_mod=("easyocr",))
 def _locate_easyocr(image: str = "", query: str = "", text: str = "", role: str = "",
-                    min_conf: float = 40, **_) -> dict:
+                    min_conf: float = 40, **_: Any) -> dict:
     """OCR-locate via EasyOCR (CRAFT detector + CRNN) — stronger than tesseract on UI
     fonts, low contrast, and non-Latin scripts, with no a11y permissions. Returns the
     same unified ``found``/``bbox``/``center`` + ``matches`` schema; genuine text match,
@@ -937,13 +938,13 @@ def _locate_easyocr(image: str = "", query: str = "", text: str = "", role: str 
 # top of this. `coord_space` is "screen" (compositor coords, click 1:1) for AT-SPI
 # and "image-px" (screenshot pixels; HiDPI may need scaling) for vision backends.
 # --------------------------------------------------------------------------- #
-def bbox_center(bbox) -> tuple:
+def bbox_center(bbox: list | tuple) -> tuple:
     x, y, w, h = bbox
     return int(x + w / 2), int(y + h / 2)
 
 
 @backend("locate", "atspi", priority=90, platforms=("linux-wayland", "linux-x11"))
-def _locate_atspi(text: str = "", role: str = "", app: str = "", nth: int = 0, **_) -> dict:
+def _locate_atspi(text: str = "", role: str = "", app: str = "", nth: int = 0, **_: Any) -> dict:
     res = _a11y_atspi(app=app, role=role, name=text, op="find", nth=int(nth))
     if not res.get("found") or not res.get("bbox"):
         raise BackendError(f"atspi: no element role~{role!r} name~{text!r}")
@@ -964,7 +965,7 @@ def _capture_tmp() -> dict:
 
 
 @backend("locate", "imgl", priority=60, needs_mod=("imgl",))
-def _locate_imgl(text: str = "", role: str = "", **_) -> dict:
+def _locate_imgl(text: str = "", role: str = "", **_: Any) -> dict:
     """Vision locate: screenshot → imgl find by text → bbox (image-px). Cross-platform;
     on HiDPI the caller should scale image-px → logical coords (see fullSize)."""
     import json as _json
@@ -986,7 +987,7 @@ def _locate_imgl(text: str = "", role: str = "", **_) -> dict:
 
 
 @backend("locate", "vql", priority=50, needs_mod=("vql",))
-def _locate_vql(text: str = "", role: str = "", **_) -> dict:
+def _locate_vql(text: str = "", role: str = "", **_: Any) -> dict:
     import json as _json
     cap = _capture_tmp()
     p = _run([sys.executable, "-m", "imgl.cli", "vql", cap["path"]], timeout=40)
@@ -1013,8 +1014,8 @@ import fcntl as _fcntl  # noqa: E402
 import struct as _struct  # noqa: E402
 
 _UI = ord("U")
-def _ui_io(nr):       return (0 << 30) | (_UI << 8) | nr
-def _ui_iow(nr, sz):  return (1 << 30) | (sz << 16) | (_UI << 8) | nr
+def _ui_io(nr: int) -> int:       return (0 << 30) | (_UI << 8) | nr
+def _ui_iow(nr: int, sz: int) -> int:  return (1 << 30) | (sz << 16) | (_UI << 8) | nr
 _UI_DEV_CREATE, _UI_DEV_DESTROY = _ui_io(1), _ui_io(2)
 _UI_SET_EVBIT, _UI_SET_KEYBIT, _UI_SET_ABSBIT = _ui_iow(100, 4), _ui_iow(101, 4), _ui_iow(103, 4)
 _EV_SYN, _EV_KEY, _EV_ABS = 0, 1, 3
@@ -1118,7 +1119,7 @@ def _compute_abs_coords(px: float, py: float, sw: int, sh: int) -> tuple[int, in
     return ax, ay
 
 
-def _uinput_emit_clicks(ev, fd: int, button: str, clicks: int) -> None:
+def _uinput_emit_clicks(ev: Callable, fd: int, button: str, clicks: int) -> None:
     """Emit ``clicks`` press/release pairs on the open uinput ``fd`` via the ``ev`` writer.
     N presses on ONE device = a real double/triple-click. Factored out of ``uinput_abs_click``."""
     bc = _BTN_CODE.get(button, 0x110)
@@ -1142,7 +1143,7 @@ def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
         sw, sh = sw or dsw, sh or dsh
     ax, ay = _compute_abs_coords(float(x), float(y), sw, sh)
 
-    def ev(fd, t, c, v):
+    def ev(fd: int, t: int, c: int, v: int) -> None:
         os.write(fd, _struct.pack("llHHi", 0, 0, t, c, v))
     fd = _uinput_create_abs()
     try:
@@ -1194,7 +1195,7 @@ def _gnome_monitors() -> list[dict]:
     return mons
 
 
-def _wayland_present():
+def _wayland_present() -> bool | None:
     """True / False / None(unknown) — robust, env-independent (a node process often has
     no WAYLAND_DISPLAY even on a live Wayland session)."""
     if os.environ.get("WAYLAND_DISPLAY") or os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland":
@@ -1244,13 +1245,13 @@ def _surface_warnings(waylandish: bool, multi: bool, fractional: bool,
     return warnings
 
 
-def _os_level_reliable(wl, multi: bool, fractional: bool, unconfirmed: bool,
+def _os_level_reliable(wl: bool | None, multi: bool, fractional: bool, unconfirmed: bool,
                        confirmed_simple: bool) -> bool:
     """True when OS-level pixel input (move/click) can be trusted on this session."""
     return bool(confirmed_simple or (wl is False and not multi and not fractional and not unconfirmed))
 
 
-def _surface_flags(linux: bool, mons: list[dict], wl) -> dict:
+def _surface_flags(linux: bool, mons: list[dict], wl: bool | None) -> dict:
     """Derive the Wayland/multi/fractional/reliability booleans from monitor geometry and
     the (True/False/None) Wayland signal. Factored out so ``surface_report`` stays simple."""
     multi = len(mons) > 1

@@ -108,19 +108,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-25543e4a
-    name: Fix smart-return-type issues
-    description: Resolve 1 smart-return-type issues in urirun_connector_kvm/backends.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - urirun_connector_kvm/backends.py
-    rule_id: smart-return-type
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-bbd7d709
     name: Fix string-concat issues
     description: Resolve 17 string-concat issues in urirun_connector_kvm/backends.py
@@ -651,19 +638,6 @@ sprints:
     - urirun_connector_kvm/control.py
     rule_id: relative-imports
     count: 8
-    model_hints:
-      planning: balanced
-      implementation: balanced
-  - id: ticket-e343a07a
-    name: Fix smart-return-type issues
-    description: Resolve 1 smart-return-type issues in urirun_connector_kvm/control.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - urirun_connector_kvm/control.py
-    rule_id: smart-return-type
-    count: 1
     model_hints:
       planning: balanced
       implementation: balanced

@@ -52,7 +52,7 @@ except ImportError:  # pragma: no cover
 _STRATEGIES: list = []
 
 
-def strategy(cls):
+def strategy(cls: type) -> type:
     _STRATEGIES.append(cls())
     _STRATEGIES.sort(key=lambda s: -s.priority)
     return cls
@@ -66,7 +66,7 @@ for _cls in _strategies.ALL:
 # --------------------------------------------------------------------------- #
 # strategy dispatch helpers
 # --------------------------------------------------------------------------- #
-def _try_locate_one(st, target: dict, attempts: list) -> dict | None:
+def _try_locate_one(st: Any, target: dict, attempts: list) -> dict | None:
     """Try one locate strategy. Returns the hit dict if found, None to fall through."""
     try:
         hit = st.locate(target)
@@ -82,7 +82,7 @@ def _try_locate_one(st, target: dict, attempts: list) -> dict | None:
     return hit
 
 
-def _try_act_one(st, op: str, target: dict, verify: bool, value: str,
+def _try_act_one(st: Any, op: str, target: dict, verify: bool, value: str,
                  app: str, attempts: list) -> dict | None:
     """Try one click/fill strategy. Returns the result dict if ok, None to fall through."""
     try:
@@ -207,7 +207,7 @@ def report() -> dict:
             "environment": _env.profile()}
 
 
-def _safe_avail(s) -> Any:
+def _safe_avail(s: Any) -> Any:
     try:
         return s.available("")
     except Exception as exc:  # noqa: BLE001

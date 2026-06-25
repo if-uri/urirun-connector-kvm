@@ -55,7 +55,7 @@ CONNECTOR_ID = "kvm"
 conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
 
 
-def _ok(**kw) -> dict[str, Any]:
+def _ok(**kw: Any) -> dict[str, Any]:
     return urirun.ok(connector=CONNECTOR_ID, **kw)
 
 
@@ -72,7 +72,7 @@ def _spread(d: dict | None, *also_exclude: str) -> dict[str, Any]:
     return {k: v for k, v in (d or {}).items() if k not in reserved}
 
 
-def _positioned_click(button: str, x, y, clicks: int = 1) -> dict[str, Any]:
+def _positioned_click(button: str, x: int | None, y: int | None, clicks: int = 1) -> dict[str, Any]:
     """Position+click as ONE uinput absolute device when /dev/uinput is writable.
     On a GNOME/Wayland node that lacks WAYLAND_DISPLAY, ydotool's ``mousemove -a``
     mismaps and dumps the cursor at the top-left hot-corner (opens Activities); and a
@@ -94,7 +94,7 @@ def _positioned_click(button: str, x, y, clicks: int = 1) -> dict[str, Any]:
 
 
 def _apply_capture_postprocessing(out: str, cx: int, cy: int, zoom: int,
-                                   crop_w: int, crop_h: int, max_width: int):
+                                   crop_w: int, crop_h: int, max_width: int) -> tuple:
     """Apply PIL post-processing to a captured PNG.
     Returns (full_size, crop_info) — both may be None when PIL is absent."""
     from PIL import Image
@@ -393,7 +393,8 @@ def window_close(id: str = "") -> dict[str, Any]:
     except B.BackendError:
         # some pages refuse window.close(); the tab may persist, the snapshot stays valid
         pass
-    return _ok(action="window-close", did=f"close({id or 'active'})", reversible=True, snapshot=snap)
+    return _ok(action="window-close", did=f"close({id or 'active'})", reversible=True, snapshot=snap,
+               inverse={"path": "window/command/restore", "args": {"snapshot": snap}})
 
 
 @conn.handler("window/command/restore", isolated=True,
@@ -429,7 +430,8 @@ def window_restore(snapshot: dict | None = None) -> dict[str, Any]:
         cdp._evaluate(expr)
     except B.BackendError as exc:
         return _fail_from("window-restore", exc)
-    return _ok(action="window-restore", did=f"restore({s.get('id', '?')})", reversible=True)
+    return _ok(action="window-restore", did=f"restore({s.get('id', '?')})", reversible=True,
+               inverse={"path": "window/command/close", "args": {"id": s.get("id")}})
 
 
 @conn.handler("proc/command/kill", isolated=True, meta={"label": "Terminate a process by PID or name (node lifecycle control)"})
@@ -565,7 +567,7 @@ def env_profile() -> dict[str, Any]:
     return _ok(action="env-profile", **_env.profile())
 
 
-def _surface_mod():
+def _surface_mod() -> Any:
     try:
         from . import surface as _s
     except ImportError:
@@ -618,7 +620,7 @@ def cdp_session_ready(timeout: float = 12.0) -> dict[str, Any]:
                     **{k: v for k, v in r.items() if k != "error"})
 
 
-def _cdp_mod():
+def _cdp_mod() -> Any:
     try:
         from . import cdp as _cdp
     except ImportError:
@@ -648,7 +650,7 @@ def cdp_ready(timeout: float = 8.0) -> dict[str, Any]:
         urirun.fail("page not ready within timeout", connector=CONNECTOR_ID, action="cdp-ready", **_spread(r))
 
 
-def _resolve_act_app(app: str):
+def _resolve_act_app(app: str) -> tuple[str, dict | None]:
     """Detect the foreground surface if app is empty. Returns (resolved_app, surface_or_None)."""
     surface = None
     if not app:
@@ -762,8 +764,10 @@ def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0
         last = C.route("locate", text=text, role=role, app=app, name=name, cheap=True)
         elapsed = time.monotonic() - start
         if last.get("found"):
-            body = {k: v for k, v in last.items() if k not in ("ok", "error")}
-            return _ok(action="wait", found=True, waited=round(elapsed, 1), **body)
+            # _spread also drops `found`/`waited`/`action`/`strategy` — keys this _ok sets
+            # explicitly — so the route hit doesn't collide ("_ok() got multiple values for 'found'").
+            return _ok(action="wait", found=True, waited=round(elapsed, 1),
+                       **_spread(last, "found", "waited"))
         if elapsed >= budget:
             break
         time.sleep(min(float(interval), max(0.0, budget - elapsed)))
