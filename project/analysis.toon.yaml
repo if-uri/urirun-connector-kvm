@@ -1,12 +1,12 @@
-# code2llm | 29f 6090L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
+# code2llm | 29f 6144L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
 # generated in 0.01s
-# CC̅=3.3 | critical:0/316 | dups:0 | cycles:0
+# CC̅=3.3 | critical:0/318 | dups:0 | cycles:0
 
 HEALTH[0]: ok
 
 REFACTOR[0]: none needed
 
-PIPELINES[197]:
+PIPELINES[199]:
   [1] Src [cap]: cap → run
       PURITY: 100% pure
   [2] Src [magenta_frac]: magenta_frac
@@ -111,7 +111,7 @@ PIPELINES[197]:
 LAYERS:
   urirun_connector_kvm/           CC̄=4.1    ←in:0  →out:0
   │ !! backends                  1261L  2C   79m  CC=14     ←2
-  │ !! core                       832L  0C   55m  CC=13     ←0
+  │ !! core                       886L  0C   57m  CC=13     ←0
   │ cdp                        307L  0C   16m  CC=10     ←0
   │ launch_backends            281L  0C   16m  CC=11     ←0
   │ control                    216L  0C    9m  CC=13     ←0

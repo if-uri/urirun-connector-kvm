@@ -1,4 +1,4 @@
-# code2llm/evolution | 312 func | 14f | 2026-06-25
+# code2llm/evolution | 314 func | 14f | 2026-06-25
 # generated in 0.00s
 
 NEXT[3] (ranked by impact):
@@ -7,8 +7,8 @@ NEXT[3] (ranked by impact):
       EFFORT: ~4h  IMPACT: 17654
 
   [2] !! SPLIT           urirun_connector_kvm/core.py
-      WHY: 832L, 0 classes, max CC=13
-      EFFORT: ~4h  IMPACT: 10816
+      WHY: 886L, 0 classes, max CC=13
+      EFFORT: ~4h  IMPACT: 11518
 
   [3] !! SPLIT           planfile.yaml
       WHY: 929L, 0 classes, max CC=0
@@ -18,7 +18,7 @@ NEXT[3] (ranked by impact):
 RISKS[3]:
   ⚠ Splitting urirun_connector_kvm/backends.py may break 79 import paths
   ⚠ Splitting planfile.yaml may break 0 import paths
-  ⚠ Splitting urirun_connector_kvm/core.py may break 55 import paths
+  ⚠ Splitting urirun_connector_kvm/core.py may break 57 import paths
 
 METRICS-TARGET:
   CC̄:          3.3 → ≤2.3

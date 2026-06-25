@@ -105,7 +105,7 @@ urirun>=0.4.14
 
 ## Call Graph
 
-*176 nodes · 247 edges · 10 modules · CC̄=3.3*
+*178 nodes · 253 edges · 10 modules · CC̄=3.3*
 
 ### Hubs (by degree)
 
@@ -113,17 +113,17 @@ urirun>=0.4.14
 |----------|----|----|-----|-------|
 | `backend` *(in urirun_connector_kvm.backends)* | 1 | 39 | 6 | **45** |
 | `task_run` *(in urirun_connector_kvm.core)* | 13 ⚠ | 0 | 41 | **41** |
-| `_ok` *(in urirun_connector_kvm.core)* | 1 | 37 | 1 | **38** |
+| `_ok` *(in urirun_connector_kvm.core)* | 1 | 39 | 1 | **40** |
 | `_run` *(in urirun_connector_kvm.backends)* | 4 | 26 | 4 | **30** |
+| `_fail_from` *(in urirun_connector_kvm.core)* | 1 | 25 | 3 | **28** |
 | `_apply_capture_postprocessing` *(in urirun_connector_kvm.core)* | 10 ⚠ | 1 | 27 | **28** |
-| `_fail_from` *(in urirun_connector_kvm.core)* | 1 | 23 | 3 | **26** |
 | `_locate_easyocr` *(in urirun_connector_kvm.backends)* | 14 ⚠ | 0 | 26 | **26** |
 | `profile` *(in urirun_connector_kvm.environment)* | 13 ⚠ | 0 | 25 | **25** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
-# generated in 0.08s
-# nodes: 176 | edges: 247 | modules: 10
+# generated in 0.09s
+# nodes: 178 | edges: 253 | modules: 10
 # CC̄=3.3
 
 HUBS[20]:
@@ -132,13 +132,13 @@ HUBS[20]:
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
   urirun_connector_kvm.core._ok
-    CC=1  in:37  out:1  total:38
+    CC=1  in:39  out:1  total:40
   urirun_connector_kvm.backends._run
     CC=4  in:26  out:4  total:30
+  urirun_connector_kvm.core._fail_from
+    CC=1  in:25  out:3  total:28
   urirun_connector_kvm.core._apply_capture_postprocessing
     CC=10  in:1  out:27  total:28
-  urirun_connector_kvm.core._fail_from
-    CC=1  in:23  out:3  total:26
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
   urirun_connector_kvm.environment.profile
@@ -159,14 +159,14 @@ HUBS[20]:
     CC=8  in:6  out:12  total:18
   urirun_connector_kvm.core.ui_act
     CC=7  in:0  out:17  total:17
-  urirun_connector_kvm.backends._screen_wh
-    CC=8  in:2  out:15  total:17
   urirun_connector_kvm.core.capture
     CC=6  in:0  out:17  total:17
   urirun_connector_kvm.cdp.launch_session
     CC=10  in:0  out:17  total:17
-  urirun_connector_kvm.backends._compute_abs_coords
-    CC=6  in:1  out:15  total:16
+  urirun_connector_kvm.backends._screen_wh
+    CC=8  in:2  out:15  total:17
+  urirun_connector_kvm.core.window_restore
+    CC=5  in:0  out:16  total:16
 
 MODULES:
   computer-use-preview.agent  [3 funcs]
@@ -207,7 +207,7 @@ MODULES:
     act  CC=12  out:12
     report  CC=2  out:2
     route  CC=13  out:8
-  urirun_connector_kvm.core  [51 funcs]
+  urirun_connector_kvm.core  [53 funcs]
     _act_ready  CC=3  out:5
     _act_reject  CC=10  out:6
     _act_retry_loop  CC=5  out:13
@@ -309,8 +309,8 @@ EDGES:
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
-# generated in 0.08s
-# nodes: 176 | edges: 247 | modules: 10
+# generated in 0.09s
+# nodes: 178 | edges: 253 | modules: 10
 # CC̄=3.3
 
 HUBS[20]:
@@ -319,13 +319,13 @@ HUBS[20]:
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
   urirun_connector_kvm.core._ok
-    CC=1  in:37  out:1  total:38
+    CC=1  in:39  out:1  total:40
   urirun_connector_kvm.backends._run
     CC=4  in:26  out:4  total:30
+  urirun_connector_kvm.core._fail_from
+    CC=1  in:25  out:3  total:28
   urirun_connector_kvm.core._apply_capture_postprocessing
     CC=10  in:1  out:27  total:28
-  urirun_connector_kvm.core._fail_from
-    CC=1  in:23  out:3  total:26
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
   urirun_connector_kvm.environment.profile
@@ -346,14 +346,14 @@ HUBS[20]:
     CC=8  in:6  out:12  total:18
   urirun_connector_kvm.core.ui_act
     CC=7  in:0  out:17  total:17
-  urirun_connector_kvm.backends._screen_wh
-    CC=8  in:2  out:15  total:17
   urirun_connector_kvm.core.capture
     CC=6  in:0  out:17  total:17
   urirun_connector_kvm.cdp.launch_session
     CC=10  in:0  out:17  total:17
-  urirun_connector_kvm.backends._compute_abs_coords
-    CC=6  in:1  out:15  total:16
+  urirun_connector_kvm.backends._screen_wh
+    CC=8  in:2  out:15  total:17
+  urirun_connector_kvm.core.window_restore
+    CC=5  in:0  out:16  total:16
 
 MODULES:
   computer-use-preview.agent  [3 funcs]
@@ -394,7 +394,7 @@ MODULES:
     act  CC=12  out:12
     report  CC=2  out:2
     route  CC=13  out:8
-  urirun_connector_kvm.core  [51 funcs]
+  urirun_connector_kvm.core  [53 funcs]
     _act_ready  CC=3  out:5
     _act_reject  CC=10  out:6
     _act_retry_loop  CC=5  out:13
@@ -483,15 +483,15 @@ EDGES:
 ### Code Analysis (`project/analysis.toon.yaml`)
 
 ```toon markpact:analysis path=project/analysis.toon.yaml
-# code2llm | 29f 6090L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
+# code2llm | 29f 6144L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
 # generated in 0.01s
-# CC̅=3.3 | critical:0/316 | dups:0 | cycles:0
+# CC̅=3.3 | critical:0/318 | dups:0 | cycles:0
 
 HEALTH[0]: ok
 
 REFACTOR[0]: none needed
 
-PIPELINES[197]:
+PIPELINES[199]:
   [1] Src [cap]: cap → run
       PURITY: 100% pure
   [2] Src [magenta_frac]: magenta_frac
@@ -596,7 +596,7 @@ PIPELINES[197]:
 LAYERS:
   urirun_connector_kvm/           CC̄=4.1    ←in:0  →out:0
   │ !! backends                  1261L  2C   79m  CC=14     ←2
-  │ !! core                       832L  0C   55m  CC=13     ←0
+  │ !! core                       886L  0C   57m  CC=13     ←0
   │ cdp                        307L  0C   16m  CC=10     ←0
   │ launch_backends            281L  0C   16m  CC=11     ←0
   │ control                    216L  0C    9m  CC=13     ←0
@@ -654,13 +654,13 @@ SUMMARY:
   dup_groups:    0
   dup_fragments: 0
   saved_lines:   0
-  scan_ms:       3
+  scan_ms:       4
 ```
 
 ### Evolution / Churn (`project/evolution.toon.yaml`)
 
 ```toon markpact:analysis path=project/evolution.toon.yaml
-# code2llm/evolution | 312 func | 14f | 2026-06-25
+# code2llm/evolution | 314 func | 14f | 2026-06-25
 # generated in 0.00s
 
 NEXT[3] (ranked by impact):
@@ -669,8 +669,8 @@ NEXT[3] (ranked by impact):
       EFFORT: ~4h  IMPACT: 17654
 
   [2] !! SPLIT           urirun_connector_kvm/core.py
-      WHY: 832L, 0 classes, max CC=13
-      EFFORT: ~4h  IMPACT: 10816
+      WHY: 886L, 0 classes, max CC=13
+      EFFORT: ~4h  IMPACT: 11518
 
   [3] !! SPLIT           planfile.yaml
       WHY: 929L, 0 classes, max CC=0
@@ -680,7 +680,7 @@ NEXT[3] (ranked by impact):
 RISKS[3]:
   ⚠ Splitting urirun_connector_kvm/backends.py may break 79 import paths
   ⚠ Splitting planfile.yaml may break 0 import paths
-  ⚠ Splitting urirun_connector_kvm/core.py may break 55 import paths
+  ⚠ Splitting urirun_connector_kvm/core.py may break 57 import paths
 
 METRICS-TARGET:
   CC̄:          3.3 → ≤2.3

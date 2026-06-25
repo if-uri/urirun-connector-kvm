@@ -32,6 +32,7 @@ EXPECTED_ROUTES = {
     "kvm://host/input/command/hover", "kvm://host/input/command/drag-and-drop",
     "kvm://host/input/command/wait", "kvm://host/proc/command/kill",
     "kvm://host/task/command/run", "kvm://host/window/command/focus",
+    "kvm://host/window/command/close", "kvm://host/window/command/restore",
     "kvm://host/window/query/list", "kvm://host/a11y/command/act", "kvm://host/abs/command/click",
     "kvm://host/ui/query/locate", "kvm://host/ui/command/click-text",
     "kvm://host/ui/query/find", "kvm://host/ui/command/click", "kvm://host/ui/command/fill",

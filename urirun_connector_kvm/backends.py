@@ -14,17 +14,14 @@ install hints surfaced by the ``doctor`` route.
 
 from __future__ import annotations
 
-import glob
-import importlib
 import importlib.util
 import os
-import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 

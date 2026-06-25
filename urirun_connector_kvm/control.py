@@ -22,8 +22,6 @@
 # Each strategy reports `strategy` + `confidence` so callers know HOW a target was hit.
 from __future__ import annotations
 
-import json as _json
-import os
 import time
 from typing import Any
 
@@ -35,7 +33,7 @@ except ImportError:  # pragma: no cover
 try:
     from . import cdp as _cdp
 except ImportError:  # pragma: no cover
-    import cdp as _cdp  # type: ignore
+    import cdp as _cdp  # type: ignore  # noqa: F401
 
 try:
     from . import environment as _env

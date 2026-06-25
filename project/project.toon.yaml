@@ -1,4 +1,4 @@
-# urirun-connector-kvm | 316 func | 15f | 6090L | python | 2026-06-25
+# urirun-connector-kvm | 318 func | 15f | 6144L | python | 2026-06-25
 # generated in 0.00s
 
 HEALTH:
@@ -10,8 +10,8 @@ ALERTS[20]:
   !!  high_fan_out     _tsv_lines = 15 (limit:10)
   !!  high_fan_out     uinput_abs_click = 15 (limit:10)
   !!  high_fan_out     launch_session = 15 (limit:10)
-  !!  high_fan_out     proc_kill = 15 (limit:10)
   !!  high_fan_out     BrowserAgent._dispatch_legacy_action = 15 (limit:10)
+  !!  high_fan_out     proc_kill = 15 (limit:10)
   !   high_fan_out     _locate_vql = 14 (limit:10)
   !   high_fan_out     profile = 14 (limit:10)
   !   high_fan_out     _locate_tesseract = 13 (limit:10)
@@ -19,7 +19,7 @@ ALERTS[20]:
 MODULES[29] (top by size):
   M[urirun_connector_kvm/backends.py] 1261L C:2 F:79 CC↑14 D:2 (python)
   M[planfile.yaml] 929L C:0 F:0 CC↑0 D:0 (yaml)
-  M[urirun_connector_kvm/core.py] 832L C:0 F:55 CC↑13 D:0 (python)
+  M[urirun_connector_kvm/core.py] 886L C:0 F:57 CC↑13 D:0 (python)
   M[computer-use-preview/agent.py] 512L C:1 F:21 CC↑13 D:0 (python)
   M[computer-use-preview/computers/playwright/playwright.py] 418L C:1 F:33 CC↑5 D:0 (python)
   M[urirun_connector_kvm/cdp.py] 307L C:0 F:16 CC↑10 D:0 (python)
@@ -46,9 +46,9 @@ li
 REFACTOR[7]:
   [1] H/H Split god module urirun_connector_kvm/backends.py (1261L, 2 classes)
   [2] H/H Split god module computer-use-preview/agent.py (512L, 1 classes)
-  [3] H/H Split god module urirun_connector_kvm/core.py (832L, 0 classes)
+  [3] H/H Split god module urirun_connector_kvm/core.py (886L, 0 classes)
   [4] H/H Split god module planfile.yaml (929L, 0 classes)
   [5] M/M Reduce _locate_easyocr fan-out (currently 19)
 
 EVOLUTION:
-  2026-06-25 CC̄=3.3 crit=22 6090L // Automated analysis
+  2026-06-25 CC̄=3.3 crit=22 6144L // Automated analysis

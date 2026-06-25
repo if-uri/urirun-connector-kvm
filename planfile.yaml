@@ -108,19 +108,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-8ad0a7a9
-    name: Fix duplicate-imports issues
-    description: Resolve 2 duplicate-imports issues in urirun_connector_kvm/backends.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - urirun_connector_kvm/backends.py
-    rule_id: duplicate-imports
-    count: 2
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-25543e4a
     name: Fix smart-return-type issues
     description: Resolve 1 smart-return-type issues in urirun_connector_kvm/backends.py

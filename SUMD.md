@@ -171,8 +171,8 @@ pip install -e .[dev]
 ### `project/map.toon.yaml`
 
 ```toon markpact:analysis path=project/map.toon.yaml
-# urirun-connector-kvm | 27f 5574L | python:23,shell:3,less:1 | 2026-06-25
-# stats: 215 func | 13 cls | 27 mod | CC̄=4.1 | critical:17 | cycles:0
+# urirun-connector-kvm | 27f 5621L | python:23,shell:3,less:1 | 2026-06-25
+# stats: 217 func | 13 cls | 27 mod | CC̄=4.1 | critical:17 | cycles:0
 # alerts[5]: CC _locate_easyocr=14; CC _line_match=13; CC _wayland_present=13; CC route=13; CC task_run=13
 # hotspots[5]: _locate_easyocr fan=18; capture fan=16; uinput_abs_click fan=15; launch_session fan=15; _tsv_lines fan=14
 # evolution: baseline
@@ -197,10 +197,10 @@ M[27]:
   tests/test_kvm.py,413
   tree.sh,5
   urirun_connector_kvm/__init__.py,39
-  urirun_connector_kvm/backends.py,1262
+  urirun_connector_kvm/backends.py,1259
   urirun_connector_kvm/cdp.py,308
-  urirun_connector_kvm/control.py,217
-  urirun_connector_kvm/core.py,833
+  urirun_connector_kvm/control.py,215
+  urirun_connector_kvm/core.py,885
   urirun_connector_kvm/environment.py,94
   urirun_connector_kvm/launch_backends.py,282
   urirun_connector_kvm/strategies.py,130
@@ -386,7 +386,7 @@ D:
     report()
     _safe_avail(s)
   urirun_connector_kvm/core.py:
-    e: _ok,_fail_from,_spread,_positioned_click,_apply_capture_postprocessing,capture,display_info,type_text,key,click,move,wait,scroll,double_click,triple_click,right_click,middle_click,hover,drag_and_drop,click_abs,task_run,focus,window_list,proc_kill,a11y_act,_click_hit,_router_return,ui_find,ui_click,ui_fill,ui_strategies,env_profile,_surface_mod,surface_current,cdp_ensure,_cdp_mod,cdp_navigate,cdp_ready,_resolve_act_app,_act_retry_loop,_act_reject,_act_ready,ui_act,cdp_status,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
+    e: _ok,_fail_from,_spread,_positioned_click,_apply_capture_postprocessing,capture,display_info,type_text,key,click,move,wait,scroll,double_click,triple_click,right_click,middle_click,hover,drag_and_drop,click_abs,task_run,focus,window_list,window_close,window_restore,proc_kill,a11y_act,_click_hit,_router_return,ui_find,ui_click,ui_fill,ui_strategies,env_profile,_surface_mod,surface_current,cdp_ensure,_cdp_mod,cdp_navigate,cdp_ready,_resolve_act_app,_act_retry_loop,_act_reject,_act_ready,ui_act,cdp_status,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
     _ok()
     _fail_from(action;exc)
     _spread(d)
@@ -410,6 +410,8 @@ D:
     task_run(steps)
     focus(title)
     window_list()
+    window_close(id)
+    window_restore(snapshot)
     proc_kill(pid;name;signal)
     a11y_act(app;role;name;action;text;nth)
     _click_hit(hit;app;role;text)
@@ -503,10 +505,10 @@ project_file('project.sh', 69, 'shell').
 project_file('tests/test_kvm.py', 413, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1262, 'python').
+project_file('urirun_connector_kvm/backends.py', 1259, 'python').
 project_file('urirun_connector_kvm/cdp.py', 308, 'python').
-project_file('urirun_connector_kvm/control.py', 217, 'python').
-project_file('urirun_connector_kvm/core.py', 833, 'python').
+project_file('urirun_connector_kvm/control.py', 215, 'python').
+project_file('urirun_connector_kvm/core.py', 885, 'python').
 project_file('urirun_connector_kvm/environment.py', 94, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 282, 'python').
 project_file('urirun_connector_kvm/strategies.py', 130, 'python').
@@ -674,6 +676,8 @@ python_function('urirun_connector_kvm/core.py', 'click_abs', 6, 2, 6).
 python_function('urirun_connector_kvm/core.py', 'task_run', 1, 13, 11).
 python_function('urirun_connector_kvm/core.py', 'focus', 1, 3, 5).
 python_function('urirun_connector_kvm/core.py', 'window_list', 0, 2, 4).
+python_function('urirun_connector_kvm/core.py', 'window_close', 1, 6, 6).
+python_function('urirun_connector_kvm/core.py', 'window_restore', 1, 5, 11).
 python_function('urirun_connector_kvm/core.py', 'proc_kill', 3, 12, 14).
 python_function('urirun_connector_kvm/core.py', 'a11y_act', 6, 3, 7).
 python_function('urirun_connector_kvm/core.py', '_click_hit', 4, 7, 7).
@@ -925,7 +929,7 @@ sumd_workflow_step('test', 1, 'pip install -e . && python3 -m pytest -q && $(MAK
 
 ## Call Graph
 
-*176 nodes · 247 edges · 10 modules · CC̄=3.3*
+*178 nodes · 253 edges · 10 modules · CC̄=3.3*
 
 ### Hubs (by degree)
 
@@ -933,17 +937,17 @@ sumd_workflow_step('test', 1, 'pip install -e . && python3 -m pytest -q && $(MAK
 |----------|----|----|-----|-------|
 | `backend` *(in urirun_connector_kvm.backends)* | 1 | 39 | 6 | **45** |
 | `task_run` *(in urirun_connector_kvm.core)* | 13 ⚠ | 0 | 41 | **41** |
-| `_ok` *(in urirun_connector_kvm.core)* | 1 | 37 | 1 | **38** |
+| `_ok` *(in urirun_connector_kvm.core)* | 1 | 39 | 1 | **40** |
 | `_run` *(in urirun_connector_kvm.backends)* | 4 | 26 | 4 | **30** |
+| `_fail_from` *(in urirun_connector_kvm.core)* | 1 | 25 | 3 | **28** |
 | `_apply_capture_postprocessing` *(in urirun_connector_kvm.core)* | 10 ⚠ | 1 | 27 | **28** |
-| `_fail_from` *(in urirun_connector_kvm.core)* | 1 | 23 | 3 | **26** |
 | `_locate_easyocr` *(in urirun_connector_kvm.backends)* | 14 ⚠ | 0 | 26 | **26** |
 | `profile` *(in urirun_connector_kvm.environment)* | 13 ⚠ | 0 | 25 | **25** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
-# generated in 0.08s
-# nodes: 176 | edges: 247 | modules: 10
+# generated in 0.09s
+# nodes: 178 | edges: 253 | modules: 10
 # CC̄=3.3
 
 HUBS[20]:
@@ -952,13 +956,13 @@ HUBS[20]:
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
   urirun_connector_kvm.core._ok
-    CC=1  in:37  out:1  total:38
+    CC=1  in:39  out:1  total:40
   urirun_connector_kvm.backends._run
     CC=4  in:26  out:4  total:30
+  urirun_connector_kvm.core._fail_from
+    CC=1  in:25  out:3  total:28
   urirun_connector_kvm.core._apply_capture_postprocessing
     CC=10  in:1  out:27  total:28
-  urirun_connector_kvm.core._fail_from
-    CC=1  in:23  out:3  total:26
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
   urirun_connector_kvm.environment.profile
@@ -979,14 +983,14 @@ HUBS[20]:
     CC=8  in:6  out:12  total:18
   urirun_connector_kvm.core.ui_act
     CC=7  in:0  out:17  total:17
-  urirun_connector_kvm.backends._screen_wh
-    CC=8  in:2  out:15  total:17
   urirun_connector_kvm.core.capture
     CC=6  in:0  out:17  total:17
   urirun_connector_kvm.cdp.launch_session
     CC=10  in:0  out:17  total:17
-  urirun_connector_kvm.backends._compute_abs_coords
-    CC=6  in:1  out:15  total:16
+  urirun_connector_kvm.backends._screen_wh
+    CC=8  in:2  out:15  total:17
+  urirun_connector_kvm.core.window_restore
+    CC=5  in:0  out:16  total:16
 
 MODULES:
   computer-use-preview.agent  [3 funcs]
@@ -1027,7 +1031,7 @@ MODULES:
     act  CC=12  out:12
     report  CC=2  out:2
     route  CC=13  out:8
-  urirun_connector_kvm.core  [51 funcs]
+  urirun_connector_kvm.core  [53 funcs]
     _act_ready  CC=3  out:5
     _act_reject  CC=10  out:6
     _act_retry_loop  CC=5  out:13

@@ -18,13 +18,13 @@ project_file('computer-use-preview/test_main.py', 70, 'python').
 project_file('examples/calibrate_abs.py', 76, 'python').
 project_file('examples/quickstart.sh', 6, 'shell').
 project_file('project.sh', 69, 'shell').
-project_file('tests/test_kvm.py', 413, 'python').
+project_file('tests/test_kvm.py', 414, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1262, 'python').
+project_file('urirun_connector_kvm/backends.py', 1259, 'python').
 project_file('urirun_connector_kvm/cdp.py', 308, 'python').
-project_file('urirun_connector_kvm/control.py', 217, 'python').
-project_file('urirun_connector_kvm/core.py', 833, 'python').
+project_file('urirun_connector_kvm/control.py', 215, 'python').
+project_file('urirun_connector_kvm/core.py', 885, 'python').
 project_file('urirun_connector_kvm/environment.py', 94, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 282, 'python').
 project_file('urirun_connector_kvm/strategies.py', 130, 'python').
@@ -192,6 +192,8 @@ python_function('urirun_connector_kvm/core.py', 'click_abs', 6, 2, 6).
 python_function('urirun_connector_kvm/core.py', 'task_run', 1, 13, 11).
 python_function('urirun_connector_kvm/core.py', 'focus', 1, 3, 5).
 python_function('urirun_connector_kvm/core.py', 'window_list', 0, 2, 4).
+python_function('urirun_connector_kvm/core.py', 'window_close', 1, 6, 6).
+python_function('urirun_connector_kvm/core.py', 'window_restore', 1, 5, 11).
 python_function('urirun_connector_kvm/core.py', 'proc_kill', 3, 12, 14).
 python_function('urirun_connector_kvm/core.py', 'a11y_act', 6, 3, 7).
 python_function('urirun_connector_kvm/core.py', '_click_hit', 4, 7, 7).
