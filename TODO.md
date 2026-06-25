@@ -6,8 +6,8 @@ See [`docs/operational-layers-priorities.md`](docs/operational-layers-priorities
 full layer model (System · Application · Window · Action · Text; scan + calibration are
 cross-cutting parts of KVM). Ordered by what unblocks NL/computer-use tasks:
 
-- [ ] **P0 Text** — Unicode-safe input: ydotool `type` drops non-ASCII (Polish ł ą ę ż ó → gone). Add `paste` (clipboard, needs `wl-clipboard`) or route text via CDP. *Blocks every non-English task.*
-- [ ] **P0 Window** — Wayland focus/tab control: `window/command/focus` fails (`wmctrl: Cannot open display`); browser tabs belong to a `browser://` (CDP) surface. *Planner can't target a surface.*
+- [x] **P0 Text** — DONE (gen 12). `type` now routes non-ASCII through `wl-copy`+Ctrl+V (`_clipboard_set`/`_wayland_env`), else fails loudly — no more silent corruption. wl-copy was already on the node; the real fix was supplying `WAYLAND_DISPLAY`. Verified: "zażółć gęślą jaźń ĄĘŚŹŻÓŁ" renders verbatim.
+- [ ] **P0 Window** — Wayland focus/tab control: `window/command/focus` fails (`wmctrl: Cannot open display`); browser tabs belong to a `browser://` (CDP) surface. *Planner can't target a surface — the desktop drifts across browser windows.*
 - [ ] **P1 Planner** — consult `kvm://doctor` for surface selection (browser→CDP), prefer `ui/command/click-text` over `ui/command/click`; auto-insert `ui/query/verify` between acts.
 - [ ] **P1 Autonomy** — provide `GEMINI_API_KEY`/`ANTHROPIC_API_KEY` + `pip install google-genai`/`anthropic`, then re-run the SAME task via `kvm-computer-use-agent.py` as the autonomous baseline.
 - [ ] **P2 Action** — fit `URIRUN_KVM_CALIB` (today identity); `locate` fall-through atspi→OCR; surface `focus` failures into `ui/*`.

@@ -302,19 +302,49 @@ def _yd_keyseq(combo: str) -> list[str]:
 
 
 # ---- type ----
+def _wayland_env() -> dict:
+    """A child-process env that can reach the Wayland compositor. A urirun node process
+    usually has no WAYLAND_DISPLAY, so wl-copy/wtype hang on connect; point them at the
+    live socket discovered under XDG_RUNTIME_DIR (same trick as the portal capture path)."""
+    env = os.environ.copy()
+    xrd = env.get("XDG_RUNTIME_DIR") or (f"/run/user/{os.getuid()}" if hasattr(os, "getuid") else "")
+    if xrd:
+        env["XDG_RUNTIME_DIR"] = xrd
+        if not env.get("WAYLAND_DISPLAY"):
+            try:
+                socks = sorted(n for n in os.listdir(xrd)
+                               if n.startswith("wayland-") and not n.endswith(".lock"))
+                if socks:
+                    env["WAYLAND_DISPLAY"] = socks[0]
+            except OSError:
+                pass
+    return env
+
+
 def _clipboard_set(text: str) -> str:
     """Put UTF-8 ``text`` on the system clipboard via the first available tool, so it can be
     pasted (Ctrl+V) verbatim. This is the only reliable way to enter non-ASCII on this stack:
     ydotool types through the kernel keymap and SILENTLY DROPS characters it can't map (Polish
     ł ą ę ż ó, accents, CJK, emoji). Returns the tool name, or raises so the caller fails
     loudly instead of publishing corrupted text."""
+    if have_bin("wl-copy"):
+        # wl-copy reads stdin, sets the selection, then forks to serve paste requests; the
+        # foreground returns once it has the data. If it can't background it stays foreground
+        # (selection IS already set), so don't block on it — write, give it a beat, move on.
+        proc = subprocess.Popen(["wl-copy", "--type", "text/plain;charset=utf-8"],
+                                stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL, env=_wayland_env())
+        try:
+            proc.communicate(input=text.encode(), timeout=4)
+        except subprocess.TimeoutExpired:
+            pass  # still serving the (already-set) selection in the foreground — fine
+        return "wl-copy"
     for argv, name in (
-        (["wl-copy"], "wl-copy"),                          # Wayland
         (["xclip", "-selection", "clipboard"], "xclip"),   # X11
         (["xsel", "--clipboard", "--input"], "xsel"),      # X11
     ):
         if have_bin(argv[0]):
-            p = subprocess.run(argv, input=text.encode(), capture_output=True, env=_yd_env(), timeout=10)
+            p = subprocess.run(argv, input=text.encode(), capture_output=True, env=_wayland_env(), timeout=10)
             if p.returncode == 0:
                 return name
             raise BackendError(f"{name} failed: {(p.stderr or b'').decode(errors='replace')[:120]}")

@@ -122,6 +122,13 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     else:
         raise BackendError(f"no .desktop entry or PATH binary matches {app!r} "
                            "(call window/query/list or doctor for what's installed)")
+    # Chrome/Chromium: force the renderer accessibility tree on so AT-SPI (and thus the
+    # kvm ui/* locate path with real role/name) can see web elements — otherwise locate
+    # falls back to flat OCR which has no role/name concept. Off via URIRUN_KVM_NO_A11Y=1.
+    if not os.environ.get("URIRUN_KVM_NO_A11Y") and any(
+            b in argv[0].lower() for b in ("chrome", "chromium", "brave", "edge")):
+        if not any("force-renderer-accessibility" in a for a in argv):
+            argv.insert(1, "--force-renderer-accessibility")
     env = os.environ.copy()
     env.setdefault("WAYLAND_DISPLAY", "wayland-0")
     p = subprocess.Popen(argv, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
