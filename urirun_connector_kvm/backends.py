@@ -243,8 +243,23 @@ def _cap_portal(output: str, **_: Any) -> dict:
     return {"path": output, "bytes": len(data), "via": "xdg-portal"}
 
 
+def _is_wlroots_compositor() -> bool:
+    """True only on compositors that support wlr-screencopy-unstable-v1 (Sway, Hyprland, etc.).
+    GNOME and KDE use their own Wayland protocols and will always reject grim."""
+    desktop = (session_env().get("XDG_CURRENT_DESKTOP") or os.environ.get("XDG_CURRENT_DESKTOP", "")).lower()
+    if any(d in desktop for d in ("gnome", "kde", "plasma", "unity", "cinnamon", "budgie")):
+        return False
+    return True
+
+
 @backend("capture", "grim", priority=85, platforms=("linux-wayland",), needs_bin=("grim",))
 def _cap_grim(output: str, **_: Any) -> dict:
+    if not _is_wlroots_compositor():
+        desktop = os.environ.get("XDG_CURRENT_DESKTOP") or session_env().get("XDG_CURRENT_DESKTOP") or "unknown"
+        raise BackendError(
+            f"grim requires a wlroots compositor (Sway/Hyprland); "
+            f"detected {desktop!r} — use portal backend instead"
+        )
     _run(["grim", output])
     return {"path": output, "via": "grim"}
 

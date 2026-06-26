@@ -511,3 +511,49 @@ def test_ui_wait_success_has_no_found_collision(monkeypatch) -> None:
                         lambda op, **k: {"ok": True, "found": True, "strategy": "cdp", "name": "X"})
     r = core.ui_wait(text="X", timeout=1)
     assert r["ok"] is True and r["found"] is True and r["waited"] is not None and r["strategy"] == "cdp"
+
+
+# --------------------------------------------------------------------------- #
+# compositor detection + degraded capture
+# --------------------------------------------------------------------------- #
+
+def test_grim_skipped_on_gnome_wayland(monkeypatch) -> None:
+    """_is_wlroots_compositor() returns False for GNOME; grim raises BackendError without running."""
+    monkeypatch.setenv("XDG_CURRENT_DESKTOP", "ubuntu:GNOME")
+    assert B._is_wlroots_compositor() is False
+
+
+def test_grim_allowed_on_sway(monkeypatch) -> None:
+    monkeypatch.setenv("XDG_CURRENT_DESKTOP", "sway")
+    assert B._is_wlroots_compositor() is True
+
+
+def test_grim_backend_raises_on_non_wlroots(monkeypatch) -> None:
+    import pytest
+    monkeypatch.setenv("XDG_CURRENT_DESKTOP", "ubuntu:GNOME")
+    with pytest.raises(B.BackendError, match="wlroots"):
+        B._cap_grim(output="/tmp/x.png")
+
+
+def test_capture_portal_denied_returns_degraded(monkeypatch) -> None:
+    """When portal denies permission, capture() returns ok=True, degraded=True — not a hard fail."""
+    monkeypatch.setattr(
+        B, "dispatch",
+        lambda action, **kw: (_ for _ in ()).throw(
+            B.BackendError("portal denied (code 2) — capture needs a one-time screenshot permission grant")
+        ),
+    )
+    r = capture(output="/tmp/x.png")
+    assert r["ok"] is True
+    assert r.get("degraded") is True
+    assert "portal denied" in r.get("degradedReason", "")
+
+
+def test_capture_other_backend_error_stays_fail(monkeypatch) -> None:
+    """Non-permission errors (compositor missing, tool not found) still return ok=False."""
+    monkeypatch.setattr(
+        B, "dispatch",
+        lambda action, **kw: (_ for _ in ()).throw(B.BackendError("no available backend for 'capture'")),
+    )
+    r = capture(output="/tmp/x.png")
+    assert r["ok"] is False

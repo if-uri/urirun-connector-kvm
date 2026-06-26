@@ -136,6 +136,10 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     try:
         res = B.dispatch("capture", output=out, monitor=monitor)
     except B.BackendError as exc:
+        msg = str(exc)
+        if "portal denied" in msg or "portal cancelled" in msg:
+            return urirun.ok(connector=CONNECTOR_ID, action="capture",
+                             degraded=True, degradedReason=msg, platform=B.platform_tag())
         return _fail_from("capture", exc)
     full = crop = None
     try:
