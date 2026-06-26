@@ -173,8 +173,9 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
         full, crop = _apply_capture_postprocessing(out, cx, cy, zoom, crop_w, crop_h, max_width)
     except Exception:  # noqa: BLE001 - PIL optional; keep raw capture
         pass
-    payload: dict[str, Any] = {"path": out, "monitor": monitor, "via": res.get("via"),
-                               "backend": res.get("backend"), "fullSize": full, "crop": crop,
+    payload: dict[str, Any] = {"kind": "screenshot", "path": out, "monitor": monitor,
+                               "via": res.get("via"), "backend": res.get("backend"),
+                               "fullSize": full, "crop": crop,
                                "bytes": os.path.getsize(out) if os.path.exists(out) else 0}
     if base64:
         with open(out, "rb") as fh:
