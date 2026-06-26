@@ -243,6 +243,82 @@ def _cap_portal(output: str, **_: Any) -> dict:
     return {"path": output, "bytes": len(data), "via": "xdg-portal"}
 
 
+_MUTTER_SCRIPT = r"""
+import sys, dbus, dbus.mainloop.glib, gi
+gi.require_version("Gst", "1.0")
+from gi.repository import GLib, Gst
+out = sys.argv[1]
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+bus = dbus.SessionBus()
+def _primary():
+    dc = dbus.Interface(bus.get_object("org.gnome.Mutter.DisplayConfig", "/org/gnome/Mutter/DisplayConfig"),
+                        "org.gnome.Mutter.DisplayConfig")
+    _s, _m, logical, _p = dc.GetCurrentState()
+    fb = None
+    for lm in logical:
+        primary, mons = lm[4], lm[5]
+        if mons:
+            conn = str(mons[0][0]); fb = fb or conn
+            if primary: return conn
+    return fb
+conn = _primary()
+if not conn: print("no active monitor", file=sys.stderr); sys.exit(4)
+sc = dbus.Interface(bus.get_object("org.gnome.Mutter.ScreenCast", "/org/gnome/Mutter/ScreenCast"),
+                    "org.gnome.Mutter.ScreenCast")
+session = dbus.Interface(bus.get_object("org.gnome.Mutter.ScreenCast", sc.CreateSession({})),
+                         "org.gnome.Mutter.ScreenCast.Session")
+stream = session.RecordMonitor(conn, {"cursor-mode": dbus.UInt32(1)})
+state = {}; loop = GLib.MainLoop()
+bus.add_signal_receiver(lambda n: (state.__setitem__("node", int(n)), loop.quit()),
+                        dbus_interface="org.gnome.Mutter.ScreenCast.Stream",
+                        path=stream, signal_name="PipeWireStreamAdded")
+session.Start()
+GLib.timeout_add_seconds(10, lambda: (loop.quit(), False)[1])
+loop.run()
+node = state.get("node")
+if node is None: session.Stop(); print("no pipewire node (ScreenCast unavailable/restricted)", file=sys.stderr); sys.exit(5)
+Gst.init(None)
+pipe = Gst.parse_launch("pipewiresrc path=%d num-buffers=1 ! videoconvert ! pngenc snapshot=true ! filesink location=%s" % (node, out))
+pipe.set_state(Gst.State.PLAYING)
+msg = pipe.get_bus().timed_pop_filtered(10 * Gst.SECOND, Gst.MessageType.EOS | Gst.MessageType.ERROR)
+pipe.set_state(Gst.State.NULL); session.Stop()
+if msg and msg.type == Gst.MessageType.ERROR:
+    e, _d = msg.parse_error(); print("gstreamer: %s" % e, file=sys.stderr); sys.exit(6)
+print(out)
+"""
+
+
+def _mutter_python() -> "str | None":
+    """A python that can import dbus+gi+gstreamer (system python, not the node venv)."""
+    chk = "import dbus, gi; gi.require_version('Gst','1.0'); from gi.repository import Gst"
+    for c in (os.environ.get("URISYS_PORTAL_PYTHON"), "/usr/bin/python3", shutil.which("python3"), sys.executable):
+        if not c:
+            continue
+        try:
+            if subprocess.run([c, "-c", chk], capture_output=True, timeout=5).returncode == 0:
+                return c
+        except Exception:  # noqa: BLE001
+            continue
+    return None
+
+
+@backend("capture", "mutter", priority=98, platforms=("linux-wayland",))
+def _cap_mutter(output: str, **_: Any) -> dict:
+    """GNOME Mutter ScreenCast -> PipeWire capture. Headless and consent-free (the path
+    gnome-remote-desktop uses), so it works where the screenshot portal denies non-interactive
+    use on GNOME-Wayland. Falls through (BackendError) on non-GNOME (no Mutter bus). Runs via a
+    system python with dbus+gi+gstreamer (pipewiresrc)."""
+    py = _mutter_python()
+    if not py:
+        raise BackendError("mutter screencast needs python3 with dbus+gi+gstreamer "
+                           "(install python3-gobject python3-dbus gstreamer1.0-plugins-* incl. pipewiresrc)")
+    from pathlib import Path
+    _run([py, "-c", _MUTTER_SCRIPT, output], env=session_env(), timeout=30)
+    data = Path(output).read_bytes()
+    return {"path": output, "bytes": len(data), "via": "mutter-screencast"}
+
+
+
 def _is_wlroots_compositor() -> bool:
     """True only on compositors that support wlr-screencopy-unstable-v1 (Sway, Hyprland, etc.).
     GNOME and KDE use their own Wayland protocols and will always reject grim."""

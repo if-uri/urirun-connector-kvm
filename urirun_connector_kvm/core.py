@@ -41,7 +41,13 @@ import urirun
 
 try:  # normal package import
     from urirun_connector_kvm import backends as B
-except ImportError:  # flat-module deploy (host `deploy --code core.py backends.py`)
+except ImportError as _e:  # flat-module deploy (host `deploy --code core.py backends.py`)
+    # Only use the flat-file fallback when the kvm PACKAGE itself is absent.
+    # If backends.py was found but has a missing dependency inside it, re-raise so
+    # the real error ("No module named X") is visible instead of "No module named backends".
+    _missing = getattr(_e, "name", None) or ""
+    if _missing and not _missing.startswith("urirun_connector_kvm"):
+        raise
     import sys as _sys, os as _os
     _kvm_dir = _os.path.dirname(_os.path.abspath(__file__))
     if _kvm_dir not in _sys.path:
@@ -50,13 +56,22 @@ except ImportError:  # flat-module deploy (host `deploy --code core.py backends.
 
 try:  # universal control-tool router (cdp -> atspi -> vision)
     from urirun_connector_kvm import control as C
-except ImportError:  # flat-module deploy (push control.py + cdp.py too)
+except ImportError as _e:  # flat-module deploy (push control.py + cdp.py too)
+    _missing = getattr(_e, "name", None) or ""
+    if _missing and not _missing.startswith("urirun_connector_kvm"):
+        raise
     import control as C  # type: ignore
 
 CONNECTOR_ID = "kvm"
 conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
 
 _CDP_SESSION_TIMEOUT = 12.0
+
+try:
+    from urirun.node.preconditions import need_from_backend_error as _backend_need
+except ImportError:
+    def _backend_need(msg: str) -> dict | None:  # type: ignore[misc]
+        return None
 _ACT_BUDGET_SECS = 25.0
 _LOCATE_MIN_CONF = 40
 
@@ -137,13 +152,21 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     remote caller transfers a small region where the action is, not the whole screen.
     ``crop`` in the result gives the tile's origin/size for mapping coords back."""
     out = output or os.path.join(tempfile.gettempdir(), f"urirun-kvm-shot-{os.getpid()}.png")
+    # An isolated capture runs in a subprocess with an unpredictable cwd, so a relative
+    # output name lands somewhere the caller/host can't resolve (fileExists:false, no preview).
+    # Anchor it under the temp dir with the ``urirun-`` prefix the dashboard's preview server
+    # (_file_response) whitelists, so the returned absolute path is both findable AND previewable.
+    if not os.path.isabs(out):
+        out = os.path.join(tempfile.gettempdir(), "urirun-" + os.path.basename(out))
     try:
         res = B.dispatch("capture", output=out, monitor=monitor)
     except B.BackendError as exc:
         msg = str(exc)
-        if "portal denied" in msg or "portal cancelled" in msg:
+        _need = _backend_need(msg)
+        if "portal denied" in msg or "portal cancelled" in msg or _need:
             return urirun.ok(connector=CONNECTOR_ID, action="capture",
-                             degraded=True, degradedReason=msg, platform=B.platform_tag())
+                             degraded=True, degradedReason=msg, platform=B.platform_tag(),
+                             **({"need": _need} if _need else {}))
         return _fail_from("capture", exc)
     full = crop = None
     try:
