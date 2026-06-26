@@ -6,8 +6,6 @@
 # capability-ordered dispatcher. Each strategy declares ``available(app)`` against the LIVE
 # environment, so the router fits the machine. Registered by control.py (one-way import:
 # control -> strategies -> environment; no cycle).
-from __future__ import annotations
-
 import time
 
 try:  # normal package import / flat deploy
@@ -26,6 +24,11 @@ except ImportError:  # pragma: no cover
     import environment as _env  # type: ignore
 
 
+_CDP_PRIORITY = 95
+_ATSPI_PRIORITY = 85
+_VISION_PRIORITY = 50
+
+
 def is_browser(app: str) -> bool:
     """An EMPTY app must NOT count as a browser: otherwise every ui/* call with no app probes
     CDP first (wasted round-trip on desktop targets, and a stray debug-Chrome on :9222 would
@@ -39,8 +42,8 @@ def is_browser(app: str) -> bool:
 # --------------------------------------------------------------------------- #
 class CdpStrategy:
     name = "cdp"
-    priority = 95
-    confidence = 0.95
+    priority = _CDP_PRIORITY
+    confidence = _CDP_PRIORITY / 100
 
     def available(self, app: str) -> bool:
         return is_browser(app) and _cdp.reachable()
@@ -61,8 +64,8 @@ class CdpStrategy:
 # --------------------------------------------------------------------------- #
 class AtspiStrategy:
     name = "atspi"
-    priority = 85
-    confidence = 0.85
+    priority = _ATSPI_PRIORITY
+    confidence = _ATSPI_PRIORITY / 100
 
     def available(self, app: str) -> bool:
         return _env.atspi_ready()
@@ -93,7 +96,7 @@ class AtspiStrategy:
 # --------------------------------------------------------------------------- #
 class VisionStrategy:
     name = "vision"
-    priority = 50
+    priority = _VISION_PRIORITY
     confidence = 0.6
 
     def available(self, app: str) -> bool:

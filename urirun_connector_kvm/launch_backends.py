@@ -8,8 +8,6 @@ Imported for its side effect: the ``@backend`` decorators register into the shar
 registry in ``backends.py`` (which imports this module at the end of its own load).
 """
 
-from __future__ import annotations
-
 import glob
 import os
 import shlex
@@ -22,6 +20,9 @@ try:  # normal package import
     from .backends import BackendError, _run, backend, session_env
 except ImportError:  # flat-module deploy (node `host deploy --code backends.py launch_backends.py`)
     from backends import BackendError, _run, backend, session_env  # type: ignore
+
+_PRIORITY_LINUX = 80
+_PRIORITY_OTHER = 70
 
 
 def _cdp_port() -> str:
@@ -195,7 +196,7 @@ def _inject_chrome_flags(argv: list, debug: bool) -> str:
     return cdp_port
 
 
-@backend("launch", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
+@backend("launch", "xdg", priority=_PRIORITY_LINUX, platforms=("linux-wayland", "linux-x11"))
 def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, settle: float = 0,
                 debug: bool = False, **_: Any) -> dict:
     extra = list(args or [])
@@ -234,7 +235,7 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     return result
 
 
-@backend("launch", "macos", priority=70, platforms=("macos",), needs_bin=("open",))
+@backend("launch", "macos", priority=_PRIORITY_OTHER, platforms=("macos",), needs_bin=("open",))
 def _launch_macos(app: str = "", args: list | None = None, settle: float = 0, **_: Any) -> dict:
     argv = ["open", "-a", app] + (["--args", *map(str, args or [])] if args else [])
     _run(argv)
@@ -244,7 +245,7 @@ def _launch_macos(app: str = "", args: list | None = None, settle: float = 0, **
     return {"via": "open", "app": {"id": app, "name": app, "how": "open"}, "settled": settled}
 
 
-@backend("launch", "windows", priority=70, platforms=("windows",))
+@backend("launch", "windows", priority=_PRIORITY_OTHER, platforms=("windows",))
 def _launch_windows(app: str = "", args: list | None = None, settle: float = 0, **_: Any) -> dict:
     try:
         os.startfile(app)  # type: ignore[attr-defined]
@@ -256,7 +257,7 @@ def _launch_windows(app: str = "", args: list | None = None, settle: float = 0, 
     return {"via": "startfile", "app": {"id": app, "name": app, "how": "startfile"}, "settled": settled}
 
 
-@backend("launch_list", "xdg", priority=80, platforms=("linux-wayland", "linux-x11"))
+@backend("launch_list", "xdg", priority=_PRIORITY_LINUX, platforms=("linux-wayland", "linux-x11"))
 def _list_xdg(filter: str = "", **_: Any) -> dict:  # noqa: A002 - matches route field name
     q = (filter or "").lower()
     out = []
@@ -270,7 +271,7 @@ def _list_xdg(filter: str = "", **_: Any) -> dict:  # noqa: A002 - matches route
     return {"via": "xdg", "count": len(out), "apps": out}
 
 
-@backend("launch_list", "macos", priority=70, platforms=("macos",))
+@backend("launch_list", "macos", priority=_PRIORITY_OTHER, platforms=("macos",))
 def _list_macos(filter: str = "", **_: Any) -> dict:  # noqa: A002
     q = (filter or "").lower()
     out = []

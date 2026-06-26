@@ -6,8 +6,6 @@
 # remediation the environment can support (no "use CDP" where Chrome can't, no "OCR" where
 # tesseract is absent). Pure detection; cheap; no side effects. Exposed as a URI:
 #     kvm://<host>/env/query/profile
-from __future__ import annotations
-
 import shutil
 from collections.abc import Callable
 

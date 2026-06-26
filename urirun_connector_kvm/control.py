@@ -20,8 +20,6 @@
 #                last resort; pixel-grounded but has no role concept. confidence per OCR.
 #
 # Each strategy reports `strategy` + `confidence` so callers know HOW a target was hit.
-from __future__ import annotations
-
 import time
 from typing import Any
 

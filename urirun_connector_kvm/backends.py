@@ -12,8 +12,6 @@ the connector changes. ``needs_bin``/``needs_mod`` gate availability and double 
 install hints surfaced by the ``doctor`` route.
 """
 
-from __future__ import annotations
-
 import os
 import shutil
 import subprocess

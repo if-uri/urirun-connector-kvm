@@ -5,8 +5,6 @@
 # the planner can pick the right control path (CDP browser DOM vs desktop OCR/a11y) WITHOUT
 # the flow having to name `app`. The strong signal is a reachable CDP debug page (=> browser);
 # otherwise a best-effort active-window probe + the environment's best non-cdp strategy.
-from __future__ import annotations
-
 import shutil
 import subprocess
 

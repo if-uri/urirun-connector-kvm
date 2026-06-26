@@ -31,8 +31,6 @@ Helpful optional libraries (install for more platforms): ``mss``, ``pynput``,
 ``grim``/``scrot``, ``python3-gobject``+``python3-dbus`` (Wayland portal capture).
 """
 
-from __future__ import annotations
-
 import base64 as _b64
 import os
 import tempfile
@@ -53,6 +51,10 @@ except ImportError:  # flat-module deploy (push control.py + cdp.py too)
 
 CONNECTOR_ID = "kvm"
 conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
+
+_CDP_SESSION_TIMEOUT = 12.0
+_ACT_BUDGET_SECS = 25.0
+_LOCATE_MIN_CONF = 40
 
 
 def _ok(**kw: Any) -> dict[str, Any]:
@@ -620,7 +622,7 @@ def cdp_ensure(url: str = "", user_data_dir: str = "", copy_from: str = "",
 
 @conn.handler("cdp/session/query/ready", isolated=True,
               meta={"label": "Poll until the CDP debug endpoint is reachable (no launch)"})
-def cdp_session_ready(timeout: float = 12.0) -> dict[str, Any]:
+def cdp_session_ready(timeout: float = _CDP_SESSION_TIMEOUT) -> dict[str, Any]:
     """Readiness half of the launch/probe split: poll the debug endpoint WITHOUT launching
     (distinct from ``cdp/page/query/ready``, which waits on document load). Call after
     ``cdp/session/command/ensure``; repeatable — a pure probe never spawns a competing Chrome.
@@ -744,7 +746,7 @@ def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", va
     if bad is not None:
         return bad
     app, surface = _resolve_act_app(app)
-    budget = 25.0
+    budget = _ACT_BUDGET_SECS
     start = time.monotonic()
     ready = _act_ready(ready_timeout)
     op = "locate" if do in ("find", "wait") else do
@@ -822,7 +824,7 @@ def _capture_native(monitor: int = 0) -> str:
 
 @conn.handler("ui/query/locate", isolated=True,
               meta={"label": "Locate on-screen elements by text (capture + OCR/VQL) → coordinates"})
-def ui_locate(query: str = "", min_conf: int = 40, monitor: int = 0) -> dict[str, Any]:
+def ui_locate(query: str = "", min_conf: int = _LOCATE_MIN_CONF, monitor: int = 0) -> dict[str, Any]:
     """Screenshot the screen and return elements whose text matches ``query`` (empty =
     all), each with a pixel ``box`` and click ``center`` — the perceive+locate half of
     the autonomous loop. Feed a ``center`` straight into ui/command/click-text or a

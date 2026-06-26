@@ -7,8 +7,6 @@
 #
 # Protocol, transport, discovery, snapshot primitives and launch helper live in the generic
 # surface so browser-debug / webpage / chrome-plugin connectors share a single CDP client.
-from __future__ import annotations
-
 import json
 import os
 import subprocess
@@ -49,6 +47,9 @@ CdpError = _surface.CdpError          # raised by evaluate when no page / JS thr
 # cdp.os.makedirs through this module's namespace, and because start_session calls
 # reachable() / navigate() / session_env() all kvm-qualified.
 # --------------------------------------------------------------------------- #
+_CDP_AWAIT_TIMEOUT = 12.0
+_CDP_LAUNCH_TIMEOUT = 14.0
+
 _CHROME_CANDIDATES = ("google-chrome-stable", "google-chrome", "chromium-browser",
                       "chromium", "brave-browser", "microsoft-edge")
 _AUTH_FILES = ("Local State", "Default/Cookies", "Default/Network/Cookies",
@@ -110,7 +111,7 @@ def start_session(url: str = "", user_data_dir: str = "", copy_from: str = "") -
             "userDataDir": ddir, "authCopied": copied}
 
 
-def await_ready(timeout: float = 12.0) -> dict:
+def await_ready(timeout: float = _CDP_AWAIT_TIMEOUT) -> dict:
     """Poll until the CDP debug endpoint is reachable, WITHOUT launching anything.
     Idempotent; safe to call repeatedly (never spawns a competing Chrome)."""
     import time as _t
@@ -126,7 +127,7 @@ def await_ready(timeout: float = 12.0) -> dict:
 
 
 def launch_session(url: str = "", user_data_dir: str = "", copy_from: str = "",
-                   wait: float = 14.0) -> dict:
+                   wait: float = _CDP_LAUNCH_TIMEOUT) -> dict:
     """Back-compat one-shot: start_session then await_ready. Prefer the split in handlers
     (start returns fast; readiness polls on its own budget) so Chrome's cold-start
     can't blow the node handler's exec cap."""
