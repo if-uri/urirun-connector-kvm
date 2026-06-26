@@ -48,6 +48,7 @@
     "app://host/desktop/query/list",
     "kvm://host/a11y/command/act",
     "kvm://host/abs/command/click",
+    "kvm://host/browser/query/sessions",
     "kvm://host/cdp/page/command/navigate",
     "kvm://host/cdp/page/query/ready",
     "kvm://host/cdp/session/command/ensure",
@@ -92,5 +93,362 @@
   ],
   "adapterKinds": [
     "local-function"
+  ],
+  "examples": [
+    {
+      "title": "Launch a desktop app (XDG .desktop / open / startfile)",
+      "uri": "app://host/desktop/command/launch",
+      "payload": {
+        "app": "",
+        "compose": "",
+        "args": null,
+        "settle": 0
+      }
+    },
+    {
+      "title": "List launchable desktop apps",
+      "uri": "app://host/desktop/query/list",
+      "payload": {
+        "filter": ""
+      }
+    },
+    {
+      "title": "Find a UI element by role/name and focus/click/set-text it (AT-SPI)",
+      "uri": "kvm://host/a11y/command/act",
+      "payload": {
+        "app": "",
+        "role": "",
+        "name": "",
+        "action": "focus",
+        "text": "",
+        "nth": 0
+      }
+    },
+    {
+      "title": "Pixel-accurate click via a uinput absolute device",
+      "uri": "kvm://host/abs/command/click",
+      "payload": {
+        "x": 0,
+        "y": 0,
+        "sw": 0,
+        "sh": 0,
+        "button": "left",
+        "do_click": true
+      }
+    },
+    {
+      "title": "Scan running browsers and installed profiles for active service sessions (LinkedIn, Google…)",
+      "uri": "kvm://host/browser/query/sessions",
+      "payload": {
+        "services": ""
+      }
+    },
+    {
+      "title": "Navigate the CDP page and wait until it finishes loading",
+      "uri": "kvm://host/cdp/page/command/navigate",
+      "payload": {
+        "url": "",
+        "ready_timeout": 8.0
+      }
+    },
+    {
+      "title": "Wait until the CDP page document is fully loaded",
+      "uri": "kvm://host/cdp/page/query/ready",
+      "payload": {
+        "timeout": 30.0
+      }
+    },
+    {
+      "title": "Reuse or launch a dedicated-profile CDP Chrome (so the router's cdp strategy is available)",
+      "uri": "kvm://host/cdp/session/command/ensure",
+      "payload": {
+        "url": "",
+        "user_data_dir": "",
+        "copy_from": "",
+        "wait": 0.0
+      }
+    },
+    {
+      "title": "Poll until the CDP debug endpoint is reachable (no launch)",
+      "uri": "kvm://host/cdp/session/query/ready",
+      "payload": {
+        "timeout": 12.0
+      }
+    },
+    {
+      "title": "Is a CDP debug endpoint reachable, and on what page",
+      "uri": "kvm://host/cdp/session/query/status",
+      "payload": {}
+    },
+    {
+      "title": "Screen size, monitors, scale (the capture/action coordinate space)",
+      "uri": "kvm://host/display/query/info",
+      "payload": {}
+    },
+    {
+      "title": "Report available backends + which surface to trust",
+      "uri": "kvm://host/doctor/query/report",
+      "payload": {}
+    },
+    {
+      "title": "Live capability profile of this session (cdp/atspi/ocr/input/display)",
+      "uri": "kvm://host/env/query/profile",
+      "payload": {}
+    },
+    {
+      "title": "Mouse click (optionally at x,y)",
+      "uri": "kvm://host/input/command/click",
+      "payload": {
+        "button": "left",
+        "x": null,
+        "y": null
+      }
+    },
+    {
+      "title": "Double click (optionally at x,y)",
+      "uri": "kvm://host/input/command/double-click",
+      "payload": {
+        "x": null,
+        "y": null
+      }
+    },
+    {
+      "title": "Drag and drop (approximate move->click->move)",
+      "uri": "kvm://host/input/command/drag-and-drop",
+      "payload": {
+        "x": 1,
+        "y": 1,
+        "destination_x": 1,
+        "destination_y": 1
+      }
+    },
+    {
+      "title": "Hover/move the mouse pointer to x,y",
+      "uri": "kvm://host/input/command/hover",
+      "payload": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "title": "Send a key or hotkey combo",
+      "uri": "kvm://host/input/command/key",
+      "payload": {
+        "key": "",
+        "keys": ""
+      }
+    },
+    {
+      "title": "Middle click (optionally at x,y)",
+      "uri": "kvm://host/input/command/middle-click",
+      "payload": {
+        "x": null,
+        "y": null
+      }
+    },
+    {
+      "title": "Move the mouse pointer (absolute)",
+      "uri": "kvm://host/input/command/move",
+      "payload": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "title": "Right click (optionally at x,y)",
+      "uri": "kvm://host/input/command/right-click",
+      "payload": {
+        "x": null,
+        "y": null
+      }
+    },
+    {
+      "title": "Scroll the wheel (dy<0 = down)",
+      "uri": "kvm://host/input/command/scroll",
+      "payload": {
+        "dy": -3
+      }
+    },
+    {
+      "title": "Triple click (optionally at x,y)",
+      "uri": "kvm://host/input/command/triple-click",
+      "payload": {
+        "x": null,
+        "y": null
+      }
+    },
+    {
+      "title": "Type a whole string",
+      "uri": "kvm://host/input/command/type",
+      "payload": {
+        "text": ""
+      }
+    },
+    {
+      "title": "Pause for N seconds (let the UI settle)",
+      "uri": "kvm://host/input/command/wait",
+      "payload": {
+        "seconds": 1.0,
+        "ms": 0
+      }
+    },
+    {
+      "title": "Terminate a process by PID or name (node lifecycle control)",
+      "uri": "kvm://host/proc/command/kill",
+      "payload": {
+        "pid": 0,
+        "name": "",
+        "signal": "TERM"
+      }
+    },
+    {
+      "title": "Capture the screen (auto backend)",
+      "uri": "kvm://host/screen/query/capture",
+      "payload": {
+        "output": "",
+        "monitor": 0,
+        "max_width": 0,
+        "base64": false,
+        "cx": -1,
+        "cy": -1,
+        "zoom": 0,
+        "crop_w": 0,
+        "crop_h": 0
+      }
+    },
+    {
+      "title": "What UI surface is in the foreground (browser via CDP, or desktop)",
+      "uri": "kvm://host/surface/query/current",
+      "payload": {}
+    },
+    {
+      "title": "Run a bounded input sequence",
+      "uri": "kvm://host/task/command/run",
+      "payload": {
+        "steps": null
+      }
+    },
+    {
+      "title": "Self-orchestrating UI action: wait-ready → route → retry → verify",
+      "uri": "kvm://host/ui/command/act",
+      "payload": {
+        "do": "click",
+        "text": "",
+        "role": "",
+        "name": "",
+        "value": "",
+        "app": "",
+        "retries": 3,
+        "settle": 0.7,
+        "ready_timeout": 6.0,
+        "safe": true
+      }
+    },
+    {
+      "title": "Find a target and click it (router: cdp→atspi→vision)",
+      "uri": "kvm://host/ui/command/click",
+      "payload": {
+        "text": "",
+        "role": "",
+        "app": "",
+        "name": ""
+      }
+    },
+    {
+      "title": "Find on-screen text and click it via KVM (optionally type + submit)",
+      "uri": "kvm://host/ui/command/click-text",
+      "payload": {
+        "text": "",
+        "button": "left",
+        "nth": 0,
+        "min_conf": 40,
+        "then_type": "",
+        "then_key": "",
+        "monitor": 0
+      }
+    },
+    {
+      "title": "Find a field, focus it and type a value (router; verifies)",
+      "uri": "kvm://host/ui/command/fill",
+      "payload": {
+        "text": "",
+        "role": "entry",
+        "app": "",
+        "value": "",
+        "verify": true,
+        "name": ""
+      }
+    },
+    {
+      "title": "Locate a UI element (router: cdp→atspi→vision)",
+      "uri": "kvm://host/ui/query/find",
+      "payload": {
+        "text": "",
+        "role": "",
+        "app": "",
+        "nth": 0,
+        "name": ""
+      }
+    },
+    {
+      "title": "Locate on-screen elements by text (capture + OCR/VQL) → coordinates",
+      "uri": "kvm://host/ui/query/locate",
+      "payload": {
+        "query": "",
+        "min_conf": 40,
+        "monitor": 0
+      }
+    },
+    {
+      "title": "Which control strategies are available right now",
+      "uri": "kvm://host/ui/query/strategies",
+      "payload": {}
+    },
+    {
+      "title": "Assert a string is present on screen",
+      "uri": "kvm://host/ui/query/verify",
+      "payload": {
+        "expect": "",
+        "app": ""
+      }
+    },
+    {
+      "title": "Poll until a target appears (router)",
+      "uri": "kvm://host/ui/query/wait",
+      "payload": {
+        "text": "",
+        "role": "",
+        "app": "",
+        "timeout": 10.0,
+        "interval": 0.7,
+        "name": ""
+      }
+    },
+    {
+      "title": "Snapshot the active page, then close it (reversible: restore)",
+      "uri": "kvm://host/window/command/close",
+      "payload": {
+        "id": ""
+      }
+    },
+    {
+      "title": "Activate a window by title",
+      "uri": "kvm://host/window/command/focus",
+      "payload": {
+        "title": ""
+      }
+    },
+    {
+      "title": "Reopen and rehydrate a window from a close snapshot",
+      "uri": "kvm://host/window/command/restore",
+      "payload": {
+        "snapshot": null
+      }
+    },
+    {
+      "title": "List open windows",
+      "uri": "kvm://host/window/query/list",
+      "payload": {}
+    }
   ]
 }

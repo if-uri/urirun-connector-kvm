@@ -41,6 +41,7 @@ EXPECTED_ROUTES = {
     "kvm://host/cdp/session/query/ready",
     "kvm://host/cdp/page/command/navigate", "kvm://host/cdp/page/query/ready",
     "kvm://host/ui/command/act", "kvm://host/env/query/profile", "kvm://host/surface/query/current", "kvm://host/display/query/info",
+    "kvm://host/browser/query/sessions",
     "app://host/desktop/command/launch", "app://host/desktop/query/list",
 }
 
@@ -367,9 +368,58 @@ def test_environment_profile_shape() -> None:
     p = E.profile()
     assert set(p) >= {"platform", "display", "cdp", "ocr", "input", "controlStrategies", "best", "controllable"}
     assert set(p["controlStrategies"]) == {"cdp", "atspi", "vision"}
-    # best is one of the strategies or None, and controllable agrees
     assert p["best"] in (None, "cdp", "atspi", "vision")
     assert p["controllable"] is (p["best"] is not None)
+    # actionMatrix must be present and structurally complete
+    assert "actionMatrix" in p
+    m = p["actionMatrix"]
+    assert set(m) == {"cdp", "atspi", "uinput", "vision"}
+    ACTIONS = {"locate", "click", "type", "navigate", "screenshot"}
+    VALID = {"executable", "degraded", "not_executable", "not_applicable", "blocked"}
+    for surface, row in m.items():
+        assert set(row) == ACTIONS, f"{surface} missing actions"
+        for a, v in row.items():
+            assert v in VALID, f"{surface}.{a}={v!r} not a valid executability value"
+
+
+def test_action_matrix_wayland_type_rule() -> None:
+    """On Wayland, atspi and uinput CANNOT type — this is a hard platform rule, not detection."""
+    wayland_prof = {
+        "wayland": True, "controlStrategies": {"cdp": True, "atspi": True, "vision": False},
+        "input": {"uinput": True, "ydotool": False, "xdotool": False},
+        "ocr": {"tesseract": True, "easyocr": False},
+        "osLevelReliable": False,
+    }
+    m = E.action_matrix(wayland_prof)
+    assert m["cdp"]["type"] == "executable",      "CDP must be able to type"
+    assert m["atspi"]["type"] == "not_executable", "atspi cannot type on Wayland (compositor focus)"
+    assert m["uinput"]["type"] == "not_executable","uinput cannot type on Wayland (compositor focus)"
+
+
+def test_action_matrix_wayland_screenshot_blocked() -> None:
+    """On Wayland with osLevelReliable=False, OS-level screenshot is blocked."""
+    prof = {
+        "wayland": True, "controlStrategies": {"cdp": False, "atspi": False, "vision": True},
+        "input": {"uinput": True, "ydotool": False, "xdotool": False},
+        "ocr": {"tesseract": True, "easyocr": False},
+        "osLevelReliable": False,
+    }
+    m = E.action_matrix(prof)
+    assert m["uinput"]["screenshot"] == "blocked"
+    assert m["vision"]["screenshot"] == "blocked"
+
+
+def test_action_matrix_x11_type_degraded_not_blocked() -> None:
+    """On X11 (not Wayland), atspi type is degraded (works but unreliably) not blocked."""
+    x11_prof = {
+        "wayland": False, "controlStrategies": {"cdp": False, "atspi": True, "vision": False},
+        "input": {"uinput": True, "ydotool": False, "xdotool": False},
+        "ocr": {"tesseract": False, "easyocr": False},
+        "osLevelReliable": True,
+    }
+    m = E.action_matrix(x11_prof)
+    assert m["atspi"]["type"] == "degraded",  "X11 atspi type should be degraded, not blocked"
+    assert m["uinput"]["type"] == "degraded", "X11 uinput type should be degraded, not blocked"
 
 
 def test_report_includes_environment() -> None:

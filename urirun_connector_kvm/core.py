@@ -589,6 +589,22 @@ def _surface_mod() -> Any:
     return _s
 
 
+@conn.handler("browser/query/sessions", isolated=True,
+              meta={"label": "Scan running browsers and installed profiles for active service sessions (LinkedIn, Google…)"})
+def browser_sessions(services: str = "") -> dict[str, Any]:
+    """Task-aware session discovery: which browser/profile is logged in to which service.
+    ``services`` is a comma-separated list of service names to check (default: all known services).
+    Returns a list of browser entries with ``sessions`` dict so the planner can choose the right
+    browser/profile for the task instead of opening a throwaway profile without a session."""
+    try:
+        from urirun_connector_kvm import environment as _env
+    except ImportError:
+        import environment as _env  # type: ignore
+    svc_list = [s.strip() for s in services.split(",") if s.strip()] if services else None
+    entries = _env.browser_sessions(svc_list)
+    return _ok(action="browser-sessions", browsers=entries)
+
+
 @conn.handler("surface/query/current", isolated=True,
               meta={"label": "What UI surface is in the foreground (browser via CDP, or desktop)"})
 def surface_current() -> dict[str, Any]:
