@@ -1271,6 +1271,6 @@ def surface_report() -> dict:
 
 # Register the launch/launch_list backends (their @backend decorators run on import).
 try:  # normal package import
-    from . import launch_backends  # noqa: E402,F401
+    from urirun_connector_kvm import launch_backends  # noqa: E402,F401
 except ImportError:  # flat-module deploy (node pushes backends.py + launch_backends.py as flat modules)
     import launch_backends  # type: ignore  # noqa: F401

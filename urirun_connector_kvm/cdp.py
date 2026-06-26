@@ -12,7 +12,7 @@ import os
 import subprocess
 
 try:
-    from .backends import BackendError
+    from urirun_connector_kvm.backends import BackendError
 except ImportError:  # pragma: no cover - flat deploy
     from backends import BackendError  # type: ignore
 
@@ -24,7 +24,7 @@ def _kvm_endpoint() -> str:
     return (os.environ.get("URIRUN_KVM_CDP_URL") or "http://127.0.0.1:9222").rstrip("/")
 
 try:
-    from .backends import session_env as _session_env
+    from urirun_connector_kvm.backends import session_env as _session_env
 except ImportError:  # pragma: no cover - flat deploy
     from backends import session_env as _session_env  # type: ignore
 

@@ -40,12 +40,12 @@ from typing import Any
 import urirun
 
 try:  # normal package import
-    from . import backends as B
+    from urirun_connector_kvm import backends as B
 except ImportError:  # flat-module deploy (host `deploy --code core.py backends.py`)
     import backends as B  # type: ignore
 
 try:  # universal control-tool router (cdp -> atspi -> vision)
-    from . import control as C
+    from urirun_connector_kvm import control as C
 except ImportError:  # flat-module deploy (push control.py + cdp.py too)
     import control as C  # type: ignore
 
@@ -575,7 +575,7 @@ def env_profile() -> dict[str, Any]:
     of cdp/atspi/vision can run; ``best`` is the preferred one; ``controllable`` is the
     honest top-line (false ⇒ install tesseract / grant /dev/uinput / launch a CDP Chrome)."""
     try:
-        from . import environment as _env
+        from urirun_connector_kvm import environment as _env
     except ImportError:
         import environment as _env  # type: ignore
     return _ok(action="env-profile", **_env.profile())
@@ -583,7 +583,7 @@ def env_profile() -> dict[str, Any]:
 
 def _surface_mod() -> Any:
     try:
-        from . import surface as _s
+        from urirun_connector_kvm import surface as _s
     except ImportError:
         import surface as _s  # type: ignore
     return _s
@@ -636,7 +636,7 @@ def cdp_session_ready(timeout: float = _CDP_SESSION_TIMEOUT) -> dict[str, Any]:
 
 def _cdp_mod() -> Any:
     try:
-        from . import cdp as _cdp
+        from urirun_connector_kvm import cdp as _cdp
     except ImportError:
         import cdp as _cdp  # type: ignore
     return _cdp
@@ -766,7 +766,7 @@ def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", va
               meta={"label": "Is a CDP debug endpoint reachable, and on what page"})
 def cdp_status() -> dict[str, Any]:
     try:
-        from . import cdp as _cdp
+        from urirun_connector_kvm import cdp as _cdp
     except ImportError:
         import cdp as _cdp  # type: ignore
     reachable = _cdp.reachable()

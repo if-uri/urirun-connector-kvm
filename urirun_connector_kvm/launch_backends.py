@@ -17,7 +17,7 @@ import time
 from typing import Any
 
 try:  # normal package import
-    from .backends import BackendError, _run, backend, session_env
+    from urirun_connector_kvm.backends import BackendError, _run, backend, session_env
 except ImportError:  # flat-module deploy (node `host deploy --code backends.py launch_backends.py`)
     from backends import BackendError, _run, backend, session_env  # type: ignore
 

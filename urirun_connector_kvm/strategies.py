@@ -9,17 +9,17 @@
 import time
 
 try:  # normal package import / flat deploy
-    from . import backends as B
+    from urirun_connector_kvm import backends as B
 except ImportError:  # pragma: no cover
     import backends as B  # type: ignore
 
 try:
-    from . import cdp as _cdp
+    from urirun_connector_kvm import cdp as _cdp
 except ImportError:  # pragma: no cover
     import cdp as _cdp  # type: ignore
 
 try:
-    from . import environment as _env
+    from urirun_connector_kvm import environment as _env
 except ImportError:  # pragma: no cover
     import environment as _env  # type: ignore
 
