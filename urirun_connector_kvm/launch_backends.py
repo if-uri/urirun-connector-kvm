@@ -23,6 +23,7 @@ except ImportError:  # flat-module deploy (node `host deploy --code backends.py 
 
 _PRIORITY_LINUX = 80
 _PRIORITY_OTHER = 70
+_MAX_SETTLE_SECS = 30.0
 
 
 def _cdp_port() -> str:
@@ -220,7 +221,7 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
     # wrong on any seat whose socket isn't wayland-0.
     p = subprocess.Popen(argv, env=session_env(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True)
-    settled = max(0.0, min(float(settle or 0), 30.0))
+    settled = max(0.0, min(float(settle or 0), _MAX_SETTLE_SECS))
     result = {"via": "xdg", "app": resolved, "pid": p.pid, "argv": argv,
               "compose": bool(compose), "settled": settled}
     if cdp_port:
@@ -239,7 +240,7 @@ def _launch_xdg(app: str = "", compose: str = "", args: list | None = None, sett
 def _launch_macos(app: str = "", args: list | None = None, settle: float = 0, **_: Any) -> dict:
     argv = ["open", "-a", app] + (["--args", *map(str, args or [])] if args else [])
     _run(argv)
-    settled = max(0.0, min(float(settle or 0), 30.0))
+    settled = max(0.0, min(float(settle or 0), _MAX_SETTLE_SECS))
     if settled:
         time.sleep(settled)
     return {"via": "open", "app": {"id": app, "name": app, "how": "open"}, "settled": settled}
@@ -251,7 +252,7 @@ def _launch_windows(app: str = "", args: list | None = None, settle: float = 0, 
         os.startfile(app)  # type: ignore[attr-defined]
     except OSError:
         _run(["cmd", "/c", "start", "", app, *map(str, args or [])])
-    settled = max(0.0, min(float(settle or 0), 30.0))
+    settled = max(0.0, min(float(settle or 0), _MAX_SETTLE_SECS))
     if settled:
         time.sleep(settled)
     return {"via": "startfile", "app": {"id": app, "name": app, "how": "startfile"}, "settled": settled}

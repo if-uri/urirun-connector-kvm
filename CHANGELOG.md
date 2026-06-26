@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.1.10] - 2026-06-26
+
+### Fixed
+- Fix relative-imports issues (ticket-415e43c7)
+- Fix relative-imports issues (ticket-8ada2922)
+- Fix string-concat issues (ticket-d70457b6)
+- Fix unused-imports issues (ticket-9fdf61a8)
+- Fix magic-numbers issues (ticket-a5438875)
+- Fix relative-imports issues (ticket-ce3f6838)
+- Fix string-concat issues (ticket-aa376883)
+- Fix unused-imports issues (ticket-3e496e3d)
+- Fix relative-imports issues (ticket-83dbbaa1)
+- Fix unused-imports issues (ticket-062cdead)
+- Fix relative-imports issues (ticket-0964147e)
+- Fix string-concat issues (ticket-63ce837c)
+- Fix unused-imports issues (ticket-669da076)
+- Fix magic-numbers issues (ticket-bd3e2894)
+- Fix relative-imports issues (ticket-e9277b85)
+- Fix string-concat issues (ticket-07fca827)
+- Fix unused-imports issues (ticket-15ecb906)
+- Fix magic-numbers issues (ticket-e88bc5e8)
+- Fix llm-generated-code issues (ticket-8fed7186)
+- Fix relative-imports issues (ticket-5bd1676f)
+- Fix unused-imports issues (ticket-7ee2ad8b)
+- Fix magic-numbers issues (ticket-7d6267e7)
+- Fix relative-imports issues (ticket-eeb1486f)
+- Fix string-concat issues (ticket-adda5822)
+- Fix unused-imports issues (ticket-10b1c1d7)
+- Fix magic-numbers issues (ticket-b33c2cb9)
+- Fix ai-boilerplate issues (ticket-03cf31f4)
+- Fix relative-imports issues (ticket-b1dbdf37)
+- Fix unused-imports issues (ticket-7cb6973a)
+- Fix smart-return-type issues (ticket-62f93b85)
+- Fix string-concat issues (ticket-83940a65)
+- Fix magic-numbers issues (ticket-162ae939)
+
 ## [0.1.10] - 2026-06-25
 
 ### Fixed
