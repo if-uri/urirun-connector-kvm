@@ -151,13 +151,14 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     ``crop_w``/``crop_h``) to return ONLY a zoomed tile around that point — so a
     remote caller transfers a small region where the action is, not the whole screen.
     ``crop`` in the result gives the tile's origin/size for mapping coords back."""
-    out = output or os.path.join(tempfile.gettempdir(), f"urirun-kvm-shot-{os.getpid()}.png")
-    # An isolated capture runs in a subprocess with an unpredictable cwd, so a relative
-    # output name lands somewhere the caller/host can't resolve (fileExists:false, no preview).
-    # Anchor it under the temp dir with the ``urirun-`` prefix the dashboard's preview server
-    # (_file_response) whitelists, so the returned absolute path is both findable AND previewable.
-    if not os.path.isabs(out):
-        out = os.path.join(tempfile.gettempdir(), "urirun-" + os.path.basename(out))
+    _art_root = os.path.expanduser(os.environ.get("URIRUN_ARTIFACT_DIR", "~/.urirun/artifacts"))
+    _shot_dir = os.path.join(_art_root, "screenshots")
+    if output and os.path.isabs(output):
+        out = output
+    else:
+        os.makedirs(_shot_dir, exist_ok=True)
+        name = os.path.basename(output) if output else f"urirun-kvm-shot-{os.getpid()}.png"
+        out = os.path.join(_shot_dir, name)
     try:
         res = B.dispatch("capture", output=out, monitor=monitor)
     except B.BackendError as exc:
