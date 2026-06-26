@@ -42,6 +42,10 @@ import urirun
 try:  # normal package import
     from urirun_connector_kvm import backends as B
 except ImportError:  # flat-module deploy (host `deploy --code core.py backends.py`)
+    import sys as _sys, os as _os
+    _kvm_dir = _os.path.dirname(_os.path.abspath(__file__))
+    if _kvm_dir not in _sys.path:
+        _sys.path.insert(0, _kvm_dir)
     import backends as B  # type: ignore
 
 try:  # universal control-tool router (cdp -> atspi -> vision)
