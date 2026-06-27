@@ -26,17 +26,21 @@ echo "== 2/6 contract composition (static wire type-checking) =="
 python -m pytest tests/test_contract_composition.py -q
 
 echo
-echo "== 3/6 cross-process IPC (two separate OS processes, JSON on a pipe) =="
+echo "== 3/7 cross-process IPC (two separate OS processes, JSON on a pipe) =="
 python ci/cross_process_roundtrip.py drive window/command/close window/command/restore
 python ci/cross_process_roundtrip.py drive screen/query/capture abs/command/click
 
 echo
-echo "== 4/6 polyglot (py · js · go read the SAME contracts.json — 3×3 exchange matrix) =="
+echo
+echo "== 4/7 shape lint (handler signatures + envelope keys match declared contracts) =="
+python ci/contract_shape_lint.py
+
+echo "== 5/7 polyglot (py · js · go read the SAME contracts.json — 3×3 exchange matrix) =="
 URIRUN_TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}" \
   bash xlang/run.sh
 
 echo
-echo "== 5/6 production check (external driver queries each node via transport, validates OUTPUT) =="
+echo "== 6/7 production check (external driver queries each node via transport, validates OUTPUT) =="
 # round-trip (step 3) proved CONSUMPTION; driver proves PRODUCTION through the wire.
 # --lie mode: each node passes its own in-language gate but lies on the wire — only the third-party
 # driver (holding the contract) catches it, showing contracts are enforced OUTSIDE the node too.
@@ -44,11 +48,11 @@ URIRUN_TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python
   bash xlang/driver.sh
 
 echo
-echo "== 6/6 transport invariance (same node × stdio vs HTTP → identical conformant envelope) =="
+echo "== 7/7 transport invariance (same node × stdio vs HTTP → identical conformant envelope) =="
 # operation identity is the URI, not the transport: if the envelope differed by transport,
 # the "contract" was secretly a transport detail.
 URIRUN_TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}" \
   bash xlang/transport_swap.sh
 
 echo
-echo "OK: contracts self-consistent, composable, IPC-compatible, polyglot, wire-honest, transport-invariant."
+echo "OK: contracts self-consistent, composable, shape-linted, IPC-compatible, polyglot, wire-honest, transport-invariant."

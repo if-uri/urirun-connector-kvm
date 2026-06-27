@@ -65,6 +65,15 @@ except ImportError as _e:  # flat-module deploy (push control.py + cdp.py too)
 CONNECTOR_ID = "kvm"
 conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
 
+try:  # wrap conn.handler BEFORE the decorators below so every contracted route is guarded
+    from urirun_connectors_toolkit.contract_gate import enforce as _enforce
+    from urirun_connector_kvm.contracts import CONTRACTS as _CONTRACTS_EARLY
+    _enforce(conn, _CONTRACTS_EARLY,
+             validate=os.environ.get("URIRUN_CONTRACT_CHECK") == "1")
+    del _CONTRACTS_EARLY
+except Exception:  # noqa: BLE001 - contracts are enrichment; absent toolkit must not break imports
+    pass
+
 # A real screenshot is hundreds of KB; the GNOME-Wayland xdg-portal empty/blocked placeholder is ~3.8 KB.
 # Below this, a portal capture is treated as a degraded non-capture, not a false success.
 _MIN_REAL_SHOT_BYTES = 20_000
