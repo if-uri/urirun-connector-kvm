@@ -372,9 +372,15 @@ def _cap_pillow(output: str, **_: Any) -> dict:
     return {"path": output, "via": "PIL.ImageGrab"}
 
 
-@backend("capture", "scrot", priority=60, platforms=("linux-x11",), needs_bin=("scrot",))
+@backend("capture", "scrot", priority=60,
+         platforms=("linux-x11", "linux-wayland"), needs_bin=("scrot",))
 def _cap_scrot(output: str, **_: Any) -> dict:
-    _run(["scrot", "-o", output])
+    # On XWayland sessions DISPLAY is available even when WAYLAND_DISPLAY is set;
+    # scrot uses X11 so it works in that environment.
+    env = session_env()
+    if not env.get("DISPLAY"):
+        raise BackendError("scrot requires an X11 DISPLAY; not available on pure Wayland")
+    _run(["scrot", "-o", output], env=env)
     return {"path": output, "via": "scrot"}
 
 
