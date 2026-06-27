@@ -43,7 +43,7 @@ app {
 }
 
 dependencies {
-  runtime: urirun>=0.4.14;
+  runtime: "urirun>=0.4.14, urirun-cdp>=0.1.0";
   test: pytest>=8;
   capture: "mss>=9.0, Pillow>=10.0";
   portal: "PyGObject>=3.42, dbus-python>=1.3";
@@ -147,6 +147,7 @@ project:
 
 ```text markpact:deps python
 urirun>=0.4.14
+urirun-cdp>=0.1.0
 ```
 
 ## Deployment
@@ -171,10 +172,10 @@ pip install -e .[dev]
 ### `project/map.toon.yaml`
 
 ```toon markpact:analysis path=project/map.toon.yaml
-# urirun-connector-kvm | 27f 5669L | python:23,shell:3,less:1 | 2026-06-25
-# stats: 213 func | 12 cls | 27 mod | CC̄=4.1 | critical:16 | cycles:0
-# alerts[5]: CC _locate_easyocr=14; CC _line_match=13; CC _wayland_present=13; CC route=13; CC task_run=13
-# hotspots[5]: _locate_easyocr fan=18; capture fan=16; uinput_abs_click fan=15; _tsv_lines fan=14; proc_kill fan=14
+# urirun-connector-kvm | 27f 6278L | python:23,shell:3,less:1 | 2026-06-27
+# stats: 235 func | 12 cls | 27 mod | CC̄=4.3 | critical:20 | cycles:0
+# alerts[5]: CC browser_sessions=17; CC _running_browser_processes=15; CC _locate_easyocr=14; CC capture=14; CC _line_match=13
+# hotspots[5]: capture fan=23; _locate_easyocr fan=18; browser_sessions fan=16; uinput_abs_click fan=15; profile fan=15
 # evolution: baseline
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
 M[27]:
@@ -194,17 +195,17 @@ M[27]:
   examples/calibrate_abs.py,76
   examples/quickstart.sh,6
   project.sh,69
-  tests/test_kvm.py,464
+  tests/test_kvm.py,608
   tree.sh,5
   urirun_connector_kvm/__init__.py,39
-  urirun_connector_kvm/backends.py,1279
-  urirun_connector_kvm/cdp.py,221
-  urirun_connector_kvm/control.py,215
-  urirun_connector_kvm/core.py,947
-  urirun_connector_kvm/environment.py,95
-  urirun_connector_kvm/launch_backends.py,283
-  urirun_connector_kvm/strategies.py,130
-  urirun_connector_kvm/surface.py,61
+  urirun_connector_kvm/backends.py,1368
+  urirun_connector_kvm/cdp.py,222
+  urirun_connector_kvm/control.py,213
+  urirun_connector_kvm/core.py,1014
+  urirun_connector_kvm/environment.py,402
+  urirun_connector_kvm/launch_backends.py,285
+  urirun_connector_kvm/strategies.py,133
+  urirun_connector_kvm/surface.py,59
 D:
   computer-use-preview/agent.py:
     e: multiply_numbers,BrowserAgent
@@ -243,7 +244,7 @@ D:
     magenta_frac(a)
     find_box(a)
   tests/test_kvm.py:
-    e: test_key_requires_value,test_type_requires_value,test_no_backend_reports_install_hint,test_backend_decorator_registers_and_sorts,test_dispatch_falls_through_on_failure,test_unavailable_backend_skipped_by_needs,test_bindings_are_isolated_handlers,test_runtime_executes_from_compiled_registry,test_doctor_reports_backends,test_capture_tags_screenshot_as_frozen_artifact,test_manifest_prose_plus_derived_routes,test_cli_bindings_and_manifest,test_router_prefers_cdp_when_reachable,test_router_falls_through_cdp_to_vision,test_router_empty_target_is_error,test_ui_act_retries_then_succeeds,test_ui_act_rejects_bad_verb,test_is_wayland_detects_via_socket_when_env_absent,test_platform_tag_wayland_via_socket,test_session_env_fills_display_and_bus,test_session_env_preserves_existing_vars,test_chrome_launch_injects_dedicated_profile_and_debug_port,test_chrome_launch_default_keeps_real_profile,test_non_chrome_launch_skips_cdp,test_vision_strategy_is_environment_gated,test_environment_profile_shape,test_report_includes_environment,test_cdp_port_prefers_client_url,test_spread_strips_envelope_reserved_keys,test_cdp_navigate_has_no_url_collision,test_cdp_start_session_reuses_without_spawn,test_cdp_start_session_launches_and_returns_immediately,test_cdp_await_ready_polls_without_spawn,test_ui_wait_success_has_no_found_collision
+    e: test_key_requires_value,test_type_requires_value,test_no_backend_reports_install_hint,test_backend_decorator_registers_and_sorts,test_dispatch_falls_through_on_failure,test_unavailable_backend_skipped_by_needs,test_bindings_are_isolated_handlers,test_runtime_executes_from_compiled_registry,test_doctor_reports_backends,test_capture_tags_screenshot_as_frozen_artifact,test_capture_xdg_portal_placeholder_is_degraded_not_false_success,test_manifest_prose_plus_derived_routes,test_cli_bindings_and_manifest,test_router_prefers_cdp_when_reachable,test_router_falls_through_cdp_to_vision,test_router_empty_target_is_error,test_ui_act_retries_then_succeeds,test_ui_act_rejects_bad_verb,test_is_wayland_detects_via_socket_when_env_absent,test_platform_tag_wayland_via_socket,test_session_env_fills_display_and_bus,test_session_env_preserves_existing_vars,test_chrome_launch_injects_dedicated_profile_and_debug_port,test_chrome_launch_default_keeps_real_profile,test_non_chrome_launch_skips_cdp,test_vision_strategy_is_environment_gated,test_environment_profile_shape,test_action_matrix_wayland_type_rule,test_action_matrix_wayland_screenshot_blocked,test_action_matrix_x11_type_degraded_not_blocked,test_report_includes_environment,test_cdp_port_prefers_client_url,test_spread_strips_envelope_reserved_keys,test_cdp_navigate_has_no_url_collision,test_cdp_start_session_reuses_without_spawn,test_cdp_start_session_launches_and_returns_immediately,test_cdp_await_ready_polls_without_spawn,test_ui_wait_success_has_no_found_collision,test_grim_skipped_on_gnome_wayland,test_grim_allowed_on_sway,test_grim_backend_raises_on_non_wlroots,test_capture_portal_denied_returns_degraded,test_capture_other_backend_error_stays_fail
     test_key_requires_value()
     test_type_requires_value()
     test_no_backend_reports_install_hint(monkeypatch)
@@ -254,6 +255,7 @@ D:
     test_runtime_executes_from_compiled_registry(monkeypatch)
     test_doctor_reports_backends()
     test_capture_tags_screenshot_as_frozen_artifact(monkeypatch)
+    test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatch)
     test_manifest_prose_plus_derived_routes()
     test_cli_bindings_and_manifest(capsys)
     test_router_prefers_cdp_when_reachable(monkeypatch)
@@ -270,6 +272,9 @@ D:
     test_non_chrome_launch_skips_cdp(monkeypatch)
     test_vision_strategy_is_environment_gated(monkeypatch)
     test_environment_profile_shape()
+    test_action_matrix_wayland_type_rule()
+    test_action_matrix_wayland_screenshot_blocked()
+    test_action_matrix_x11_type_degraded_not_blocked()
     test_report_includes_environment()
     test_cdp_port_prefers_client_url(monkeypatch)
     test_spread_strips_envelope_reserved_keys()
@@ -278,9 +283,14 @@ D:
     test_cdp_start_session_launches_and_returns_immediately(monkeypatch)
     test_cdp_await_ready_polls_without_spawn(monkeypatch)
     test_ui_wait_success_has_no_found_collision(monkeypatch)
+    test_grim_skipped_on_gnome_wayland(monkeypatch)
+    test_grim_allowed_on_sway(monkeypatch)
+    test_grim_backend_raises_on_non_wlroots(monkeypatch)
+    test_capture_portal_denied_returns_degraded(monkeypatch)
+    test_capture_other_backend_error_stays_fail(monkeypatch)
   urirun_connector_kvm/__init__.py:
   urirun_connector_kvm/backends.py:
-    e: _runtime_dir,_wayland_socket,_x_display,is_wayland,is_x11,platform_tag,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,session_env,_clipboard_set,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_uinput_abs,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_tesseract_words_by_line,_line_match,_tesseract_query_matches,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,_screen_wh,_read_text,_calib,_compute_abs_coords,_uinput_emit_clicks,uinput_abs_click,_gnome_monitors,_wayland_present,_surface_warnings,_os_level_reliable,_surface_flags,surface_report,Backend
+    e: _runtime_dir,_wayland_socket,_x_display,is_wayland,is_x11,platform_tag,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_mutter_python,_cap_mutter,_is_wlroots_compositor,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,session_env,_clipboard_set,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_uinput_abs,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_tesseract_words_by_line,_line_match,_tesseract_query_matches,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,_screen_wh,_read_text,_calib,_compute_abs_coords,_uinput_emit_clicks,uinput_abs_click,_gnome_monitors,_wayland_present,_surface_warnings,_os_level_reliable,_surface_flags,surface_report,Backend
     Backend: missing(0),available(0)
     _runtime_dir()
     _wayland_socket()
@@ -294,6 +304,9 @@ D:
     _run(argv)
     _portal_python()
     _cap_portal(output)
+    _mutter_python()
+    _cap_mutter(output)
+    _is_wlroots_compositor()
     _cap_grim(output)
     _cap_mss(output;monitor)
     _cap_pillow(output)
@@ -380,7 +393,7 @@ D:
     report()
     _safe_avail(s)
   urirun_connector_kvm/core.py:
-    e: _ok,_fail_from,_spread,_positioned_click,_apply_capture_postprocessing,capture,display_info,type_text,key,click,move,wait,scroll,double_click,triple_click,right_click,middle_click,hover,drag_and_drop,click_abs,task_run,focus,window_list,window_close,window_restore,proc_kill,a11y_act,_click_hit,_router_return,ui_find,ui_click,ui_fill,ui_strategies,env_profile,_surface_mod,surface_current,cdp_ensure,cdp_session_ready,_cdp_mod,cdp_navigate,cdp_ready,_resolve_act_app,_act_retry_loop,_act_reject,_act_ready,ui_act,cdp_status,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
+    e: _ok,_fail_from,_spread,_positioned_click,_apply_capture_postprocessing,capture,display_info,type_text,key,click,move,wait,scroll,double_click,triple_click,right_click,middle_click,hover,drag_and_drop,click_abs,task_run,focus,window_list,window_close,window_restore,proc_kill,a11y_act,_click_hit,_router_return,ui_find,ui_click,ui_fill,ui_strategies,env_profile,_surface_mod,browser_sessions,surface_current,cdp_ensure,cdp_session_ready,_cdp_mod,cdp_navigate,cdp_ready,_resolve_act_app,_act_retry_loop,_act_reject,_act_ready,ui_act,cdp_status,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
     _ok()
     _fail_from(action;exc)
     _spread(d)
@@ -416,6 +429,7 @@ D:
     ui_strategies()
     env_profile()
     _surface_mod()
+    browser_sessions(services)
     surface_current()
     cdp_ensure(url;user_data_dir;copy_from;wait)
     cdp_session_ready(timeout)
@@ -440,10 +454,19 @@ D:
     connector_manifest()
     main(argv)
   urirun_connector_kvm/environment.py:
-    e: _safe,atspi_ready,profile
+    e: _safe,atspi_ready,action_matrix,profile,_check_cookies_for_services,_proc_argv,_proc_ppid,_browser_name_from_binary,_parse_browser_args,_running_browser_processes,_find_cookie_db,browser_sessions
     _safe(fn)
     atspi_ready()
+    action_matrix(prof)
     profile()
+    _check_cookies_for_services(cookie_db;services)
+    _proc_argv(pid)
+    _proc_ppid(pid)
+    _browser_name_from_binary(binary_b;binary)
+    _parse_browser_args(argv)
+    _running_browser_processes()
+    _find_cookie_db(user_data_dir;browser_config_dir)
+    browser_sessions(services)
   urirun_connector_kvm/launch_backends.py:
     e: _cdp_port,_cdp_wait,_xdg_app_dirs,_parse_desktop_section,_parse_desktop,_desktop_entries,_strip_field_codes,_find_app,_resolve_launch_argv,_inject_cdp_profile,_inject_chrome_flags,_launch_xdg,_launch_macos,_launch_windows,_list_xdg,_list_macos
     _cdp_port()
@@ -497,17 +520,17 @@ project_file('computer-use-preview/test_main.py', 70, 'python').
 project_file('examples/calibrate_abs.py', 76, 'python').
 project_file('examples/quickstart.sh', 6, 'shell').
 project_file('project.sh', 69, 'shell').
-project_file('tests/test_kvm.py', 464, 'python').
+project_file('tests/test_kvm.py', 608, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1279, 'python').
-project_file('urirun_connector_kvm/cdp.py', 221, 'python').
-project_file('urirun_connector_kvm/control.py', 215, 'python').
-project_file('urirun_connector_kvm/core.py', 947, 'python').
-project_file('urirun_connector_kvm/environment.py', 95, 'python').
-project_file('urirun_connector_kvm/launch_backends.py', 283, 'python').
-project_file('urirun_connector_kvm/strategies.py', 130, 'python').
-project_file('urirun_connector_kvm/surface.py', 61, 'python').
+project_file('urirun_connector_kvm/backends.py', 1368, 'python').
+project_file('urirun_connector_kvm/cdp.py', 222, 'python').
+project_file('urirun_connector_kvm/control.py', 213, 'python').
+project_file('urirun_connector_kvm/core.py', 1014, 'python').
+project_file('urirun_connector_kvm/environment.py', 402, 'python').
+project_file('urirun_connector_kvm/launch_backends.py', 285, 'python').
+project_file('urirun_connector_kvm/strategies.py', 133, 'python').
+project_file('urirun_connector_kvm/surface.py', 59, 'python').
 
 % ── Python Functions ─────────────────────────────────────
 python_function('computer-use-preview/agent.py', 'multiply_numbers', 2, 1, 0).
@@ -526,6 +549,7 @@ python_function('tests/test_kvm.py', 'test_bindings_are_isolated_handlers', 0, 6
 python_function('tests/test_kvm.py', 'test_runtime_executes_from_compiled_registry', 1, 3, 8).
 python_function('tests/test_kvm.py', 'test_doctor_reports_backends', 0, 5, 2).
 python_function('tests/test_kvm.py', 'test_capture_tags_screenshot_as_frozen_artifact', 1, 2, 3).
+python_function('tests/test_kvm.py', 'test_capture_xdg_portal_placeholder_is_degraded_not_false_success', 1, 4, 3).
 python_function('tests/test_kvm.py', 'test_manifest_prose_plus_derived_routes', 0, 5, 2).
 python_function('tests/test_kvm.py', 'test_cli_bindings_and_manifest', 1, 5, 3).
 python_function('tests/test_kvm.py', 'test_router_prefers_cdp_when_reachable', 1, 2, 2).
@@ -541,7 +565,10 @@ python_function('tests/test_kvm.py', 'test_chrome_launch_injects_dedicated_profi
 python_function('tests/test_kvm.py', 'test_chrome_launch_default_keeps_real_profile', 1, 6, 6).
 python_function('tests/test_kvm.py', 'test_non_chrome_launch_skips_cdp', 1, 3, 5).
 python_function('tests/test_kvm.py', 'test_vision_strategy_is_environment_gated', 1, 3, 3).
-python_function('tests/test_kvm.py', 'test_environment_profile_shape', 0, 5, 2).
+python_function('tests/test_kvm.py', 'test_environment_profile_shape', 0, 11, 3).
+python_function('tests/test_kvm.py', 'test_action_matrix_wayland_type_rule', 0, 4, 1).
+python_function('tests/test_kvm.py', 'test_action_matrix_wayland_screenshot_blocked', 0, 3, 1).
+python_function('tests/test_kvm.py', 'test_action_matrix_x11_type_degraded_not_blocked', 0, 3, 1).
 python_function('tests/test_kvm.py', 'test_report_includes_environment', 0, 3, 1).
 python_function('tests/test_kvm.py', 'test_cdp_port_prefers_client_url', 1, 4, 3).
 python_function('tests/test_kvm.py', 'test_spread_strips_envelope_reserved_keys', 0, 4, 1).
@@ -550,6 +577,11 @@ python_function('tests/test_kvm.py', 'test_cdp_start_session_reuses_without_spaw
 python_function('tests/test_kvm.py', 'test_cdp_start_session_launches_and_returns_immediately', 1, 2, 3).
 python_function('tests/test_kvm.py', 'test_cdp_await_ready_polls_without_spawn', 1, 4, 4).
 python_function('tests/test_kvm.py', 'test_ui_wait_success_has_no_found_collision', 1, 2, 2).
+python_function('tests/test_kvm.py', 'test_grim_skipped_on_gnome_wayland', 1, 2, 2).
+python_function('tests/test_kvm.py', 'test_grim_allowed_on_sway', 1, 2, 2).
+python_function('tests/test_kvm.py', 'test_grim_backend_raises_on_non_wlroots', 1, 1, 3).
+python_function('tests/test_kvm.py', 'test_capture_portal_denied_returns_degraded', 1, 5, 5).
+python_function('tests/test_kvm.py', 'test_capture_other_backend_error_stays_fail', 1, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_runtime_dir', 0, 3, 3).
 python_function('urirun_connector_kvm/backends.py', '_wayland_socket', 0, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_x_display', 0, 6, 4).
@@ -562,7 +594,10 @@ python_function('urirun_connector_kvm/backends.py', 'registry_report', 0, 3, 4).
 python_function('urirun_connector_kvm/backends.py', '_run', 1, 4, 4).
 python_function('urirun_connector_kvm/backends.py', '_portal_python', 0, 5, 3).
 python_function('urirun_connector_kvm/backends.py', '_cap_portal', 1, 2, 11).
-python_function('urirun_connector_kvm/backends.py', '_cap_grim', 1, 1, 2).
+python_function('urirun_connector_kvm/backends.py', '_mutter_python', 0, 5, 3).
+python_function('urirun_connector_kvm/backends.py', '_cap_mutter', 1, 2, 8).
+python_function('urirun_connector_kvm/backends.py', '_is_wlroots_compositor', 0, 4, 4).
+python_function('urirun_connector_kvm/backends.py', '_cap_grim', 1, 4, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_mss', 2, 2, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_pillow', 1, 1, 3).
 python_function('urirun_connector_kvm/backends.py', '_cap_scrot', 1, 1, 2).
@@ -648,7 +683,7 @@ python_function('urirun_connector_kvm/core.py', '_fail_from', 2, 1, 3).
 python_function('urirun_connector_kvm/core.py', '_spread', 1, 4, 1).
 python_function('urirun_connector_kvm/core.py', '_positioned_click', 4, 8, 7).
 python_function('urirun_connector_kvm/core.py', '_apply_capture_postprocessing', 7, 10, 9).
-python_function('urirun_connector_kvm/core.py', 'capture', 9, 6, 16).
+python_function('urirun_connector_kvm/core.py', 'capture', 9, 14, 23).
 python_function('urirun_connector_kvm/core.py', 'display_info', 0, 4, 9).
 python_function('urirun_connector_kvm/core.py', 'type_text', 1, 3, 5).
 python_function('urirun_connector_kvm/core.py', 'key', 2, 4, 5).
@@ -678,6 +713,7 @@ python_function('urirun_connector_kvm/core.py', 'ui_fill', 6, 8, 6).
 python_function('urirun_connector_kvm/core.py', 'ui_strategies', 0, 1, 3).
 python_function('urirun_connector_kvm/core.py', 'env_profile', 0, 2, 3).
 python_function('urirun_connector_kvm/core.py', '_surface_mod', 0, 2, 0).
+python_function('urirun_connector_kvm/core.py', 'browser_sessions', 1, 5, 5).
 python_function('urirun_connector_kvm/core.py', 'surface_current', 0, 1, 4).
 python_function('urirun_connector_kvm/core.py', 'cdp_ensure', 4, 6, 10).
 python_function('urirun_connector_kvm/core.py', 'cdp_session_ready', 1, 4, 10).
@@ -703,7 +739,16 @@ python_function('urirun_connector_kvm/core.py', 'connector_manifest', 0, 1, 2).
 python_function('urirun_connector_kvm/core.py', 'main', 1, 1, 2).
 python_function('urirun_connector_kvm/environment.py', '_safe', 1, 2, 2).
 python_function('urirun_connector_kvm/environment.py', 'atspi_ready', 0, 4, 3).
-python_function('urirun_connector_kvm/environment.py', 'profile', 0, 13, 14).
+python_function('urirun_connector_kvm/environment.py', 'action_matrix', 1, 6, 6).
+python_function('urirun_connector_kvm/environment.py', 'profile', 0, 13, 15).
+python_function('urirun_connector_kvm/environment.py', '_check_cookies_for_services', 2, 9, 10).
+python_function('urirun_connector_kvm/environment.py', '_proc_argv', 1, 4, 4).
+python_function('urirun_connector_kvm/environment.py', '_proc_ppid', 1, 4, 6).
+python_function('urirun_connector_kvm/environment.py', '_browser_name_from_binary', 2, 9, 2).
+python_function('urirun_connector_kvm/environment.py', '_parse_browser_args', 1, 5, 4).
+python_function('urirun_connector_kvm/environment.py', '_running_browser_processes', 0, 15, 15).
+python_function('urirun_connector_kvm/environment.py', '_find_cookie_db', 2, 6, 4).
+python_function('urirun_connector_kvm/environment.py', 'browser_sessions', 1, 17, 16).
 python_function('urirun_connector_kvm/launch_backends.py', '_cdp_port', 0, 3, 5).
 python_function('urirun_connector_kvm/launch_backends.py', '_cdp_wait', 2, 6, 7).
 python_function('urirun_connector_kvm/launch_backends.py', '_xdg_app_dirs', 0, 8, 8).
@@ -919,36 +964,38 @@ sumd_workflow_step('test', 1, 'pip install -e . && python3 -m pytest -q && $(MAK
 
 ## Call Graph
 
-*170 nodes · 240 edges · 12 modules · CC̄=3.3*
+*183 nodes · 254 edges · 12 modules · CC̄=3.5*
 
 ### Hubs (by degree)
 
 | Function | CC | in | out | total |
 |----------|----|----|-----|-------|
-| `backend` *(in urirun_connector_kvm.backends)* | 1 | 39 | 6 | **45** |
+| `backend` *(in urirun_connector_kvm.backends)* | 1 | 40 | 6 | **46** |
+| `_ok` *(in urirun_connector_kvm.core)* | 1 | 41 | 1 | **42** |
 | `task_run` *(in urirun_connector_kvm.core)* | 13 ⚠ | 0 | 41 | **41** |
-| `_ok` *(in urirun_connector_kvm.core)* | 1 | 40 | 1 | **41** |
-| `_run` *(in urirun_connector_kvm.backends)* | 4 | 24 | 4 | **28** |
+| `capture` *(in urirun_connector_kvm.core)* | 14 ⚠ | 0 | 30 | **30** |
+| `_run` *(in urirun_connector_kvm.backends)* | 4 | 25 | 4 | **29** |
 | `_fail_from` *(in urirun_connector_kvm.core)* | 1 | 25 | 3 | **28** |
 | `_apply_capture_postprocessing` *(in urirun_connector_kvm.core)* | 10 ⚠ | 1 | 27 | **28** |
 | `_locate_easyocr` *(in urirun_connector_kvm.backends)* | 14 ⚠ | 0 | 26 | **26** |
-| `profile` *(in urirun_connector_kvm.environment)* | 13 ⚠ | 0 | 25 | **25** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
 # generated in 0.08s
-# nodes: 170 | edges: 240 | modules: 12
-# CC̄=3.3
+# nodes: 183 | edges: 254 | modules: 12
+# CC̄=3.5
 
 HUBS[20]:
   urirun_connector_kvm.backends.backend
-    CC=1  in:39  out:6  total:45
+    CC=1  in:40  out:6  total:46
+  urirun_connector_kvm.core._ok
+    CC=1  in:41  out:1  total:42
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
-  urirun_connector_kvm.core._ok
-    CC=1  in:40  out:1  total:41
+  urirun_connector_kvm.core.capture
+    CC=14  in:0  out:30  total:30
   urirun_connector_kvm.backends._run
-    CC=4  in:24  out:4  total:28
+    CC=4  in:25  out:4  total:29
   urirun_connector_kvm.core._fail_from
     CC=1  in:25  out:3  total:28
   urirun_connector_kvm.core._apply_capture_postprocessing
@@ -956,31 +1003,29 @@ HUBS[20]:
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
   urirun_connector_kvm.environment.profile
-    CC=13  in:0  out:25  total:25
+    CC=13  in:0  out:26  total:26
   urirun_connector_kvm.core.ui_click_text
     CC=8  in:0  out:23  total:23
-  urirun_connector_kvm.core.window_restore
-    CC=5  in:0  out:22  total:22
   urirun_connector_kvm.backends.uinput_abs_click
     CC=9  in:1  out:21  total:22
+  urirun_connector_kvm.core.window_restore
+    CC=5  in:0  out:22  total:22
+  urirun_connector_kvm.environment.browser_sessions
+    CC=17  in:0  out:22  total:22
   urirun_connector_kvm.backends._locate_vql
     CC=11  in:0  out:21  total:21
   urirun_connector_kvm.core.proc_kill
     CC=12  in:0  out:21  total:21
   computer-use-preview.agent.BrowserAgent._dispatch_legacy_action
     CC=11  in:0  out:20  total:20
-  computer-use-preview.computers.kvm.kvm.KvmComputer._run
-    CC=11  in:2  out:17  total:19
   urirun_connector_kvm.backends.dispatch
     CC=11  in:2  out:17  total:19
-  urirun_connector_kvm.core._positioned_click
-    CC=8  in:6  out:12  total:18
+  computer-use-preview.computers.kvm.kvm.KvmComputer._run
+    CC=11  in:2  out:17  total:19
+  urirun_connector_kvm.environment._running_browser_processes
+    CC=15  in:1  out:17  total:18
   urirun_connector_kvm.core.cdp_ensure
     CC=6  in:0  out:18  total:18
-  urirun_connector_kvm.core.ui_act
-    CC=7  in:0  out:17  total:17
-  urirun_connector_kvm.backends._screen_wh
-    CC=8  in:2  out:15  total:17
 
 MODULES:
   computer-use-preview.agent  [3 funcs]
@@ -994,17 +1039,17 @@ MODULES:
   examples.calibrate_abs  [2 funcs]
     cap  CC=1  out:9
     run  CC=2  out:1
-  urirun_connector_kvm.backends  [70 funcs]
+  urirun_connector_kvm.backends  [73 funcs]
     available  CC=3  out:2
     _a11y_atspi  CC=6  out:11
     _atspi_python  CC=5  out:4
     _calib  CC=3  out:3
     _cap_gnome  CC=1  out:2
-    _cap_grim  CC=1  out:2
+    _cap_grim  CC=4  out:7
     _cap_im  CC=1  out:2
     _cap_macos  CC=1  out:2
     _cap_mss  CC=2  out:6
-    _cap_pillow  CC=1  out:3
+    _cap_mutter  CC=2  out:8
   urirun_connector_kvm.cdp  [8 funcs]
     _copy_auth  CC=4  out:8
     _find_chrome  CC=4  out:4
@@ -1023,7 +1068,7 @@ MODULES:
     act  CC=12  out:12
     report  CC=2  out:2
     route  CC=13  out:8
-  urirun_connector_kvm.core  [54 funcs]
+  urirun_connector_kvm.core  [55 funcs]
     _act_ready  CC=3  out:5
     _act_reject  CC=10  out:6
     _act_retry_loop  CC=5  out:13
@@ -1034,10 +1079,17 @@ MODULES:
     _fail_from  CC=1  out:3
     _ok  CC=1  out:1
     _positioned_click  CC=8  out:12
-  urirun_connector_kvm.environment  [3 funcs]
+  urirun_connector_kvm.environment  [12 funcs]
+    _browser_name_from_binary  CC=9  out:2
+    _check_cookies_for_services  CC=9  out:12
+    _find_cookie_db  CC=6  out:7
+    _parse_browser_args  CC=5  out:6
+    _proc_argv  CC=4  out:5
+    _proc_ppid  CC=4  out:6
+    _running_browser_processes  CC=15  out:17
     _safe  CC=2  out:2
+    action_matrix  CC=6  out:16
     atspi_ready  CC=4  out:3
-    profile  CC=13  out:25
   urirun_connector_kvm.launch_backends  [16 funcs]
     _cdp_port  CC=3  out:6
     _cdp_wait  CC=6  out:8
@@ -1058,6 +1110,8 @@ MODULES:
 
 EDGES:
   examples.calibrate_abs.cap → examples.calibrate_abs.run
+  computer-use-preview.agent.BrowserAgent._dispatch_action → computer-use-preview.agent.multiply_numbers
+  computer-use-preview.agent.BrowserAgent._dispatch_legacy_action → computer-use-preview.agent.multiply_numbers
   urirun_connector_kvm.launch_backends._parse_desktop → urirun_connector_kvm.launch_backends._parse_desktop_section
   urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._xdg_app_dirs
   urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._parse_desktop
@@ -1080,17 +1134,6 @@ EDGES:
   urirun_connector_kvm.launch_backends._list_macos → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.strategies.CdpStrategy.available → urirun_connector_kvm.strategies.is_browser
   urirun_connector_kvm.surface.current → urirun_connector_kvm.surface._active_window
-  urirun_connector_kvm.control._try_act_one → urirun_connector_kvm.control._verify_value
-  urirun_connector_kvm.control.route → urirun_connector_kvm.control._try_locate_one
-  urirun_connector_kvm.control.route → urirun_connector_kvm.control._try_act_one
-  urirun_connector_kvm.control._check_post_condition → urirun_connector_kvm.control.route
-  urirun_connector_kvm.control.act → urirun_connector_kvm.control.route
-  urirun_connector_kvm.control.act → urirun_connector_kvm.control._check_post_condition
-  urirun_connector_kvm.control.report → urirun_connector_kvm.control._safe_avail
-  urirun_connector_kvm.environment.profile → urirun_connector_kvm.environment._safe
-  urirun_connector_kvm.environment.profile → urirun_connector_kvm.environment.atspi_ready
-  computer-use-preview.agent.BrowserAgent._dispatch_action → computer-use-preview.agent.multiply_numbers
-  computer-use-preview.agent.BrowserAgent._dispatch_legacy_action → computer-use-preview.agent.multiply_numbers
   urirun_connector_kvm.backends._wayland_socket → urirun_connector_kvm.backends._runtime_dir
   urirun_connector_kvm.backends.is_wayland → urirun_connector_kvm.backends._wayland_socket
   urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends.is_wayland
@@ -1103,10 +1146,19 @@ EDGES:
   urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._portal_python
   urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._run
   urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._mutter_python
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._is_wlroots_compositor → urirun_connector_kvm.backends.session_env
   urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._is_wlroots_compositor
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.session_env
   urirun_connector_kvm.backends._cap_mss → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.backends._cap_pillow → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends._run
 ```
 
 ## Test Contracts

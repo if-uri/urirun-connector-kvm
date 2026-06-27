@@ -576,17 +576,27 @@ def test_capture_portal_denied_returns_degraded(monkeypatch) -> None:
 
 
 def test_capture_other_backend_error_stays_fail(monkeypatch) -> None:
-    """'no available backend' is surfaced as degraded+need (preconditions system can remediate).
-    Truly unrecognised errors still return ok=False."""
+    """User-approved ACTIONABLE-ONLY contract for need_from_backend_error: a backend error becomes a
+    degraded acquire-need only when it is actionable — it carries an install hint (``install: grim``)
+    or a human grant. A bare "no available backend ... options: none" with nothing to install or grant
+    stays an honest hard fail (ok=False), not a need the user cannot act on.
+    NOTE: this diverges from a prior agent edit that made EVERY "no available backend" degraded+need."""
+    # actionable: the real backends message carries an install hint -> degraded acquire-need
     monkeypatch.setattr(
         B, "dispatch",
-        lambda action, **kw: (_ for _ in ()).throw(B.BackendError("no available backend for 'capture'")),
+        lambda action, **kw: (_ for _ in ()).throw(
+            B.BackendError("no available backend for 'capture' on linux-wayland; options: grim (install: grim)")),
     )
     r = capture(output="/tmp/x.png")
-    # need_from_backend_error recognises this message → degraded (ok=True, degraded=True, need=...)
-    assert r["ok"] is True
-    assert r.get("degraded") is True
-    assert r.get("need") is not None
+    assert r["ok"] is True and r.get("degraded") is True and r.get("need") is not None
+    # non-actionable: nothing to install or grant -> honest fail, not a fake acquire
+    monkeypatch.setattr(
+        B, "dispatch",
+        lambda action, **kw: (_ for _ in ()).throw(
+            B.BackendError("no available backend for 'capture' on headless; options: none")),
+    )
+    r2 = capture(output="/tmp/x.png")
+    assert r2["ok"] is False
 
     # A truly unrecognised error still hard-fails
     monkeypatch.setattr(

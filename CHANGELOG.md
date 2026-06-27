@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.10] - 2026-06-27
+
+### Fixed
+- Fix llm-generated-code issues (ticket-1ee4a357)
+- Fix unused-imports issues (ticket-95db4a94)
+
 ## [0.1.10] - 2026-06-26
 
 ### Fixed

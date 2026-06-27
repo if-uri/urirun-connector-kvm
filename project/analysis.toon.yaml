@@ -1,124 +1,127 @@
-# code2llm | 29f 6098L | python:19,yaml:3,shell:3,toml:1,json:1,txt:1 | 2026-06-25
+# code2llm | 29f 6772L | python:19,shell:3,yaml:3,txt:1,toml:1,json:1 | 2026-06-27
 # generated in 0.01s
-# CC̅=3.3 | critical:0/310 | dups:0 | cycles:0
+# CC̅=3.5 | critical:2/323 | dups:0 | cycles:0
 
-HEALTH[0]: ok
+HEALTH[2]:
+  🟡 CC    _running_browser_processes CC=15 (limit:15)
+  🟡 CC    browser_sessions CC=17 (limit:15)
 
-REFACTOR[0]: none needed
+REFACTOR[1]:
+  1. split 2 high-CC methods  (CC>15)
 
-PIPELINES[199]:
+PIPELINES[202]:
   [1] Src [cap]: cap → run
       PURITY: 100% pure
   [2] Src [magenta_frac]: magenta_frac
       PURITY: 100% pure
   [3] Src [find_box]: find_box
       PURITY: 100% pure
-  [4] Src [_launch_xdg]: _launch_xdg → backend
+  [4] Src [__init__]: __init__
       PURITY: 100% pure
-  [5] Src [_launch_macos]: _launch_macos → backend
+  [5] Src [_handle_scroll_at]: _handle_scroll_at
       PURITY: 100% pure
-  [6] Src [_launch_windows]: _launch_windows → backend
+  [6] Src [_handle_drag_and_drop]: _handle_drag_and_drop
       PURITY: 100% pure
-  [7] Src [_list_xdg]: _list_xdg → backend
+  [7] Src [_dispatch_action]: _dispatch_action → multiply_numbers
       PURITY: 100% pure
-  [8] Src [_list_macos]: _list_macos → backend
+  [8] Src [_dispatch_legacy_action]: _dispatch_legacy_action → multiply_numbers
       PURITY: 100% pure
-  [9] Src [available]: available → is_browser
+  [9] Src [handle_action]: handle_action
       PURITY: 100% pure
-  [10] Src [locate]: locate
+  [10] Src [handle_legacy_action]: handle_legacy_action
       PURITY: 100% pure
-  [11] Src [click]: click
+  [11] Src [get_model_response]: get_model_response
       PURITY: 100% pure
-  [12] Src [fill]: fill
+  [12] Src [get_text]: get_text
       PURITY: 100% pure
-  [13] Src [available]: available
+  [13] Src [extract_function_calls]: extract_function_calls
       PURITY: 100% pure
-  [14] Src [locate]: locate
+  [14] Src [_build_function_response]: _build_function_response
       PURITY: 100% pure
-  [15] Src [click]: click
+  [15] Src [_trim_old_screenshots]: _trim_old_screenshots
       PURITY: 100% pure
-  [16] Src [fill]: fill
+  [16] Src [_generate_response]: _generate_response
       PURITY: 100% pure
-  [17] Src [available]: available
+  [17] Src [_render_turn]: _render_turn
       PURITY: 100% pure
-  [18] Src [locate]: locate
+  [18] Src [_execute_function_calls]: _execute_function_calls
       PURITY: 100% pure
-  [19] Src [_click_xy]: _click_xy
+  [19] Src [run_one_iteration]: run_one_iteration
       PURITY: 100% pure
-  [20] Src [click]: click
+  [20] Src [_get_safety_confirmation]: _get_safety_confirmation
       PURITY: 100% pure
-  [21] Src [fill]: fill
+  [21] Src [agent_loop]: agent_loop
       PURITY: 100% pure
-  [22] Src [current]: current → _active_window
+  [22] Src [denormalize_x]: denormalize_x
       PURITY: 100% pure
-  [23] Src [strategy]: strategy
+  [23] Src [denormalize_y]: denormalize_y
       PURITY: 100% pure
-  [24] Src [act]: act → route → _try_locate_one
+  [24] Src [main]: main
       PURITY: 100% pure
-  [25] Src [report]: report → _safe_avail
+  [25] Src [_handle_new_page]: _handle_new_page
       PURITY: 100% pure
-  [26] Src [profile]: profile → _safe
+  [26] Src [__enter__]: __enter__
       PURITY: 100% pure
-  [27] Src [__init__]: __init__
+  [27] Src [__exit__]: __exit__
       PURITY: 100% pure
-  [28] Src [_handle_scroll_at]: _handle_scroll_at
+  [28] Src [open_web_browser]: open_web_browser
       PURITY: 100% pure
-  [29] Src [_handle_drag_and_drop]: _handle_drag_and_drop
+  [29] Src [click_at]: click_at
       PURITY: 100% pure
-  [30] Src [_dispatch_action]: _dispatch_action → multiply_numbers
+  [30] Src [double_click_at]: double_click_at
       PURITY: 100% pure
-  [31] Src [_dispatch_legacy_action]: _dispatch_legacy_action → multiply_numbers
+  [31] Src [triple_click_at]: triple_click_at
       PURITY: 100% pure
-  [32] Src [handle_action]: handle_action
+  [32] Src [middle_click_at]: middle_click_at
       PURITY: 100% pure
-  [33] Src [handle_legacy_action]: handle_legacy_action
+  [33] Src [right_click_at]: right_click_at
       PURITY: 100% pure
-  [34] Src [get_model_response]: get_model_response
+  [34] Src [mouse_down]: mouse_down
       PURITY: 100% pure
-  [35] Src [get_text]: get_text
+  [35] Src [mouse_up]: mouse_up
       PURITY: 100% pure
-  [36] Src [extract_function_calls]: extract_function_calls
+  [36] Src [type_text]: type_text
       PURITY: 100% pure
-  [37] Src [_build_function_response]: _build_function_response
+  [37] Src [wait]: wait
       PURITY: 100% pure
-  [38] Src [_trim_old_screenshots]: _trim_old_screenshots
+  [38] Src [hover_at]: hover_at
       PURITY: 100% pure
-  [39] Src [_generate_response]: _generate_response
+  [39] Src [type_text_at]: type_text_at
       PURITY: 100% pure
-  [40] Src [_render_turn]: _render_turn
+  [40] Src [_horizontal_document_scroll]: _horizontal_document_scroll
       PURITY: 100% pure
-  [41] Src [_execute_function_calls]: _execute_function_calls
+  [41] Src [scroll_document]: scroll_document
       PURITY: 100% pure
-  [42] Src [run_one_iteration]: run_one_iteration
+  [42] Src [scroll_at]: scroll_at
       PURITY: 100% pure
-  [43] Src [_get_safety_confirmation]: _get_safety_confirmation
+  [43] Src [wait_5_seconds]: wait_5_seconds
       PURITY: 100% pure
-  [44] Src [agent_loop]: agent_loop
+  [44] Src [go_back]: go_back
       PURITY: 100% pure
-  [45] Src [denormalize_x]: denormalize_x
+  [45] Src [go_forward]: go_forward
       PURITY: 100% pure
-  [46] Src [denormalize_y]: denormalize_y
+  [46] Src [search]: search
       PURITY: 100% pure
-  [47] Src [main]: main
+  [47] Src [navigate]: navigate
       PURITY: 100% pure
-  [48] Src [_handle_new_page]: _handle_new_page
+  [48] Src [key_combination]: key_combination
       PURITY: 100% pure
-  [49] Src [__enter__]: __enter__
+  [49] Src [press_key]: press_key
       PURITY: 100% pure
-  [50] Src [__exit__]: __exit__
+  [50] Src [key_down]: key_down
       PURITY: 100% pure
 
 LAYERS:
-  urirun_connector_kvm/           CC̄=4.1    ←in:0  →out:3
-  │ !! backends                  1278L  1C   77m  CC=14     ←1
-  │ !! core                       946L  0C   58m  CC=13     ←0
-  │ launch_backends            282L  0C   16m  CC=11     ←0
-  │ cdp                        220L  0C    9m  CC=7      ←0
-  │ control                    214L  0C    9m  CC=13     ←0
-  │ strategies                 129L  3C   14m  CC=4      ←0
-  │ environment                 94L  0C    3m  CC=13     ←0
-  │ connector.manifest.json     89L  0C    0m  CC=0.0    ←0
-  │ surface                     60L  0C    2m  CC=7      ←0
+  urirun_connector_kvm/           CC̄=4.4    ←in:0  →out:3
+  │ !! backends                  1367L  1C   80m  CC=14     ←1
+  │ !! core                      1013L  0C   59m  CC=14     ←0
+  │ connector.manifest.json    454L  0C    0m  CC=0.0    ←0
+  │ !! environment                401L  0C   12m  CC=17     ←0
+  │ launch_backends            284L  0C   16m  CC=11     ←0
+  │ cdp                        221L  0C    9m  CC=7      ←0
+  │ control                    212L  0C    9m  CC=13     ←0
+  │ strategies                 132L  3C   14m  CC=4      ←0
+  │ surface                     58L  0C    2m  CC=7      ←0
   │ __init__                    38L  0C    0m  CC=0.0    ←0
   │
   computer-use-preview/           CC̄=2.1    ←in:0  →out:0
@@ -138,7 +141,7 @@ LAYERS:
   │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
-  │ !! planfile.yaml              890L  0C    0m  CC=0.0    ←0
+  │ !! planfile.yaml              734L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ project.sh                  69L  0C    0m  CC=0.0    ←0
   │ pyproject.toml              44L  0C    0m  CC=0.0    ←0

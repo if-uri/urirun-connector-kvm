@@ -693,42 +693,29 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-62f93b85
-    name: Fix smart-return-type issues
-    description: Resolve 4 smart-return-type issues in examples/calibrate_abs.py
-    task_type: prefactor
-    priority: medium
-    estimate: 2d
-    files:
-    - examples/calibrate_abs.py
-    rule_id: smart-return-type
-    count: 4
-    model_hints:
-      planning: balanced
-      implementation: balanced
-  - id: ticket-83940a65
-    name: Fix string-concat issues
-    description: Resolve 2 string-concat issues in examples/calibrate_abs.py
+  - id: ticket-1ee4a357
+    name: Fix llm-generated-code issues
+    description: Resolve 1 llm-generated-code issues in tests/test_kvm.py
     task_type: prefactor
     priority: medium
     estimate: 1d
     files:
-    - examples/calibrate_abs.py
-    rule_id: string-concat
-    count: 2
+    - tests/test_kvm.py
+    rule_id: llm-generated-code
+    count: 1
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-162ae939
-    name: Fix magic-numbers issues
-    description: Resolve 27 magic-numbers issues in examples/calibrate_abs.py
+  - id: ticket-95db4a94
+    name: Fix unused-imports issues
+    description: Resolve 4 unused-imports issues in urirun_connector_kvm/environment.py
     task_type: prefactor
-    priority: high
-    estimate: 3d
+    priority: medium
+    estimate: 2d
     files:
-    - examples/calibrate_abs.py
-    rule_id: magic-numbers
-    count: 27
+    - urirun_connector_kvm/environment.py
+    rule_id: unused-imports
+    count: 4
     model_hints:
       planning: balanced
       implementation: balanced

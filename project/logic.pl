@@ -18,17 +18,17 @@ project_file('computer-use-preview/test_main.py', 70, 'python').
 project_file('examples/calibrate_abs.py', 76, 'python').
 project_file('examples/quickstart.sh', 6, 'shell').
 project_file('project.sh', 69, 'shell').
-project_file('tests/test_kvm.py', 464, 'python').
+project_file('tests/test_kvm.py', 608, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1279, 'python').
-project_file('urirun_connector_kvm/cdp.py', 221, 'python').
-project_file('urirun_connector_kvm/control.py', 215, 'python').
-project_file('urirun_connector_kvm/core.py', 947, 'python').
-project_file('urirun_connector_kvm/environment.py', 95, 'python').
-project_file('urirun_connector_kvm/launch_backends.py', 283, 'python').
-project_file('urirun_connector_kvm/strategies.py', 130, 'python').
-project_file('urirun_connector_kvm/surface.py', 61, 'python').
+project_file('urirun_connector_kvm/backends.py', 1368, 'python').
+project_file('urirun_connector_kvm/cdp.py', 222, 'python').
+project_file('urirun_connector_kvm/control.py', 213, 'python').
+project_file('urirun_connector_kvm/core.py', 1014, 'python').
+project_file('urirun_connector_kvm/environment.py', 402, 'python').
+project_file('urirun_connector_kvm/launch_backends.py', 285, 'python').
+project_file('urirun_connector_kvm/strategies.py', 133, 'python').
+project_file('urirun_connector_kvm/surface.py', 59, 'python').
 
 % ── Python Functions ─────────────────────────────────────
 python_function('computer-use-preview/agent.py', 'multiply_numbers', 2, 1, 0).
@@ -47,6 +47,7 @@ python_function('tests/test_kvm.py', 'test_bindings_are_isolated_handlers', 0, 6
 python_function('tests/test_kvm.py', 'test_runtime_executes_from_compiled_registry', 1, 3, 8).
 python_function('tests/test_kvm.py', 'test_doctor_reports_backends', 0, 5, 2).
 python_function('tests/test_kvm.py', 'test_capture_tags_screenshot_as_frozen_artifact', 1, 2, 3).
+python_function('tests/test_kvm.py', 'test_capture_xdg_portal_placeholder_is_degraded_not_false_success', 1, 4, 3).
 python_function('tests/test_kvm.py', 'test_manifest_prose_plus_derived_routes', 0, 5, 2).
 python_function('tests/test_kvm.py', 'test_cli_bindings_and_manifest', 1, 5, 3).
 python_function('tests/test_kvm.py', 'test_router_prefers_cdp_when_reachable', 1, 2, 2).
@@ -62,7 +63,10 @@ python_function('tests/test_kvm.py', 'test_chrome_launch_injects_dedicated_profi
 python_function('tests/test_kvm.py', 'test_chrome_launch_default_keeps_real_profile', 1, 6, 6).
 python_function('tests/test_kvm.py', 'test_non_chrome_launch_skips_cdp', 1, 3, 5).
 python_function('tests/test_kvm.py', 'test_vision_strategy_is_environment_gated', 1, 3, 3).
-python_function('tests/test_kvm.py', 'test_environment_profile_shape', 0, 5, 2).
+python_function('tests/test_kvm.py', 'test_environment_profile_shape', 0, 11, 3).
+python_function('tests/test_kvm.py', 'test_action_matrix_wayland_type_rule', 0, 4, 1).
+python_function('tests/test_kvm.py', 'test_action_matrix_wayland_screenshot_blocked', 0, 3, 1).
+python_function('tests/test_kvm.py', 'test_action_matrix_x11_type_degraded_not_blocked', 0, 3, 1).
 python_function('tests/test_kvm.py', 'test_report_includes_environment', 0, 3, 1).
 python_function('tests/test_kvm.py', 'test_cdp_port_prefers_client_url', 1, 4, 3).
 python_function('tests/test_kvm.py', 'test_spread_strips_envelope_reserved_keys', 0, 4, 1).
@@ -71,6 +75,11 @@ python_function('tests/test_kvm.py', 'test_cdp_start_session_reuses_without_spaw
 python_function('tests/test_kvm.py', 'test_cdp_start_session_launches_and_returns_immediately', 1, 2, 3).
 python_function('tests/test_kvm.py', 'test_cdp_await_ready_polls_without_spawn', 1, 4, 4).
 python_function('tests/test_kvm.py', 'test_ui_wait_success_has_no_found_collision', 1, 2, 2).
+python_function('tests/test_kvm.py', 'test_grim_skipped_on_gnome_wayland', 1, 2, 2).
+python_function('tests/test_kvm.py', 'test_grim_allowed_on_sway', 1, 2, 2).
+python_function('tests/test_kvm.py', 'test_grim_backend_raises_on_non_wlroots', 1, 1, 3).
+python_function('tests/test_kvm.py', 'test_capture_portal_denied_returns_degraded', 1, 5, 5).
+python_function('tests/test_kvm.py', 'test_capture_other_backend_error_stays_fail', 1, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_runtime_dir', 0, 3, 3).
 python_function('urirun_connector_kvm/backends.py', '_wayland_socket', 0, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_x_display', 0, 6, 4).
@@ -83,7 +92,10 @@ python_function('urirun_connector_kvm/backends.py', 'registry_report', 0, 3, 4).
 python_function('urirun_connector_kvm/backends.py', '_run', 1, 4, 4).
 python_function('urirun_connector_kvm/backends.py', '_portal_python', 0, 5, 3).
 python_function('urirun_connector_kvm/backends.py', '_cap_portal', 1, 2, 11).
-python_function('urirun_connector_kvm/backends.py', '_cap_grim', 1, 1, 2).
+python_function('urirun_connector_kvm/backends.py', '_mutter_python', 0, 5, 3).
+python_function('urirun_connector_kvm/backends.py', '_cap_mutter', 1, 2, 8).
+python_function('urirun_connector_kvm/backends.py', '_is_wlroots_compositor', 0, 4, 4).
+python_function('urirun_connector_kvm/backends.py', '_cap_grim', 1, 4, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_mss', 2, 2, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_pillow', 1, 1, 3).
 python_function('urirun_connector_kvm/backends.py', '_cap_scrot', 1, 1, 2).
@@ -169,7 +181,7 @@ python_function('urirun_connector_kvm/core.py', '_fail_from', 2, 1, 3).
 python_function('urirun_connector_kvm/core.py', '_spread', 1, 4, 1).
 python_function('urirun_connector_kvm/core.py', '_positioned_click', 4, 8, 7).
 python_function('urirun_connector_kvm/core.py', '_apply_capture_postprocessing', 7, 10, 9).
-python_function('urirun_connector_kvm/core.py', 'capture', 9, 6, 16).
+python_function('urirun_connector_kvm/core.py', 'capture', 9, 14, 23).
 python_function('urirun_connector_kvm/core.py', 'display_info', 0, 4, 9).
 python_function('urirun_connector_kvm/core.py', 'type_text', 1, 3, 5).
 python_function('urirun_connector_kvm/core.py', 'key', 2, 4, 5).
@@ -199,6 +211,7 @@ python_function('urirun_connector_kvm/core.py', 'ui_fill', 6, 8, 6).
 python_function('urirun_connector_kvm/core.py', 'ui_strategies', 0, 1, 3).
 python_function('urirun_connector_kvm/core.py', 'env_profile', 0, 2, 3).
 python_function('urirun_connector_kvm/core.py', '_surface_mod', 0, 2, 0).
+python_function('urirun_connector_kvm/core.py', 'browser_sessions', 1, 5, 5).
 python_function('urirun_connector_kvm/core.py', 'surface_current', 0, 1, 4).
 python_function('urirun_connector_kvm/core.py', 'cdp_ensure', 4, 6, 10).
 python_function('urirun_connector_kvm/core.py', 'cdp_session_ready', 1, 4, 10).
@@ -224,7 +237,16 @@ python_function('urirun_connector_kvm/core.py', 'connector_manifest', 0, 1, 2).
 python_function('urirun_connector_kvm/core.py', 'main', 1, 1, 2).
 python_function('urirun_connector_kvm/environment.py', '_safe', 1, 2, 2).
 python_function('urirun_connector_kvm/environment.py', 'atspi_ready', 0, 4, 3).
-python_function('urirun_connector_kvm/environment.py', 'profile', 0, 13, 14).
+python_function('urirun_connector_kvm/environment.py', 'action_matrix', 1, 6, 6).
+python_function('urirun_connector_kvm/environment.py', 'profile', 0, 13, 15).
+python_function('urirun_connector_kvm/environment.py', '_check_cookies_for_services', 2, 9, 10).
+python_function('urirun_connector_kvm/environment.py', '_proc_argv', 1, 4, 4).
+python_function('urirun_connector_kvm/environment.py', '_proc_ppid', 1, 4, 6).
+python_function('urirun_connector_kvm/environment.py', '_browser_name_from_binary', 2, 9, 2).
+python_function('urirun_connector_kvm/environment.py', '_parse_browser_args', 1, 5, 4).
+python_function('urirun_connector_kvm/environment.py', '_running_browser_processes', 0, 15, 15).
+python_function('urirun_connector_kvm/environment.py', '_find_cookie_db', 2, 6, 4).
+python_function('urirun_connector_kvm/environment.py', 'browser_sessions', 1, 17, 16).
 python_function('urirun_connector_kvm/launch_backends.py', '_cdp_port', 0, 3, 5).
 python_function('urirun_connector_kvm/launch_backends.py', '_cdp_wait', 2, 6, 7).
 python_function('urirun_connector_kvm/launch_backends.py', '_xdg_app_dirs', 0, 8, 8).

@@ -1,54 +1,53 @@
-# urirun-connector-kvm | 310 func | 15f | 6098L | python | 2026-06-25
+# urirun-connector-kvm | 323 func | 15f | 6772L | python | 2026-06-27
 # generated in 0.00s
 
 HEALTH:
-  CC̄=3.3  critical=21 (limit:10)  dup=0  cycles=0
+  CC̄=3.5  critical=24 (limit:10)  dup=0  cycles=0
 
 ALERTS[20]:
+  !!! high_fan_out     capture = 24 (limit:10)
   !!  high_fan_out     _locate_easyocr = 19 (limit:10)
-  !!  high_fan_out     capture = 16 (limit:10)
+  !!  high_fan_out     _running_browser_processes = 16 (limit:10)
+  !!  high_fan_out     browser_sessions = 16 (limit:10)
   !!  high_fan_out     BrowserAgent._dispatch_legacy_action = 15 (limit:10)
   !!  high_fan_out     _tsv_lines = 15 (limit:10)
   !!  high_fan_out     uinput_abs_click = 15 (limit:10)
   !!  high_fan_out     proc_kill = 15 (limit:10)
-  !   high_fan_out     profile = 14 (limit:10)
-  !   high_fan_out     _locate_vql = 14 (limit:10)
-  !   high_fan_out     window_restore = 14 (limit:10)
-  !   high_fan_out     BrowserAgent._dispatch_action = 13 (limit:10)
+  !!  high_fan_out     profile = 15 (limit:10)
+  !   cc_exceeded      browser_sessions = 17 (limit:15)
 
 MODULES[29] (top by size):
-  M[urirun_connector_kvm/backends.py] 1278L C:1 F:77 CC↑14 D:1 (python)
-  M[urirun_connector_kvm/core.py] 946L C:0 F:58 CC↑13 D:0 (python)
-  M[planfile.yaml] 890L C:0 F:0 CC↑0 D:0 (yaml)
+  M[urirun_connector_kvm/backends.py] 1367L C:1 F:80 CC↑14 D:1 (python)
+  M[urirun_connector_kvm/core.py] 1013L C:0 F:59 CC↑14 D:0 (python)
+  M[planfile.yaml] 734L C:0 F:0 CC↑0 D:0 (yaml)
   M[computer-use-preview/agent.py] 512L C:1 F:21 CC↑13 D:0 (python)
+  M[urirun_connector_kvm/connector.manifest.json] 454L C:0 F:0 CC↑0 D:0 (json)
   M[computer-use-preview/computers/playwright/playwright.py] 418L C:1 F:33 CC↑5 D:0 (python)
-  M[urirun_connector_kvm/launch_backends.py] 282L C:0 F:16 CC↑11 D:0 (python)
-  M[urirun_connector_kvm/cdp.py] 220L C:0 F:9 CC↑7 D:0 (python)
-  M[urirun_connector_kvm/control.py] 214L C:0 F:9 CC↑13 D:0 (python)
+  M[urirun_connector_kvm/environment.py] 401L C:0 F:12 CC↑17 D:0 (python)
+  M[urirun_connector_kvm/launch_backends.py] 284L C:0 F:16 CC↑11 D:0 (python)
+  M[urirun_connector_kvm/cdp.py] 221L C:0 F:9 CC↑7 D:0 (python)
+  M[urirun_connector_kvm/control.py] 212L C:0 F:9 CC↑13 D:0 (python)
   M[computer-use-preview/computers/computer.py] 198L C:2 F:27 CC↑1 D:1 (python)
   M[computer-use-preview/computers/kvm/kvm.py] 190L C:1 F:33 CC↑11 D:1 (python)
-  M[urirun_connector_kvm/strategies.py] 129L C:3 F:14 CC↑4 D:0 (python)
+  M[urirun_connector_kvm/strategies.py] 132L C:3 F:14 CC↑4 D:0 (python)
   M[computer-use-preview/main.py] 101L C:0 F:1 CC↑4 D:0 (python)
-  M[urirun_connector_kvm/environment.py] 94L C:0 F:3 CC↑13 D:0 (python)
   M[prefact.yaml] 94L C:0 F:0 CC↑0 D:0 (yaml)
-  M[urirun_connector_kvm/connector.manifest.json] 89L C:0 F:0 CC↑0 D:0 (json)
   LANGS: python:19/shell:3/yaml:3/other:1/txt:1/toml:1/json:1
 
 HOTSPOTS[10]:
+  ★ capture fan=24  // Capture the live screen via the best available backend. ``max_width`` downscales
   ★ _locate_easyocr fan=19  // OCR-locate via EasyOCR (CRAFT detector + CRNN) — stronger than tesseract on UI
 f
-  ★ capture fan=16  // Capture the live screen via the best available backend. ``max_width`` downscales
+  ★ _running_browser_processes fan=16  // Analysis pipeline, 16 stages
+  ★ browser_sessions fan=16  // Scan running browsers and installed browser profiles for active service sessions
   ★ BrowserAgent._dispatch_legacy_action fan=15  // 15-way dispatch
-  ★ _tsv_lines fan=15  // Aggregate tesseract word rows (level 5) into line boxes so a multi-word label
-li
-  ★ uinput_abs_click fan=15  // Orchestrates 15 calls
 
-REFACTOR[7]:
-  [1] H/H Split god module urirun_connector_kvm/backends.py (1278L, 1 classes)
-  [2] H/H Split god module computer-use-preview/agent.py (512L, 1 classes)
-  [3] H/H Split god module urirun_connector_kvm/core.py (946L, 0 classes)
-  [4] H/H Split god module planfile.yaml (890L, 0 classes)
-  [5] M/M Reduce _locate_easyocr fan-out (currently 19)
+REFACTOR[9]:
+  [1] H/H Split god module urirun_connector_kvm/backends.py (1367L, 1 classes)
+  [2] H/H Split god module urirun_connector_kvm/core.py (1013L, 0 classes)
+  [3] H/H Split god module computer-use-preview/agent.py (512L, 1 classes)
+  [4] H/H Split god module planfile.yaml (734L, 0 classes)
+  [5] M/L Split _running_browser_processes (CC=15)
 
 EVOLUTION:
-  2026-06-25 CC̄=3.3 crit=21 6098L // Automated analysis
+  2026-06-27 CC̄=3.5 crit=24 6772L // Automated analysis

@@ -1,7 +1,7 @@
-# urirun-connector-kvm | 27f 5669L | python:23,shell:3,less:1 | 2026-06-25
-# stats: 213 func | 12 cls | 27 mod | CC̄=4.1 | critical:16 | cycles:0
-# alerts[5]: CC _locate_easyocr=14; CC _line_match=13; CC _wayland_present=13; CC route=13; CC task_run=13
-# hotspots[5]: _locate_easyocr fan=18; capture fan=16; uinput_abs_click fan=15; _tsv_lines fan=14; proc_kill fan=14
+# urirun-connector-kvm | 27f 6278L | python:23,shell:3,less:1 | 2026-06-27
+# stats: 235 func | 12 cls | 27 mod | CC̄=4.3 | critical:20 | cycles:0
+# alerts[5]: CC browser_sessions=17; CC _running_browser_processes=15; CC _locate_easyocr=14; CC capture=14; CC _line_match=13
+# hotspots[5]: capture fan=23; _locate_easyocr fan=18; browser_sessions fan=16; uinput_abs_click fan=15; profile fan=15
 # evolution: baseline
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
 M[27]:
@@ -21,17 +21,17 @@ M[27]:
   examples/calibrate_abs.py,76
   examples/quickstart.sh,6
   project.sh,69
-  tests/test_kvm.py,464
+  tests/test_kvm.py,608
   tree.sh,5
   urirun_connector_kvm/__init__.py,39
-  urirun_connector_kvm/backends.py,1279
-  urirun_connector_kvm/cdp.py,221
-  urirun_connector_kvm/control.py,215
-  urirun_connector_kvm/core.py,947
-  urirun_connector_kvm/environment.py,95
-  urirun_connector_kvm/launch_backends.py,283
-  urirun_connector_kvm/strategies.py,130
-  urirun_connector_kvm/surface.py,61
+  urirun_connector_kvm/backends.py,1368
+  urirun_connector_kvm/cdp.py,222
+  urirun_connector_kvm/control.py,213
+  urirun_connector_kvm/core.py,1014
+  urirun_connector_kvm/environment.py,402
+  urirun_connector_kvm/launch_backends.py,285
+  urirun_connector_kvm/strategies.py,133
+  urirun_connector_kvm/surface.py,59
 D:
   computer-use-preview/agent.py:
     e: multiply_numbers,BrowserAgent
@@ -70,7 +70,7 @@ D:
     magenta_frac(a)
     find_box(a)
   tests/test_kvm.py:
-    e: test_key_requires_value,test_type_requires_value,test_no_backend_reports_install_hint,test_backend_decorator_registers_and_sorts,test_dispatch_falls_through_on_failure,test_unavailable_backend_skipped_by_needs,test_bindings_are_isolated_handlers,test_runtime_executes_from_compiled_registry,test_doctor_reports_backends,test_capture_tags_screenshot_as_frozen_artifact,test_manifest_prose_plus_derived_routes,test_cli_bindings_and_manifest,test_router_prefers_cdp_when_reachable,test_router_falls_through_cdp_to_vision,test_router_empty_target_is_error,test_ui_act_retries_then_succeeds,test_ui_act_rejects_bad_verb,test_is_wayland_detects_via_socket_when_env_absent,test_platform_tag_wayland_via_socket,test_session_env_fills_display_and_bus,test_session_env_preserves_existing_vars,test_chrome_launch_injects_dedicated_profile_and_debug_port,test_chrome_launch_default_keeps_real_profile,test_non_chrome_launch_skips_cdp,test_vision_strategy_is_environment_gated,test_environment_profile_shape,test_report_includes_environment,test_cdp_port_prefers_client_url,test_spread_strips_envelope_reserved_keys,test_cdp_navigate_has_no_url_collision,test_cdp_start_session_reuses_without_spawn,test_cdp_start_session_launches_and_returns_immediately,test_cdp_await_ready_polls_without_spawn,test_ui_wait_success_has_no_found_collision
+    e: test_key_requires_value,test_type_requires_value,test_no_backend_reports_install_hint,test_backend_decorator_registers_and_sorts,test_dispatch_falls_through_on_failure,test_unavailable_backend_skipped_by_needs,test_bindings_are_isolated_handlers,test_runtime_executes_from_compiled_registry,test_doctor_reports_backends,test_capture_tags_screenshot_as_frozen_artifact,test_capture_xdg_portal_placeholder_is_degraded_not_false_success,test_manifest_prose_plus_derived_routes,test_cli_bindings_and_manifest,test_router_prefers_cdp_when_reachable,test_router_falls_through_cdp_to_vision,test_router_empty_target_is_error,test_ui_act_retries_then_succeeds,test_ui_act_rejects_bad_verb,test_is_wayland_detects_via_socket_when_env_absent,test_platform_tag_wayland_via_socket,test_session_env_fills_display_and_bus,test_session_env_preserves_existing_vars,test_chrome_launch_injects_dedicated_profile_and_debug_port,test_chrome_launch_default_keeps_real_profile,test_non_chrome_launch_skips_cdp,test_vision_strategy_is_environment_gated,test_environment_profile_shape,test_action_matrix_wayland_type_rule,test_action_matrix_wayland_screenshot_blocked,test_action_matrix_x11_type_degraded_not_blocked,test_report_includes_environment,test_cdp_port_prefers_client_url,test_spread_strips_envelope_reserved_keys,test_cdp_navigate_has_no_url_collision,test_cdp_start_session_reuses_without_spawn,test_cdp_start_session_launches_and_returns_immediately,test_cdp_await_ready_polls_without_spawn,test_ui_wait_success_has_no_found_collision,test_grim_skipped_on_gnome_wayland,test_grim_allowed_on_sway,test_grim_backend_raises_on_non_wlroots,test_capture_portal_denied_returns_degraded,test_capture_other_backend_error_stays_fail
     test_key_requires_value()
     test_type_requires_value()
     test_no_backend_reports_install_hint(monkeypatch)
@@ -81,6 +81,7 @@ D:
     test_runtime_executes_from_compiled_registry(monkeypatch)
     test_doctor_reports_backends()
     test_capture_tags_screenshot_as_frozen_artifact(monkeypatch)
+    test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatch)
     test_manifest_prose_plus_derived_routes()
     test_cli_bindings_and_manifest(capsys)
     test_router_prefers_cdp_when_reachable(monkeypatch)
@@ -97,6 +98,9 @@ D:
     test_non_chrome_launch_skips_cdp(monkeypatch)
     test_vision_strategy_is_environment_gated(monkeypatch)
     test_environment_profile_shape()
+    test_action_matrix_wayland_type_rule()
+    test_action_matrix_wayland_screenshot_blocked()
+    test_action_matrix_x11_type_degraded_not_blocked()
     test_report_includes_environment()
     test_cdp_port_prefers_client_url(monkeypatch)
     test_spread_strips_envelope_reserved_keys()
@@ -105,9 +109,14 @@ D:
     test_cdp_start_session_launches_and_returns_immediately(monkeypatch)
     test_cdp_await_ready_polls_without_spawn(monkeypatch)
     test_ui_wait_success_has_no_found_collision(monkeypatch)
+    test_grim_skipped_on_gnome_wayland(monkeypatch)
+    test_grim_allowed_on_sway(monkeypatch)
+    test_grim_backend_raises_on_non_wlroots(monkeypatch)
+    test_capture_portal_denied_returns_degraded(monkeypatch)
+    test_capture_other_backend_error_stays_fail(monkeypatch)
   urirun_connector_kvm/__init__.py:
   urirun_connector_kvm/backends.py:
-    e: _runtime_dir,_wayland_socket,_x_display,is_wayland,is_x11,platform_tag,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,session_env,_clipboard_set,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_uinput_abs,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_tesseract_words_by_line,_line_match,_tesseract_query_matches,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,_screen_wh,_read_text,_calib,_compute_abs_coords,_uinput_emit_clicks,uinput_abs_click,_gnome_monitors,_wayland_present,_surface_warnings,_os_level_reliable,_surface_flags,surface_report,Backend
+    e: _runtime_dir,_wayland_socket,_x_display,is_wayland,is_x11,platform_tag,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_mutter_python,_cap_mutter,_is_wlroots_compositor,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,session_env,_clipboard_set,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_uinput_abs,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_tesseract_words_by_line,_line_match,_tesseract_query_matches,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,_screen_wh,_read_text,_calib,_compute_abs_coords,_uinput_emit_clicks,uinput_abs_click,_gnome_monitors,_wayland_present,_surface_warnings,_os_level_reliable,_surface_flags,surface_report,Backend
     Backend: missing(0),available(0)
     _runtime_dir()
     _wayland_socket()
@@ -121,6 +130,9 @@ D:
     _run(argv)
     _portal_python()
     _cap_portal(output)
+    _mutter_python()
+    _cap_mutter(output)
+    _is_wlroots_compositor()
     _cap_grim(output)
     _cap_mss(output;monitor)
     _cap_pillow(output)
@@ -207,7 +219,7 @@ D:
     report()
     _safe_avail(s)
   urirun_connector_kvm/core.py:
-    e: _ok,_fail_from,_spread,_positioned_click,_apply_capture_postprocessing,capture,display_info,type_text,key,click,move,wait,scroll,double_click,triple_click,right_click,middle_click,hover,drag_and_drop,click_abs,task_run,focus,window_list,window_close,window_restore,proc_kill,a11y_act,_click_hit,_router_return,ui_find,ui_click,ui_fill,ui_strategies,env_profile,_surface_mod,surface_current,cdp_ensure,cdp_session_ready,_cdp_mod,cdp_navigate,cdp_ready,_resolve_act_app,_act_retry_loop,_act_reject,_act_ready,ui_act,cdp_status,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
+    e: _ok,_fail_from,_spread,_positioned_click,_apply_capture_postprocessing,capture,display_info,type_text,key,click,move,wait,scroll,double_click,triple_click,right_click,middle_click,hover,drag_and_drop,click_abs,task_run,focus,window_list,window_close,window_restore,proc_kill,a11y_act,_click_hit,_router_return,ui_find,ui_click,ui_fill,ui_strategies,env_profile,_surface_mod,browser_sessions,surface_current,cdp_ensure,cdp_session_ready,_cdp_mod,cdp_navigate,cdp_ready,_resolve_act_app,_act_retry_loop,_act_reject,_act_ready,ui_act,cdp_status,ui_wait,ui_verify,_capture_native,ui_locate,ui_click_text,doctor,launch,list_apps,urirun_bindings,connector_manifest,main
     _ok()
     _fail_from(action;exc)
     _spread(d)
@@ -243,6 +255,7 @@ D:
     ui_strategies()
     env_profile()
     _surface_mod()
+    browser_sessions(services)
     surface_current()
     cdp_ensure(url;user_data_dir;copy_from;wait)
     cdp_session_ready(timeout)
@@ -267,10 +280,19 @@ D:
     connector_manifest()
     main(argv)
   urirun_connector_kvm/environment.py:
-    e: _safe,atspi_ready,profile
+    e: _safe,atspi_ready,action_matrix,profile,_check_cookies_for_services,_proc_argv,_proc_ppid,_browser_name_from_binary,_parse_browser_args,_running_browser_processes,_find_cookie_db,browser_sessions
     _safe(fn)
     atspi_ready()
+    action_matrix(prof)
     profile()
+    _check_cookies_for_services(cookie_db;services)
+    _proc_argv(pid)
+    _proc_ppid(pid)
+    _browser_name_from_binary(binary_b;binary)
+    _parse_browser_args(argv)
+    _running_browser_processes()
+    _find_cookie_db(user_data_dir;browser_config_dir)
+    browser_sessions(services)
   urirun_connector_kvm/launch_backends.py:
     e: _cdp_port,_cdp_wait,_xdg_app_dirs,_parse_desktop_section,_parse_desktop,_desktop_entries,_strip_field_codes,_find_app,_resolve_launch_argv,_inject_cdp_profile,_inject_chrome_flags,_launch_xdg,_launch_macos,_launch_windows,_list_xdg,_list_macos
     _cdp_port()

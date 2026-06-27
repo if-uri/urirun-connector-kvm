@@ -65,6 +65,10 @@ except ImportError as _e:  # flat-module deploy (push control.py + cdp.py too)
 CONNECTOR_ID = "kvm"
 conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
 
+# A real screenshot is hundreds of KB; the GNOME-Wayland xdg-portal empty/blocked placeholder is ~3.8 KB.
+# Below this, a portal capture is treated as a degraded non-capture, not a false success.
+_MIN_REAL_SHOT_BYTES = 20_000
+
 _CDP_SESSION_TIMEOUT = 12.0
 
 try:
@@ -178,6 +182,18 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
                                "via": res.get("via"), "backend": res.get("backend"),
                                "fullSize": full, "crop": crop,
                                "bytes": os.path.getsize(out) if os.path.exists(out) else 0}
+    # False-success guard: a Wayland xdg-portal capture that yields a tiny file (~3.8 KB) is the
+    # empty/blocked-portal PLACEHOLDER, not a real screenshot (a healthy mutter/grim frame is hundreds
+    # of KB). Returning ok here lets the flow trust — and irreversibly log — an empty frame. Report it
+    # DEGRADED (mirrors the portal-denied path above) so the twin shows "not a real capture" and the
+    # flow's degraded handling keeps it out of known-good.
+    if payload["bytes"] < _MIN_REAL_SHOT_BYTES and res.get("via") == "xdg-portal":
+        return urirun.ok(
+            connector=CONNECTOR_ID, action="capture", degraded=True, kind="screenshot",
+            degradedReason=(f"xdg-portal returned a {payload['bytes']}-byte placeholder (empty/blocked "
+                            f"portal) — not a real screenshot; needs a GUI session or the grim/mutter backend"),
+            via="xdg-portal", backend=res.get("backend"), bytes=payload["bytes"], path=out,
+            platform=B.platform_tag())
     if base64:
         with open(out, "rb") as fh:
             payload["pngBase64"] = _b64.b64encode(fh.read()).decode()
@@ -978,6 +994,19 @@ def list_apps(filter: str = "") -> dict[str, Any]:  # noqa: A002 - route input f
     except B.BackendError as exc:
         return _fail_from("list_apps", exc)
 
+
+
+# Join the route contracts (output shape + golden examples) onto the live bindings BY ROUTE KEY, so
+# conn.bindings()/the manifest carry the output model an LLM planner needs to chain steps and to know
+# a result may come back degraded. Enrichment only: in a flat-file push the toolkit/contracts may be
+# absent, so a missing import must never break core import (mirrors the _backend_need fallback above).
+try:
+    from urirun_connectors_toolkit.contract_gate import attach_contracts as _attach_contracts
+    from urirun_connector_kvm.contracts import CONTRACTS as _CONTRACTS
+
+    _attach_contracts(conn, _CONTRACTS)
+except Exception:  # noqa: BLE001 - contracts are an enrichment, never a hard dependency
+    pass
 
 
 def urirun_bindings() -> dict[str, Any]:
