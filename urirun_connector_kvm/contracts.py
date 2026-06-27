@@ -38,6 +38,7 @@ CONTRACTS: dict[str, Contract] = {
             "snapshot": "obj",
             "inverse": {"path": "const:window/command/restore", "args": {"snapshot": "obj"}},
         },
+        errors=("unreachable",),
         examples=(
             {"payload": {"id": "active"},
              "result": {"ok": True, "connector": "kvm", "action": "window-close",
@@ -92,6 +93,9 @@ CONTRACTS: dict[str, Contract] = {
             {"ok": "const:true", "action": "const:act", "do": "str", "tries": "list"},
             {"ok": "const:false", "action": "const:act", "do": "str", "blocked": "const:irreversible"},
             {"ok": "const:false", "action": "const:act", "do": "str", "error": "str"},
+            # Pre-flight input rejection (malformed `do`, missing fill `value`) returns a bare fail
+            # BEFORE acting — no `action`/`do` — so the contract must not claim every fail carries them.
+            {"ok": "const:false", "error": "str"},
         ]},
         examples=(
             {"payload": {"do": "find", "text": "Submit"},
