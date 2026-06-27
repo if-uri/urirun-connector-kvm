@@ -61,4 +61,46 @@ CONTRACTS: dict[str, Contract] = {
                         "did": "restore(active)", "reversible": True,
                         "inverse": {"path": "window/command/close", "args": {"id": "active"}}}},
         )),
+
+    # A read whose output the contract FORCES you to name as Success | Degraded — the messy
+    # 4-shape return of capture() collapses to two declared shapes a planner can branch on.
+    "screen/query/capture": Contract(
+        version="v1", effect="query",
+        inp={"monitor": "?int", "base64": "?bool", "max_width": "?int", "cx": "?int", "cy": "?int"},
+        out={"oneOf": [
+            # Success: a real frame (urirun.tag adds live=false; note there is NO `action` field).
+            {"ok": "const:true", "kind": "const:screenshot", "path": "str", "bytes": "int", "live": "bool"},
+            # Degraded: portal-denied / placeholder — the chain stays alive on a flagged non-capture.
+            {"ok": "const:true", "action": "const:capture", "degraded": "const:true", "degradedReason": "str"},
+        ]},
+        examples=(
+            {"payload": {"base64": False},
+             "result": {"ok": True, "connector": "kvm", "kind": "screenshot", "path": "/x.png",
+                        "monitor": 0, "via": "grim", "backend": "grim", "fullSize": [2560, 1440],
+                        "crop": None, "bytes": 204931, "live": False}},
+            {"payload": {},
+             "result": {"ok": True, "connector": "kvm", "action": "capture", "degraded": True,
+                        "degradedReason": "portal denied by user", "platform": "linux/wayland"}},
+        )),
+
+    # The ONE high-level command an LLM planner targets. The HITL safe-gate (refusing an
+    # irreversible label unless safe=false) is part of the contract — a declared Blocked shape.
+    "ui/command/act": Contract(
+        version="v1", effect="command", reversible=False,
+        inp={"do": "enum:click|fill|find|wait", "text": "?str", "value": "?str", "safe": "?bool"},
+        out={"oneOf": [
+            {"ok": "const:true", "action": "const:act", "do": "str", "tries": "list"},
+            {"ok": "const:false", "action": "const:act", "do": "str", "blocked": "const:irreversible"},
+            {"ok": "const:false", "action": "const:act", "do": "str", "error": "str"},
+        ]},
+        examples=(
+            {"payload": {"do": "find", "text": "Submit"},
+             "result": {"ok": True, "connector": "kvm", "action": "act", "do": "find", "app": "",
+                        "surface": "cdp", "ready": True, "found": True, "center": [840, 612],
+                        "tries": [{"attempt": 1, "strategy": "cdp", "ok": True}]}},
+            {"payload": {"do": "click", "text": "Publish", "safe": True},
+             "result": {"ok": False, "connector": "kvm", "action": "act", "do": "click",
+                        "blocked": "irreversible",
+                        "error": "refusing to click 'publish' with safe=true (pass safe=false to allow)"}},
+        )),
 }
