@@ -131,3 +131,44 @@ CONTRACTS: dict[str, Contract] = {
                         "reachable": False, "endpoint": "http://127.0.0.1:9222"}},
         )),
 }
+
+
+def _input_cmd(action: str, inp: dict, *, example_payload: dict) -> Contract:
+    """A uniform input/* command contract: pin the stable identity (ok + action); leave the
+    backend-variable payload unspecified (declare STRUCTURE, not all behaviour). The example
+    fields below are always present — B.dispatch() always stamps backend + platform."""
+    return Contract(
+        version="v1", effect="command", inp=inp,
+        out={"ok": "const:true", "action": f"const:{action}"},
+        examples=({"payload": example_payload,
+                   "result": {"ok": True, "connector": "kvm", "action": action,
+                              "backend": "ydotool", "platform": "linux/wayland"}},),
+    )
+
+
+_XY = {"x": "?int", "y": "?int"}
+CONTRACTS.update({
+    "input/command/type": _input_cmd("type", {"text": "?str"}, example_payload={"text": "hello"}),
+    "input/command/key": _input_cmd("key", {"key": "?str", "keys": "?str"}, example_payload={"keys": "ctrl+a"}),
+    "input/command/click": _input_cmd("click", {"button": "?str", **_XY}, example_payload={"x": 840, "y": 612}),
+    "input/command/move": _input_cmd("move", dict(_XY), example_payload={"x": 100, "y": 200}),
+    "input/command/scroll": _input_cmd("scroll", {"dy": "?int"}, example_payload={"dy": -3}),
+    "input/command/double-click": _input_cmd("double-click", dict(_XY), example_payload={"x": 840, "y": 612}),
+    "input/command/triple-click": _input_cmd("triple-click", dict(_XY), example_payload={"x": 840, "y": 612}),
+    "input/command/right-click": _input_cmd("right-click", dict(_XY), example_payload={"x": 840, "y": 612}),
+    "input/command/middle-click": _input_cmd("middle-click", dict(_XY), example_payload={"x": 840, "y": 612}),
+    "input/command/hover": _input_cmd("hover", dict(_XY), example_payload={"x": 840, "y": 612}),
+    "input/command/drag-and-drop": _input_cmd(
+        "drag-and-drop", {"x": "int", "y": "int", "destination_x": "int", "destination_y": "int"},
+        example_payload={"x": 100, "y": 100, "destination_x": 300, "destination_y": 300}),
+})
+
+# wait is the odd one: no backend dispatch — it returns its own seconds.
+CONTRACTS["input/command/wait"] = Contract(
+    version="v1", effect="command",
+    inp={"seconds": "?num", "ms": "?int"},
+    out={"ok": "const:true", "action": "const:wait", "seconds": "num"},
+    examples=(
+        {"payload": {"seconds": 1.0},
+         "result": {"ok": True, "connector": "kvm", "action": "wait", "seconds": 1.0}},
+    ))
