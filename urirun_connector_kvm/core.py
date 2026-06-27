@@ -419,7 +419,13 @@ def focus(title: str = "") -> dict[str, Any]:
     try:
         return _ok(action="focus", **B.dispatch("focus", title=title))
     except B.BackendError as exc:
-        return _fail_from("focus", exc)
+        # Degrade instead of fail — focus is best-effort; CDP flows don't need it,
+        # and Wayland wmctrl/atspi are unreliable on pre-navigation pages.
+        return urirun.ok(
+            connector=CONNECTOR_ID, action="focus",
+            degraded=True, degradedReason=str(exc),
+            platform=B.platform_tag(),
+        )
 
 
 @conn.handler("window/query/list", isolated=True, meta={"label": "List open windows"})
