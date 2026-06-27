@@ -2,10 +2,11 @@
 # Author: Tom Sapletta · https://tom.sapletta.com
 # Part of the ifURI solution.
 #
-# Contract CI gate — three questions in one run:
+# Contract CI gate — four questions in one run:
 #   1. is each contract SELF-CONSISTENT (effect, reversibility, golden examples),
 #   2. do contracts COMPOSE (producer output feeds consumer input without type errors),
-#   3. do two INDEPENDENTLY LOADED contracts exchange data correctly ACROSS PROCESSES via JSON.
+#   3. do two INDEPENDENTLY LOADED contracts exchange data correctly ACROSS PROCESSES via JSON,
+#   4. POLYGLOT: same contracts.json passes py/js/go validators + full 3×3 exchange matrix.
 #
 # URIRUN_CONTRACT_CHECK=1 is hardcoded here: a gate that defaults off is a green shim
 # that silently lies. This script is where enforcement is permanently on.
@@ -27,4 +28,9 @@ python ci/cross_process_roundtrip.py drive window/command/close window/command/r
 python ci/cross_process_roundtrip.py drive screen/query/capture abs/command/click
 
 echo
-echo "OK: contracts self-consistent, composable, and IPC-compatible."
+echo "== 4/4 polyglot (py · js · go read the SAME contracts.json — 3×3 exchange matrix) =="
+URIRUN_TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}" \
+  bash xlang/run.sh
+
+echo
+echo "OK: contracts self-consistent, composable, IPC-compatible, and polyglot."

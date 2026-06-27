@@ -17,6 +17,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -376,6 +377,58 @@ func okExample(route string) map[string]interface{} {
 	return nil
 }
 
+// ── prawdziwy handler trasy (stub) — node odpytywany przez zewnętrzny driver ──
+func numOr(m map[string]interface{}, k string, d int) int {
+	if v, ok := m[k].(float64); ok {
+		return int(v)
+	}
+	return d
+}
+
+func strOr(m map[string]interface{}, k, d string) string {
+	if v, ok := m[k].(string); ok {
+		return v
+	}
+	return d
+}
+
+func handle(route string, payload map[string]interface{}, lie bool) map[string]interface{} {
+	switch route {
+	case "screen/query/capture":
+		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "capture",
+			"kind": "screenshot", "path": "/home/u/.urirun/artifacts/s.png", "bytes": 204931,
+			"fullSize": []interface{}{2560, 1440}, "via": "go-serve"}
+	case "abs/command/click":
+		sw, sh := numOr(payload, "sw", 1920), numOr(payload, "sh", 1080)
+		var screen []interface{}
+		if lie {
+			screen = []interface{}{fmt.Sprint(sw), fmt.Sprint(sh)} // --lie: int→string na drucie
+		} else {
+			screen = []interface{}{sw, sh}
+		}
+		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "click-abs",
+			"screen": screen, "did": fmt.Sprintf("click@(%d,%d)", numOr(payload, "x", 0), numOr(payload, "y", 0))}
+	case "window/command/close":
+		id := strOr(payload, "id", "active")
+		snap := map[string]interface{}{"url": "https://example.test/x", "scrollX": 0,
+			"scrollY": 240, "forms": []interface{}{}, "id": id}
+		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "window-close",
+			"did": "close(" + id + ")", "reversible": true, "snapshot": snap,
+			"inverse": map[string]interface{}{"path": "window/command/restore",
+				"args": map[string]interface{}{"snapshot": snap}}}
+	case "window/command/restore":
+		id := "active"
+		if snap, ok := payload["snapshot"].(map[string]interface{}); ok {
+			id = strOr(snap, "id", "active")
+		}
+		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "window-restore",
+			"did": "restore(" + id + ")", "reversible": true,
+			"inverse": map[string]interface{}{"path": "window/command/close",
+				"args": map[string]interface{}{"id": id}}}
+	}
+	return nil
+}
+
 func main() {
 	loadDoc()
 	args := os.Args[1:]
@@ -407,6 +460,34 @@ func main() {
 		os.Stdout.Write(out)
 		if len(problems) != 0 {
 			os.Exit(1)
+		}
+	case "serve":
+		lie := false
+		for _, a := range args[1:] {
+			if a == "--lie" {
+				lie = true
+			}
+		}
+		sc := bufio.NewScanner(os.Stdin)
+		sc.Buffer(make([]byte, 1<<20), 1<<20)
+		for sc.Scan() {
+			line := strings.TrimSpace(sc.Text())
+			if line == "" {
+				continue
+			}
+			var req map[string]interface{}
+			if err := json.Unmarshal([]byte(line), &req); err != nil {
+				continue
+			}
+			route, _ := req["route"].(string)
+			payload, _ := req["payload"].(map[string]interface{})
+			if payload == nil {
+				payload = map[string]interface{}{}
+			}
+			env := handle(route, payload, lie)
+			out, _ := json.Marshal(map[string]interface{}{"id": req["id"], "envelope": env})
+			os.Stdout.Write(out)
+			os.Stdout.Write([]byte("\n"))
 		}
 	case "conform":
 		os.Exit(conform())

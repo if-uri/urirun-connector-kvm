@@ -13,6 +13,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { createInterface } from "node:readline";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DOC = JSON.parse(readFileSync(join(HERE, "contracts.json"), "utf8"));
@@ -170,6 +171,34 @@ async function readStdin() {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+// ── prawdziwy handler trasy (stub) — node odpytywany przez zewnętrzny driver ──
+function handle(route, payload, lie) {
+  payload = payload || {};
+  switch (route) {
+    case "screen/query/capture":
+      return { ok: true, connector: "kvm", action: "capture", kind: "screenshot",
+        path: "/home/u/.urirun/artifacts/s.png", bytes: 204931, fullSize: [2560, 1440], via: "js-serve" };
+    case "abs/command/click": {
+      const sw = payload.sw ?? 1920, sh = payload.sh ?? 1080;
+      const screen = lie ? [String(sw), String(sh)] : [sw, sh]; // --lie: int→string na drucie
+      return { ok: true, connector: "kvm", action: "click-abs", screen,
+        did: `click@(${payload.x ?? 0},${payload.y ?? 0})` };
+    }
+    case "window/command/close": {
+      const snap = { url: "https://example.test/x", scrollX: 0, scrollY: 240, forms: [], id: payload.id ?? "active" };
+      return { ok: true, connector: "kvm", action: "window-close", did: `close(${snap.id})`,
+        reversible: true, snapshot: snap, inverse: { path: "window/command/restore", args: { snapshot: snap } } };
+    }
+    case "window/command/restore": {
+      const snap = payload.snapshot || {};
+      const id = snap.id ?? "active";
+      return { ok: true, connector: "kvm", action: "window-restore", did: `restore(${id})`,
+        reversible: true, inverse: { path: "window/command/close", args: { id } } };
+    }
+  }
+  throw new Error(`nieznana trasa ${route}`);
+}
+
 const [cmd, a, b] = process.argv.slice(2);
 if (cmd === "produce") {
   process.stdout.write(JSON.stringify(okExample(a)));
@@ -182,6 +211,16 @@ if (cmd === "produce") {
   process.exit(problems.length === 0 ? 0 : 1);
 } else if (cmd === "conform") {
   process.exit(conform());
+} else if (cmd === "serve") {
+  const lie = process.argv.slice(2).includes("--lie");
+  const rl = createInterface({ input: process.stdin });
+  for await (const line of rl) {
+    const s = line.trim();
+    if (!s) continue;
+    const req = JSON.parse(s);
+    const env = handle(req.route, req.payload, lie);
+    process.stdout.write(JSON.stringify({ id: req.id, envelope: env }) + "\n");
+  }
 } else {
   console.error(`nieznany tryb ${cmd}`); process.exit(2);
 }
