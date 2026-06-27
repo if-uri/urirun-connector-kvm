@@ -1,31 +1,30 @@
 # Author: Tom Sapletta · https://tom.sapletta.com
 # Part of the ifURI solution.
-"""Conformance gate for kvm:// route contracts.
+"""Conformance gate for kvm:// route contracts — the always-on CI oracle.
 
-All tests are gated by ``URIRUN_CONTRACT_CHECK=1`` — pure declaration checks, no hardware.
-Four parametrized invariants cover every route in CONTRACTS; three standalone tests verify
-the validator itself and the runtime enforce() wrapper.
+Pure declaration checks (no hardware, no backend dispatch): four parametrized invariants cover
+every route in CONTRACTS, and four standalone tests verify the validator, the error taxonomy, and
+the runtime enforce() wrapper. These run on EVERY CI run on purpose — a contract gate that defaults
+off is a green shim that lets contracts.py rot out of sync with the handlers it claims to describe.
 
-Active: ``URIRUN_CONTRACT_CHECK=1 pytest tests/test_contract_conformance.py``
-Passive (default CI): all skip.
+The only reason to skip is a minimal/flat-file env where the contract kernel isn't installed; that
+skips *gracefully* via importorskip below — never a silent opt-out behind a flag someone forgets to set.
 """
 from __future__ import annotations
 
-import os
-
 import pytest
 
-from urirun_connector_kvm.contracts import CONTRACTS
-from urirun_connectors_toolkit.contract_gate import (
+pytest.importorskip("urirun")                                   # connector runtime dependency
+pytest.importorskip("urirun_connectors_toolkit.contract_gate")  # the contract kernel
+
+from urirun_connector_kvm.contracts import CONTRACTS  # noqa: E402  (after importorskip guards)
+from urirun_connectors_toolkit.contract_gate import (  # noqa: E402
     ContractViolation,
     check,
     conform,
     enforce,
     envelope_violation,
 )
-
-CONTRACT_CHECK = os.environ.get("URIRUN_CONTRACT_CHECK") == "1"
-pytestmark = pytest.mark.skipif(not CONTRACT_CHECK, reason="set URIRUN_CONTRACT_CHECK=1")
 
 _ROUTES = sorted(CONTRACTS)
 
