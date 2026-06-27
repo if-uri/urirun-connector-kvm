@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -342,15 +344,17 @@ func conform() int {
 					fail(err.Error())
 				}
 				if rev, _ := c["reversible"].(bool); rev {
-					inv, _ := c["inverseRoute"].(string)
-					args := map[string]interface{}{}
-					if inverse, ok := result["inverse"].(map[string]interface{}); ok {
-						if a, ok := inverse["args"].(map[string]interface{}); ok {
-							args = a
+					if _, hasInverse := result["inverse"]; hasInverse {
+						inv, _ := c["inverseRoute"].(string)
+						args := map[string]interface{}{}
+						if inverse, ok := result["inverse"].(map[string]interface{}); ok {
+							if a, ok := inverse["args"].(map[string]interface{}); ok {
+								args = a
+							}
 						}
-					}
-					if err := check(contracts[inv]["inp"], args, fmt.Sprintf("%s#ex%d.inverse.args -> %s", route, i, inv)); err != nil {
-						fail(err.Error())
+						if err := check(contracts[inv]["inp"], args, fmt.Sprintf("%s#ex%d.inverse.args -> %s", route, i, inv)); err != nil {
+							fail(err.Error())
+						}
 					}
 				}
 			}
@@ -425,6 +429,17 @@ func handle(route string, payload map[string]interface{}, lie bool) map[string]i
 			"did": "restore(" + id + ")", "reversible": true,
 			"inverse": map[string]interface{}{"path": "window/command/close",
 				"args": map[string]interface{}{"id": id}}}
+	case "cdp/page/command/navigate":
+		url := strOr(payload, "url", "https://example.test/a")
+		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "cdp-navigate",
+			"url": url, "ready": true,
+			"inverse": map[string]interface{}{"path": "cdp/page/command/navigate",
+				"args": map[string]interface{}{"url": "https://example.test/prev"}}}
+	case "ui/command/fill":
+		text := strOr(payload, "text", "field")
+		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "ui-fill",
+			"inverse": map[string]interface{}{"path": "ui/command/fill",
+				"args": map[string]interface{}{"text": text, "value": "prev-value"}}}
 	}
 	return nil
 }
@@ -489,6 +504,35 @@ func main() {
 			os.Stdout.Write(out)
 			os.Stdout.Write([]byte("\n"))
 		}
+	case "serve-http":
+		lie := false
+		for _, a := range args[1:] {
+			if a == "--lie" {
+				lie = true
+			}
+		}
+		ln, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			body, _ := io.ReadAll(r.Body)
+			var req map[string]interface{}
+			json.Unmarshal(body, &req)
+			route, _ := req["route"].(string)
+			payload, _ := req["payload"].(map[string]interface{})
+			if payload == nil {
+				payload = map[string]interface{}{}
+			}
+			env := handle(route, payload, lie)
+			out, _ := json.Marshal(map[string]interface{}{"id": req["id"], "envelope": env})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(out)
+		})
+		fmt.Printf("READY %d\n", ln.Addr().(*net.TCPAddr).Port)
+		http.Serve(ln, mux)
 	case "conform":
 		os.Exit(conform())
 	default:

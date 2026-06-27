@@ -146,7 +146,7 @@ function conform() {
       const ex = c.examples[i];
       try { check(c.inp, ex.payload, `${route}#ex${i}.payload`); } catch (e) { fail(e.message); }
       if (ex.result.ok) { try { check(c.out, ex.result, `${route}#ex${i}.result`); } catch (e) { fail(e.message); } }
-      if (c.reversible && ex.result.ok) {
+      if (c.reversible && ex.result.ok && "inverse" in ex.result) {
         const args = (ex.result.inverse || {}).args || {};
         try { check(CONTRACTS[c.inverseRoute].inp, args, `${route}#ex${i}.inverse.args -> ${c.inverseRoute}`); }
         catch (e) { fail(e.message); }
@@ -195,6 +195,16 @@ function handle(route, payload, lie) {
       return { ok: true, connector: "kvm", action: "window-restore", did: `restore(${id})`,
         reversible: true, inverse: { path: "window/command/close", args: { id } } };
     }
+    case "cdp/page/command/navigate": {
+      const url = payload.url ?? "https://example.test/a";
+      return { ok: true, connector: "kvm", action: "cdp-navigate", url, ready: true,
+        inverse: { path: "cdp/page/command/navigate", args: { url: "https://example.test/prev" } } };
+    }
+    case "ui/command/fill": {
+      const text = payload.text ?? "field";
+      return { ok: true, connector: "kvm", action: "ui-fill",
+        inverse: { path: "ui/command/fill", args: { text, value: "prev-value" } } };
+    }
   }
   throw new Error(`nieznana trasa ${route}`);
 }
@@ -221,6 +231,21 @@ if (cmd === "produce") {
     const env = handle(req.route, req.payload, lie);
     process.stdout.write(JSON.stringify({ id: req.id, envelope: env }) + "\n");
   }
+} else if (cmd === "serve-http") {
+  const { createServer } = await import("node:http");
+  const lie = process.argv.slice(2).includes("--lie");
+  const server = createServer((req, res) => {
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", () => {
+      const r = JSON.parse(body || "{}");
+      const env = handle(r.route, r.payload, lie);
+      const out = JSON.stringify({ id: r.id, envelope: env });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(out);
+    });
+  });
+  server.listen(0, "127.0.0.1", () => console.log("READY " + server.address().port));
 } else {
   console.error(`nieznany tryb ${cmd}`); process.exit(2);
 }

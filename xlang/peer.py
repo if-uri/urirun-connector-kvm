@@ -8,9 +8,12 @@ z dataclassy, z JSON-a, czy z proto. CLI lustrzane do peer.mjs i peer.go → spi
 
   produce <route>        — wypisz złotą kopertę ok jako JSON
   consume <prod> <cons>  — wczytaj JSON ze stdin, zbuduj wejście konsumenta, zwaliduj
-  serve [--lie]          — serwer RPC (JSON-lines): {route,payload} → koperta. Cel
+  serve [--lie]          — serwer RPC (JSON-lines/stdio): {route,payload} → koperta. Cel
                            zewnętrznego drivera konformansu. --lie modeluje błąd
                            SERIALIZACJI po walidacji in-language (int→string na drucie).
+  serve-http [--lie]     — TEN SAM handler za DRUGIM transportem (HTTP POST /). Port
+                           efemeryczny; węzeł wypisuje "READY <port>". Cel dowodu
+                           niezmienniczości transportu: ten sam URI → ta sama koperta.
 """
 from __future__ import annotations
 
@@ -69,6 +72,18 @@ def handle(route: str, payload: dict, lie: bool = False) -> dict:
         return {"ok": True, "connector": "kvm", "action": "window-restore",
                 "did": f"restore({wid})", "reversible": True,
                 "inverse": {"path": "window/command/close", "args": {"id": wid}}}
+    if route == "cdp/page/command/navigate":
+        url = payload.get("url", "https://example.test/a")
+        return {"ok": True, "connector": "kvm", "action": "cdp-navigate",
+                "url": url, "ready": True,
+                "inverse": {"path": "cdp/page/command/navigate",
+                            "args": {"url": "https://example.test/prev"}}}
+    if route == "ui/command/fill":
+        value = payload.get("value", "")
+        text = payload.get("text", "field")
+        return {"ok": True, "connector": "kvm", "action": "ui-fill",
+                "inverse": {"path": "ui/command/fill",
+                            "args": {"text": text, "value": "prev-value"}}}
     raise KeyError(route)
 
 
@@ -84,6 +99,29 @@ def main() -> int:
             env = handle(req["route"], req.get("payload") or {}, lie)
             sys.stdout.write(json.dumps({"id": req.get("id"), "envelope": env}) + "\n")
             sys.stdout.flush()
+        return 0
+    if cmd == "serve-http":
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        lie = "--lie" in sys.argv[2:]
+
+        class H(BaseHTTPRequestHandler):
+            def log_message(self, *a):  # cisza
+                pass
+
+            def do_POST(self):
+                n = int(self.headers.get("Content-Length", 0))
+                req = json.loads(self.rfile.read(n) or b"{}")
+                env = handle(req["route"], req.get("payload") or {}, lie)
+                body = json.dumps({"id": req.get("id"), "envelope": env}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+        srv = HTTPServer(("127.0.0.1", 0), H)
+        print(f"READY {srv.server_address[1]}", flush=True)
+        srv.serve_forever()
         return 0
     if cmd == "produce":
         json.dump(_ok_example(sys.argv[2]), sys.stdout)

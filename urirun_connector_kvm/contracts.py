@@ -121,6 +121,67 @@ CONTRACTS: dict[str, Contract] = {
              }},
         ),
     ),
+
+    # ── self-inverse navigate: UNDO = re-navigate to the URL we left ─────────────
+    # inverse is CONDITIONAL (absent if no prior page was loaded → the route is still
+    # declared reversible because when it IS present, it is a proper inverse).
+    "cdp/page/command/navigate": Contract(
+        version="v1",
+        effect="command",
+        reversible=True,
+        inverse_route="cdp/page/command/navigate",   # self-inverse
+        inp={"url": "str", "ready_timeout": "?num"},
+        out={
+            "action": "const:cdp-navigate",
+            "url": "str",
+            "ready": "bool",
+            "inverse": "?obj",   # optional: absent when no prior page was loaded
+        },
+        errors=("unreachable",),
+        examples=(
+            # no prior page — inverse absent
+            {"payload": {"url": "https://example.test/a"},
+             "result": {
+                 "ok": True, "connector": "kvm", "action": "cdp-navigate",
+                 "url": "https://example.test/a", "ready": True}},
+            # prior page captured — inverse present (self-referential undo)
+            {"payload": {"url": "https://example.test/b"},
+             "result": {
+                 "ok": True, "connector": "kvm", "action": "cdp-navigate",
+                 "url": "https://example.test/b", "ready": True,
+                 "inverse": {"path": "cdp/page/command/navigate",
+                             "args": {"url": "https://example.test/a"}}}},
+        ),
+    ),
+
+    # ── self-inverse fill: UNDO = refill the same field with the old value ────────
+    # inverse is CONDITIONAL (absent if locate didn't capture the prior value, or if
+    # the value was already correct). Declared reversible for the same reason as navigate.
+    "ui/command/fill": Contract(
+        version="v1",
+        effect="command",
+        reversible=True,
+        inverse_route="ui/command/fill",   # self-inverse
+        inp={"value": "str", "text": "?str", "role": "?str", "name": "?str",
+             "app": "?str", "verify": "?bool"},
+        out={
+            "action": "const:ui-fill",
+            "inverse": "?obj",   # optional: absent when prev value wasn't captured
+        },
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            # locate captured the prev value → inverse present
+            {"payload": {"text": "Email", "value": "new@example.com"},
+             "result": {
+                 "ok": True, "connector": "kvm", "action": "ui-fill",
+                 "inverse": {"path": "ui/command/fill",
+                             "args": {"text": "Email", "value": "old@example.com"}}}},
+            # locate didn't capture prev (field empty or locate failed) → inverse absent
+            {"payload": {"text": "Search", "value": "hello"},
+             "result": {
+                 "ok": True, "connector": "kvm", "action": "ui-fill"}},
+        ),
+    ),
 }
 
 
@@ -137,4 +198,10 @@ WIRES: list[Wire] = [
     Wire("screen/query/capture", "abs/command/click",
          {"sw": "fullSize.0", "sh": "fullSize.1"},
          note="rozmiar ekranu ze zrzutu zasila przestrzeń kliknięcia (x,y z kroku locate)"),
+    # Wkład częściowy: URL z nawigacji → wartość do wypełnienia w polu formularza.
+    # Typowy scenariusz: navigate(login-page) → fill(Email/value=URL). value to wymagane
+    # pole konsumenta → krawędź jest ZAWSZE partial (x,y z locate-step).
+    Wire("cdp/page/command/navigate", "ui/command/fill",
+         {"value": "url"},
+         note="URL strony po nawigacji trafia do pola formularza (np. adres→email)"),
 ]

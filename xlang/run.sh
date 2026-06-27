@@ -13,6 +13,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Brama portowalna: bez node/go dowód polyglota nie ma sensu — pomiń czysto (exit 0),
+# żeby python-only CI nie pękał. Sentinel "SKIP:" jest czytany przez pytest (test_xlang_polyglot).
+command -v node >/dev/null 2>&1 || { echo "SKIP: node nieobecny — pomijam dowód polyglota"; exit 0; }
+command -v go   >/dev/null 2>&1 || { echo "SKIP: go nieobecny — pomijam dowód polyglota"; exit 0; }
+
 TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}"
 export PYTHONPATH="..:${TOOLKIT}"
 

@@ -59,8 +59,21 @@ wejścia (int→string na drucie). Driver:
 Złote przykłady stają się **językowo-neutralnym korpusem testowym**: „implementacja X w języku L
 jest zgodna" = „dla każdego przykładowego payloadu handler L produkuje wyjście pasujące do `out`".
 
-## Dwie komplementarne warstwy dowodu
-| warstwa            | skrypt        | sprawdza            | granica                       |
-|--------------------|---------------|---------------------|-------------------------------|
-| round-trip         | `run.sh`      | konsumpcja wejścia  | producent→JSON→konsument      |
-| driver konformansu | `driver.sh`   | produkcja wyjścia   | strona trzecia→transport→węzeł|
+## Niezmienniczość transportu (`transport_swap.py` / `transport_swap.sh`)
+Tożsamość operacji to **URI, nie transport**. Każdy peer ma drugi tryb `serve-http` —
+TEN SAM handler za HTTP zamiast stdio (port efemeryczny, węzeł wypisuje `READY <port>`).
+Driver dla każdego języka uruchamia oba transporty i na każdej trasie × złotym payloadzie
+sprawdza: koperta po stdio zgodna z `out`, koperta po HTTP zgodna z `out`, i **obie identyczne**.
+
+```bash
+bash xlang/transport_swap.sh
+```
+Wynik: dla py/js/go `5/5 koperta identyczna, 5/5 zgodna z out` → **TRANSPORT-INVARIANT**.
+Gdyby koperta zależała od transportu, „kontrakt" byłby naprawdę szczegółem transportu.
+
+## Trzy komplementarne warstwy dowodu
+| warstwa            | skrypt              | sprawdza                  | granica                        |
+|--------------------|---------------------|---------------------------|--------------------------------|
+| round-trip         | `run.sh`            | konsumpcja wejścia        | producent→JSON→konsument       |
+| driver konformansu | `driver.sh`         | produkcja wyjścia         | strona trzecia→transport→węzeł |
+| swap transportu    | `transport_swap.sh` | niezależność od transportu| węzeł × stdio vs HTTP          |

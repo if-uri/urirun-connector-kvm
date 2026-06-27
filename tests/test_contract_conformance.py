@@ -76,7 +76,9 @@ def test_inverse_args_satisfy_inverse_input(route):
     for i, ex in enumerate(c.examples):
         if not ex.get("result", {}).get("ok"):
             continue
-        args = (ex["result"].get("inverse") or {}).get("args", {})
+        if "inverse" not in ex.get("result", {}):
+            continue  # conditional inverse — absent in this variant; already proven in other examples
+        args = ex["result"]["inverse"].get("args", {})
         check(inv.inp, args, f"{route}#ex{i}.inverse.args → input of {c.inverse_route}")
 
 
