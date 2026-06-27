@@ -11,6 +11,7 @@ Aktywne pod URIRUN_CONTRACT_CHECK=1 (dyscyplina „validate on w CI"); pomijane 
 """
 from __future__ import annotations
 
+import importlib.util
 import os
 import shutil
 import subprocess
@@ -21,10 +22,10 @@ CONTRACT_CHECK = os.environ.get("URIRUN_CONTRACT_CHECK") == "1"
 HAVE_NODE = shutil.which("node") is not None
 HAVE_GO = shutil.which("go") is not None
 
-pytestmark = [
-    pytest.mark.skipif(not CONTRACT_CHECK, reason="set URIRUN_CONTRACT_CHECK=1"),
-    pytest.mark.skipif(not (HAVE_NODE and HAVE_GO), reason="dowód polyglota wymaga node i go"),
-]
+# CONTRACT_CHECK bramuje cały moduł (jak test_contract_composition). Node/go bramuje TYLKO
+# testy polyglota — dowód JSON Schema jest python-only i ma działać na python-only CI.
+pytestmark = pytest.mark.skipif(not CONTRACT_CHECK, reason="set URIRUN_CONTRACT_CHECK=1")
+needs_polyglot = pytest.mark.skipif(not (HAVE_NODE and HAVE_GO), reason="dowód polyglota wymaga node i go")
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 XLANG = os.path.join(REPO, "xlang")
@@ -57,16 +58,32 @@ def _assert_ok(res: subprocess.CompletedProcess) -> None:
     assert "BŁĄD" not in res.stdout and "!!" not in res.stdout, combined
 
 
+@needs_polyglot
 def test_roundtrip_matrix():
-    """run.sh: jeden neutralny contracts.json, 3×3 macierz wymiany, drift odrzucany symetrycznie."""
+    """run.sh: jeden neutralny contracts.json, N×N macierz wymiany, drift odrzucany symetrycznie."""
     _assert_ok(_run("run.sh"))
 
 
+@needs_polyglot
 def test_external_conformance_driver():
     """driver.sh: strona trzecia waliduje WYJŚCIE każdego węzła po transporcie; kłamstwo złapane."""
     _assert_ok(_run("driver.sh"))
 
 
+@needs_polyglot
 def test_transport_invariance():
     """transport_swap.sh: ten sam węzeł × stdio vs HTTP → identyczna, zgodna koperta."""
     _assert_ok(_run("transport_swap.sh"))
+
+
+@pytest.mark.skipif(importlib.util.find_spec("jsonschema") is None,
+                    reason="standardowy dowód schematu wymaga biblioteki jsonschema")
+def test_jsonschema_export():
+    """jsonschema_proof.sh: eksport do JSON Schema + off-the-shelf walidator (niezależny od node/go)."""
+    _assert_ok(_run("jsonschema_proof.sh"))
+
+
+@pytest.mark.skipif(shutil.which("tsc") is None, reason="dowód czasu kompilacji wymaga tsc")
+def test_typescript_export():
+    """typescript_proof.sh: eksport do typów TS; tsc akceptuje złoty kształt, odrzuca kłamstwo."""
+    _assert_ok(_run("typescript_proof.sh"))

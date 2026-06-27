@@ -76,18 +76,35 @@ bash xlang/transport_swap.sh
 Wynik: dla py/js/go `5/5 koperta identyczna, 5/5 zgodna z out` → **TRANSPORT-INVARIANT**.
 Gdyby koperta zależała od transportu, „kontrakt" byłby naprawdę szczegółem transportu.
 
-## Trzy komplementarne warstwy dowodu
-| warstwa            | skrypt              | sprawdza                  | granica                        |
-|--------------------|---------------------|---------------------------|--------------------------------|
-| round-trip         | `run.sh`            | konsumpcja wejścia        | producent→JSON→konsument       |
-| driver konformansu | `driver.sh`         | produkcja wyjścia         | strona trzecia→transport→węzeł |
-| swap transportu    | `transport_swap.sh` | niezależność od transportu| węzeł × stdio vs HTTP          |
+## Konsument NIEPISANY RĘCZNIE (`emit_jsonschema.py` / `jsonschema_proof.sh`)
+Czytniki py/js/go/rust pisaliśmy ręcznie. Ostatni krok: neutralne źródło ma feedować też
+konsumentów, których NIKT nie pisze — codegen, bramy API, tooling IDE — czytających STANDARD,
+nie nasz mini-język. `emit_jsonschema.py` tłumaczy ten sam dataclass-owy źródło na **JSON Schema
+(draft 2020-12)**; `jsonschema_proof.py` waliduje nim złoty korpus **off-the-shelf** walidatorem
+(biblioteka `jsonschema`, implementacja specyfikacji IETF) — ZEROWYM własnym kodem walidacji.
+
+```bash
+bash xlang/jsonschema_proof.sh
+```
+Wynik: `9/9 złotych przykładów` przechodzi standardowy walidator, a to samo kłamstwo na drucie
+jest **ZŁAPANE** (`screen/0: '2560' is not of type 'integer'`). Niuans tłumaczenia: nasze `oneOf`
+znaczy „pasuje do CO NAJMNIEJ jednego" (walidator zwraca przy pierwszym trafieniu) → mapuje się na
+`anyOf` z draftu, NIE na `oneOf` (które jest XOR).
+
+## Cztery komplementarne warstwy dowodu
+| warstwa            | skrypt                | sprawdza                       | granica                        |
+|--------------------|-----------------------|--------------------------------|--------------------------------|
+| round-trip         | `run.sh`              | konsumpcja wejścia             | producent→JSON→konsument       |
+| driver konformansu | `driver.sh`           | produkcja wyjścia              | strona trzecia→transport→węzeł |
+| swap transportu    | `transport_swap.sh`   | niezależność od transportu     | węzeł × stdio vs HTTP          |
+| standardowy schemat| `jsonschema_proof.sh` | konsument niepisany ręcznie    | off-the-shelf walidator schematu|
 
 ## Egzekwowane, nie tylko uruchamialne
-Dowód polyglota to **niezmiennik bramy**, nie demo do ręcznego odpalania:
-- `make contract-ci` — pełna brama 6/6 (self-conformance → kompozycja → IPC → polyglot →
-  driver → swap transportu); `ci/contract_ci.sh` woła trzy skrypty wprost dla czytelnych logów.
+Dowód to **niezmiennik bramy**, nie demo do ręcznego odpalania:
+- `make contract-ci` — pełna brama 8/8 (self-conformance → kompozycja → IPC → shape-lint →
+  polyglot → driver → swap transportu → standardowy schemat); `ci/contract_ci.sh` woła skrypty
+  wprost dla czytelnych logów.
 - `make xlang` — sam dowód polyglota (trzy skrypty po kolei).
 - `tests/test_xlang_polyglot.py` — parytet pod `URIRUN_CONTRACT_CHECK=1 pytest`: ta sama brama
-  co `test_contract_composition.py`. Pomija się czysto bez `node`/`go` (jak skrypty: sentinel `SKIP:`),
-  więc python-only CI zostaje zielone.
+  co `test_contract_composition.py`. Testy polyglota pomijają się bez `node`/`go`; dowód JSON Schema
+  jest python-only i działa na python-only CI (pomija się tylko bez biblioteki `jsonschema`).

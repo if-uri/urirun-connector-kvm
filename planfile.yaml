@@ -1057,3 +1057,159 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-3eac9340
+    name: Fix unused-imports issues
+    description: Resolve 6 unused-imports issues in ci/contract_shape_lint.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - ci/contract_shape_lint.py
+    rule_id: unused-imports
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2d9076c5
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in ci/contract_shape_lint.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - ci/contract_shape_lint.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b907ff25
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in ci/contract_codegen.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - ci/contract_codegen.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cb613cbf
+    name: Fix string-concat issues
+    description: Resolve 8 string-concat issues in ci/contract_codegen.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - ci/contract_codegen.py
+    rule_id: string-concat
+    count: 8
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-557575e2
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in ci/contract_codegen.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - ci/contract_codegen.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-02936555
+    name: Fix llm-hallucinations issues
+    description: Resolve 1 llm-hallucinations issues in ci/contract_codegen.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - ci/contract_codegen.py
+    rule_id: llm-hallucinations
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-98948321
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in ci/contract_codegen.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - ci/contract_codegen.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7daa257b
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in xlang/emit_jsonschema.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/emit_jsonschema.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-bdeddb90
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in xlang/emit_jsonschema.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/emit_jsonschema.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-996327ab
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in xlang/emit_jsonschema.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/emit_jsonschema.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c48f696c
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in xlang/jsonschema_proof.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/jsonschema_proof.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0247f82a
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in xlang/jsonschema_proof.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/jsonschema_proof.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced

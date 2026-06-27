@@ -3,9 +3,9 @@ project_metadata('urirun-connector-kvm', '0.3.0', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 71, 'less').
-project_file('ci/contract_ci.sh', 55, 'shell').
+project_file('ci/contract_ci.sh', 69, 'shell').
 project_file('ci/contract_codegen.py', 141, 'python').
-project_file('ci/contract_shape_lint.py', 135, 'python').
+project_file('ci/contract_shape_lint.py', 144, 'python').
 project_file('ci/cross_process_roundtrip.py', 84, 'python').
 project_file('computer-use-preview/agent.py', 513, 'python').
 project_file('computer-use-preview/computers/__init__.py', 26, 'python').
@@ -25,10 +25,10 @@ project_file('project.sh', 69, 'shell').
 project_file('tests/test_contract_composition.py', 99, 'python').
 project_file('tests/test_contract_conformance.py', 153, 'python').
 project_file('tests/test_kvm.py', 608, 'python').
-project_file('tests/test_xlang_polyglot.py', 73, 'python').
+project_file('tests/test_xlang_polyglot.py', 84, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1382, 'python').
+project_file('urirun_connector_kvm/backends.py', 1388, 'python').
 project_file('urirun_connector_kvm/cdp.py', 222, 'python').
 project_file('urirun_connector_kvm/contracts.py', 208, 'python').
 project_file('urirun_connector_kvm/control.py', 213, 'python').
@@ -37,14 +37,18 @@ project_file('urirun_connector_kvm/environment.py', 402, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 285, 'python').
 project_file('urirun_connector_kvm/strategies.py', 133, 'python').
 project_file('urirun_connector_kvm/surface.py', 59, 'python').
-project_file('xlang/conformance_driver.py', 121, 'python').
-project_file('xlang/driver.sh', 22, 'shell').
+project_file('xlang/conformance_driver.py', 124, 'python').
+project_file('xlang/driver.sh', 27, 'shell').
 project_file('xlang/emit_contracts.py', 63, 'python').
+project_file('xlang/emit_jsonschema.py', 110, 'python').
+project_file('xlang/jsonschema_proof.py', 70, 'python').
+project_file('xlang/jsonschema_proof.sh', 20, 'shell').
 project_file('xlang/peer.go', 543, 'go').
 project_file('xlang/peer.py', 143, 'python').
-project_file('xlang/run.sh', 92, 'shell').
-project_file('xlang/transport_swap.py', 101, 'python').
-project_file('xlang/transport_swap.sh', 20, 'shell').
+project_file('xlang/run.sh', 99, 'shell').
+project_file('xlang/rust/src/main.rs', 480, 'rust').
+project_file('xlang/transport_swap.py', 104, 'python').
+project_file('xlang/transport_swap.sh', 25, 'shell').
 
 % ── Python Functions ─────────────────────────────────────
 python_function('ci/contract_codegen.py', '_base', 1, 2, 1).
@@ -61,7 +65,7 @@ python_function('ci/contract_shape_lint.py', '_fn_for_route', 1, 7, 5).
 python_function('ci/contract_shape_lint.py', '_fn_params', 1, 2, 2).
 python_function('ci/contract_shape_lint.py', '_fn_source', 1, 2, 1).
 python_function('ci/contract_shape_lint.py', '_is_implemented', 1, 2, 1).
-python_function('ci/contract_shape_lint.py', 'check_route', 2, 12, 8).
+python_function('ci/contract_shape_lint.py', 'check_route', 2, 17, 11).
 python_function('ci/contract_shape_lint.py', 'main', 0, 5, 4).
 python_function('ci/cross_process_roundtrip.py', '_ok_example', 1, 4, 2).
 python_function('ci/cross_process_roundtrip.py', 'produce', 1, 1, 2).
@@ -137,6 +141,7 @@ python_function('tests/test_xlang_polyglot.py', '_assert_ok', 1, 5, 1).
 python_function('tests/test_xlang_polyglot.py', 'test_roundtrip_matrix', 0, 1, 2).
 python_function('tests/test_xlang_polyglot.py', 'test_external_conformance_driver', 0, 1, 2).
 python_function('tests/test_xlang_polyglot.py', 'test_transport_invariance', 0, 1, 2).
+python_function('tests/test_xlang_polyglot.py', 'test_jsonschema_export', 0, 1, 4).
 python_function('urirun_connector_kvm/backends.py', '_runtime_dir', 0, 3, 3).
 python_function('urirun_connector_kvm/backends.py', '_wayland_socket', 0, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_x_display', 0, 6, 4).
@@ -155,7 +160,7 @@ python_function('urirun_connector_kvm/backends.py', '_is_wlroots_compositor', 0,
 python_function('urirun_connector_kvm/backends.py', '_cap_grim', 1, 4, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_mss', 2, 2, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_pillow', 1, 1, 3).
-python_function('urirun_connector_kvm/backends.py', '_cap_scrot', 1, 1, 2).
+python_function('urirun_connector_kvm/backends.py', '_cap_scrot', 1, 2, 5).
 python_function('urirun_connector_kvm/backends.py', '_cap_im', 1, 1, 2).
 python_function('urirun_connector_kvm/backends.py', '_cap_gnome', 1, 1, 2).
 python_function('urirun_connector_kvm/backends.py', '_cap_macos', 1, 1, 2).
@@ -328,6 +333,12 @@ python_function('xlang/conformance_driver.py', 'main', 0, 15, 7).
 python_function('xlang/emit_contracts.py', '_contract_to_json', 1, 3, 2).
 python_function('xlang/emit_contracts.py', 'build_doc', 0, 3, 2).
 python_function('xlang/emit_contracts.py', 'main', 0, 1, 7).
+python_function('xlang/emit_jsonschema.py', '_const', 1, 3, 1).
+python_function('xlang/emit_jsonschema.py', 'to_schema', 1, 17, 11).
+python_function('xlang/emit_jsonschema.py', 'build_doc', 0, 2, 2).
+python_function('xlang/emit_jsonschema.py', 'main', 0, 1, 7).
+python_function('xlang/jsonschema_proof.py', '_valid', 2, 4, 5).
+python_function('xlang/jsonschema_proof.py', 'main', 0, 10, 5).
 python_function('xlang/peer.py', '_find_wire', 2, 4, 1).
 python_function('xlang/peer.py', '_ok_example', 1, 3, 2).
 python_function('xlang/peer.py', 'handle', 3, 9, 3).

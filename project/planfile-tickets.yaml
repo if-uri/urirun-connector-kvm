@@ -1,5 +1,5 @@
 source: code2llm
-# generated in 0.09s
+# generated in 0.11s
 schema: code2llm.planfile_tickets.v1
 project_root: /home/tom/github/if-uri/urirun-connector-kvm
 tickets:
@@ -20,9 +20,26 @@ tickets:
   files:
   - xlang/peer.go
   dedupe_key: code2llm:cc:xlang/peer.go:xlang.peer.check
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: xlang.rust.src.main.check (CC=30)'
+  description: 'code2llm reports `xlang.rust.src.main.check` at `xlang/rust/src/main.rs:102`
+    with cyclomatic complexity 30 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - xlang/rust/src/main.rs
+  dedupe_key: code2llm:cc:xlang/rust/src/main.rs:xlang.rust.src.main.check
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_easyocr'
-  description: 'code2llm reports `God Function: _locate_easyocr` in `urirun_connector_kvm/backends.py:983`.
+  description: 'code2llm reports `God Function: _locate_easyocr` in `urirun_connector_kvm/backends.py:989`.
 
 
     Function ''_locate_easyocr'' is oversized: CC=14, fan-out=19, mutations=27.
@@ -37,11 +54,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:983:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:989:God
     Function: _locate_easyocr'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _tsv_lines'
-  description: 'code2llm reports `God Function: _tsv_lines` in `urirun_connector_kvm/backends.py:857`.
+  description: 'code2llm reports `God Function: _tsv_lines` in `urirun_connector_kvm/backends.py:863`.
 
 
     Function ''_tsv_lines'' is oversized: CC=8, fan-out=15, mutations=36.
@@ -56,7 +73,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:857:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:863:God
     Function: _tsv_lines'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: capture'
@@ -77,6 +94,25 @@ tickets:
   - urirun_connector_kvm/core.py
   dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:159:God Function:
     capture'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: main'
+  description: 'code2llm reports `God Function: main` in `xlang/rust/src/main.rs:388`.
+
+
+    Function ''main'' is oversized: CC=13, fan-out=49, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - xlang/rust/src/main.rs
+  dedupe_key: 'code2llm:smell:god_function:xlang/rust/src/main.rs:388:God Function:
+    main'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: profile'
   description: 'code2llm reports `God Function: profile` in `urirun_connector_kvm/environment.py:98`.
@@ -118,10 +154,10 @@ tickets:
     Surgery: argv'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: b'
-  description: 'code2llm reports `Shotgun Surgery: b` in `xlang/transport_swap.py:60`.
+  description: 'code2llm reports `Shotgun Surgery: b` in `examples/calibrate_abs.py:27`.
 
 
-    Mutation of variable ''b'' spans 5 functions. Changing this logic requires work
+    Mutation of variable ''b'' spans 6 functions. Changing this logic requires work
     in many places.
 
 
@@ -133,15 +169,35 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - xlang/transport_swap.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:xlang/transport_swap.py:60:Shotgun Surgery:
-    b'
+  - examples/calibrate_abs.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:examples/calibrate_abs.py:27:Shotgun
+    Surgery: b'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: c'
+  description: 'code2llm reports `Shotgun Surgery: c` in `urirun_connector_kvm/backends.py:896`.
+
+
+    Mutation of variable ''c'' spans 7 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:896:Shotgun
+    Surgery: c'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: env'
-  description: 'code2llm reports `Shotgun Surgery: env` in `urirun_connector_kvm/backends.py:1263`.
+  description: 'code2llm reports `Shotgun Surgery: env` in `urirun_connector_kvm/backends.py:377`.
 
 
-    Mutation of variable ''env'' spans 11 functions. Changing this logic requires
+    Mutation of variable ''env'' spans 12 functions. Changing this logic requires
     work in many places.
 
 
@@ -154,11 +210,11 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1263:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:377:Shotgun
     Surgery: env'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: full'
-  description: 'code2llm reports `Shotgun Surgery: full` in `urirun_connector_kvm/core.py:130`.
+  description: 'code2llm reports `Shotgun Surgery: full` in `urirun_connector_kvm/backends.py:939`.
 
 
     Mutation of variable ''full'' spans 5 functions. Changing this logic requires
@@ -173,12 +229,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:130:Shotgun
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:939:Shotgun
     Surgery: full'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: h'
-  description: 'code2llm reports `Shotgun Surgery: h` in `urirun_connector_kvm/core.py:220`.
+  description: 'code2llm reports `Shotgun Surgery: h` in `urirun_connector_kvm/backends.py:1042`.
 
 
     Mutation of variable ''h'' spans 7 functions. Changing this logic requires work
@@ -193,12 +249,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:220:Shotgun
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1042:Shotgun
     Surgery: h'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: hit'
-  description: 'code2llm reports `Shotgun Surgery: hit` in `urirun_connector_kvm/core.py:880`.
+  description: 'code2llm reports `Shotgun Surgery: hit` in `urirun_connector_kvm/control.py:107`.
 
 
     Mutation of variable ''hit'' spans 6 functions. Changing this logic requires work
@@ -213,15 +269,15 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:880:Shotgun
+  - urirun_connector_kvm/control.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/control.py:107:Shotgun
     Surgery: hit'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: last'
-  description: 'code2llm reports `Shotgun Surgery: last` in `urirun_connector_kvm/core.py:812`.
+  description: 'code2llm reports `Shotgun Surgery: last` in `urirun_connector_kvm/core.py:766`.
 
 
-    Mutation of variable ''last'' spans 6 functions. Changing this logic requires
+    Mutation of variable ''last'' spans 7 functions. Changing this logic requires
     work in many places.
 
 
@@ -234,14 +290,14 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:812:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:766:Shotgun
     Surgery: last'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: out'
-  description: 'code2llm reports `Shotgun Surgery: out` in `urirun_connector_kvm/backends.py:1263`.
+  title: 'Address code smell: Shotgun Surgery: name'
+  description: 'code2llm reports `Shotgun Surgery: name` in `urirun_connector_kvm/launch_backends.py:81`.
 
 
-    Mutation of variable ''out'' spans 17 functions. Changing this logic requires
+    Mutation of variable ''name'' spans 6 functions. Changing this logic requires
     work in many places.
 
 
@@ -253,12 +309,32 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1263:Shotgun
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/launch_backends.py:81:Shotgun
+    Surgery: name'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: out'
+  description: 'code2llm reports `Shotgun Surgery: out` in `urirun_connector_kvm/launch_backends.py:276`.
+
+
+    Mutation of variable ''out'' spans 19 functions. Changing this logic requires
+    work in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/launch_backends.py:276:Shotgun
     Surgery: out'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: p'
-  description: 'code2llm reports `Shotgun Surgery: p` in `urirun_connector_kvm/backends.py:659`.
+  description: 'code2llm reports `Shotgun Surgery: p` in `urirun_connector_kvm/backends.py:939`.
 
 
     Mutation of variable ''p'' spans 11 functions. Changing this logic requires work
@@ -274,14 +350,14 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:659:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:939:Shotgun
     Surgery: p'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: py'
-  description: 'code2llm reports `Shotgun Surgery: py` in `urirun_connector_kvm/backends.py:1195`.
+  description: 'code2llm reports `Shotgun Surgery: py` in `urirun_connector_kvm/backends.py:836`.
 
 
-    Mutation of variable ''py'' spans 5 functions. Changing this logic requires work
+    Mutation of variable ''py'' spans 6 functions. Changing this logic requires work
     in many places.
 
 
@@ -294,11 +370,11 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1195:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:836:Shotgun
     Surgery: py'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: q'
-  description: 'code2llm reports `Shotgun Surgery: q` in `urirun_connector_kvm/launch_backends.py:141`.
+  description: 'code2llm reports `Shotgun Surgery: q` in `urirun_connector_kvm/backends.py:939`.
 
 
     Mutation of variable ''q'' spans 5 functions. Changing this logic requires work
@@ -313,12 +389,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/launch_backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/launch_backends.py:141:Shotgun
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:939:Shotgun
     Surgery: q'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: r'
-  description: 'code2llm reports `Shotgun Surgery: r` in `urirun_connector_kvm/core.py:702`.
+  description: 'code2llm reports `Shotgun Surgery: r` in `examples/calibrate_abs.py:27`.
 
 
     Mutation of variable ''r'' spans 9 functions. Changing this logic requires work
@@ -333,12 +409,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:702:Shotgun
+  - examples/calibrate_abs.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:examples/calibrate_abs.py:27:Shotgun
     Surgery: r'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: res'
-  description: 'code2llm reports `Shotgun Surgery: res` in `urirun_connector_kvm/cdp.py:216`.
+  description: 'code2llm reports `Shotgun Surgery: res` in `urirun_connector_kvm/backends.py:1042`.
 
 
     Mutation of variable ''res'' spans 14 functions. Changing this logic requires
@@ -353,8 +429,8 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/cdp.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/cdp.py:216:Shotgun
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1042:Shotgun
     Surgery: res'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: result'
@@ -377,8 +453,48 @@ tickets:
   dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/control.py:107:Shotgun
     Surgery: result'
 - signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: s'
+  description: 'code2llm reports `Shotgun Surgery: s` in `ci/contract_codegen.py:53`.
+
+
+    Mutation of variable ''s'' spans 6 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - ci/contract_codegen.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:ci/contract_codegen.py:53:Shotgun Surgery:
+    s'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: subprocess'
+  description: 'code2llm reports `Shotgun Surgery: subprocess` in `urirun_connector_kvm/backends.py:481`.
+
+
+    Mutation of variable ''subprocess'' spans 6 functions. Changing this logic requires
+    work in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:481:Shotgun
+    Surgery: subprocess'
+- signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: w'
-  description: 'code2llm reports `Shotgun Surgery: w` in `urirun_connector_kvm/core.py:220`.
+  description: 'code2llm reports `Shotgun Surgery: w` in `urirun_connector_kvm/backends.py:1042`.
 
 
     Mutation of variable ''w'' spans 6 functions. Changing this logic requires work
@@ -393,12 +509,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/core.py:220:Shotgun
+  - urirun_connector_kvm/backends.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1042:Shotgun
     Surgery: w'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: x'
-  description: 'code2llm reports `Shotgun Surgery: x` in `urirun_connector_kvm/backends.py:1263`.
+  description: 'code2llm reports `Shotgun Surgery: x` in `urirun_connector_kvm/backends.py:1042`.
 
 
     Mutation of variable ''x'' spans 5 functions. Changing this logic requires work
@@ -414,11 +530,11 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1263:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1042:Shotgun
     Surgery: x'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: y'
-  description: 'code2llm reports `Shotgun Surgery: y` in `urirun_connector_kvm/backends.py:1263`.
+  description: 'code2llm reports `Shotgun Surgery: y` in `urirun_connector_kvm/backends.py:1042`.
 
 
     Mutation of variable ''y'' spans 5 functions. Changing this logic requires work
@@ -434,8 +550,25 @@ tickets:
   - shotgun-surgery
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1263:Shotgun
+  dedupe_key: 'code2llm:smell:shotgun_surgery:urirun_connector_kvm/backends.py:1042:Shotgun
     Surgery: y'
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: ci.contract_shape_lint.check_route (CC=17)'
+  description: 'code2llm reports `ci.contract_shape_lint.check_route` at `ci/contract_shape_lint.py:82`
+    with cyclomatic complexity 17 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - ci/contract_shape_lint.py
+  dedupe_key: code2llm:cc:ci/contract_shape_lint.py:ci.contract_shape_lint.check_route
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: urirun_connector_kvm.environment._running_browser_processes
     (CC=15)'
@@ -476,7 +609,7 @@ tickets:
   dedupe_key: code2llm:cc:urirun_connector_kvm/environment.py:urirun_connector_kvm.environment.browser_sessions
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: xlang.conformance_driver.main (CC=15)'
-  description: 'code2llm reports `xlang.conformance_driver.main` at `xlang/conformance_driver.py:81`
+  description: 'code2llm reports `xlang.conformance_driver.main` at `xlang/conformance_driver.py:84`
     with cyclomatic complexity 15 (limit 15).
 
 
@@ -491,6 +624,23 @@ tickets:
   files:
   - xlang/conformance_driver.py
   dedupe_key: code2llm:cc:xlang/conformance_driver.py:xlang.conformance_driver.main
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: xlang.emit_jsonschema.to_schema (CC=17)'
+  description: 'code2llm reports `xlang.emit_jsonschema.to_schema` at `xlang/emit_jsonschema.py:54`
+    with cyclomatic complexity 17 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - xlang/emit_jsonschema.py
+  dedupe_key: code2llm:cc:xlang/emit_jsonschema.py:xlang.emit_jsonschema.to_schema
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: xlang.peer.ContractViolation.conform (CC=18)'
   description: 'code2llm reports `xlang.peer.ContractViolation.conform` at `xlang/peer.mjs:136`
@@ -576,98 +726,31 @@ tickets:
   files:
   - xlang/peer.go
   dedupe_key: code2llm:cc:xlang/peer.go:xlang.peer.main
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: app, args, settle'
-  description: 'code2llm reports `Data Clump: app, args, settle` in `urirun_connector_kvm/launch_backends.py:240`.
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: xlang.rust.src.main.conform (CC=16)'
+  description: 'code2llm reports `xlang.rust.src.main.conform` at `xlang/rust/src/main.rs:277`
+    with cyclomatic complexity 16 (limit 15).
 
 
-    Arguments (app, args, settle) are used together in multiple functions: urirun_connector_kvm.launch_backends._launch_macos,
-    urirun_connector_kvm.launch_backends._launch_windows.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
   priority: normal
   labels:
   - llm-ready
   - code2llm
-  - code-smell
-  - data-clump
+  - complexity
+  - refactor
   files:
-  - urirun_connector_kvm/launch_backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/launch_backends.py:240:Data
-    Clump: app, args, settle'
+  - xlang/rust/src/main.rs
+  dedupe_key: code2llm:cc:xlang/rust/src/main.rs:xlang.rust.src.main.conform
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: app, args, settle'
-  description: 'code2llm reports `Data Clump: app, args, settle` in `urirun_connector_kvm/launch_backends.py:250`.
+  title: 'Address code smell: Data Clump: clear_before_typing, y, x, press_enter,
+    text, self'
+  description: 'code2llm reports `Data Clump: clear_before_typing, y, x, press_enter,
+    text, self` in `computer-use-preview/computers/computer.py:108`.
 
 
-    Arguments (app, args, settle) are used together in multiple functions: urirun_connector_kvm.launch_backends._launch_macos,
-    urirun_connector_kvm.launch_backends._launch_windows.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - urirun_connector_kvm/launch_backends.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/launch_backends.py:250:Data
-    Clump: app, args, settle'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: exc_tb, exc_type, exc_val, self'
-  description: 'code2llm reports `Data Clump: exc_tb, exc_type, exc_val, self` in
-    `computer-use-preview/computers/playwright/playwright.py:134`.
-
-
-    Arguments (exc_tb, exc_type, exc_val, self) are used together in multiple functions:
-    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__,
-    computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - computer-use-preview/computers/playwright/playwright.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:134:Data
-    Clump: exc_tb, exc_type, exc_val, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: exc_tb, exc_type, exc_val, self'
-  description: 'code2llm reports `Data Clump: exc_tb, exc_type, exc_val, self` in
-    `computer-use-preview/computers/browserbase/browserbase.py:71`.
-
-
-    Arguments (exc_tb, exc_type, exc_val, self) are used together in multiple functions:
-    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__,
-    computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - computer-use-preview/computers/browserbase/browserbase.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/browserbase/browserbase.py:71:Data
-    Clump: exc_tb, exc_type, exc_val, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: press_enter, clear_before_typing, text,
-    y, x, self'
-  description: 'code2llm reports `Data Clump: press_enter, clear_before_typing, text,
-    y, x, self` in `computer-use-preview/computers/computer.py:108`.
-
-
-    Arguments (press_enter, clear_before_typing, text, y, x, self) are used together
+    Arguments (clear_before_typing, y, x, press_enter, text, self) are used together
     in multiple functions: computer-use-preview.computers.computer.Computer.type_text_at,
     computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at,
     computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at.
@@ -683,15 +766,15 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:108:Data
-    Clump: press_enter, clear_before_typing, text, y, x, self'
+    Clump: clear_before_typing, y, x, press_enter, text, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: press_enter, clear_before_typing, text,
-    y, x, self'
-  description: 'code2llm reports `Data Clump: press_enter, clear_before_typing, text,
-    y, x, self` in `computer-use-preview/computers/playwright/playwright.py:217`.
+  title: 'Address code smell: Data Clump: clear_before_typing, y, x, press_enter,
+    text, self'
+  description: 'code2llm reports `Data Clump: clear_before_typing, y, x, press_enter,
+    text, self` in `computer-use-preview/computers/playwright/playwright.py:217`.
 
 
-    Arguments (press_enter, clear_before_typing, text, y, x, self) are used together
+    Arguments (clear_before_typing, y, x, press_enter, text, self) are used together
     in multiple functions: computer-use-preview.computers.computer.Computer.type_text_at,
     computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at,
     computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at.
@@ -707,15 +790,15 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:217:Data
-    Clump: press_enter, clear_before_typing, text, y, x, self'
+    Clump: clear_before_typing, y, x, press_enter, text, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: press_enter, clear_before_typing, text,
-    y, x, self'
-  description: 'code2llm reports `Data Clump: press_enter, clear_before_typing, text,
-    y, x, self` in `computer-use-preview/computers/kvm/kvm.py:122`.
+  title: 'Address code smell: Data Clump: clear_before_typing, y, x, press_enter,
+    text, self'
+  description: 'code2llm reports `Data Clump: clear_before_typing, y, x, press_enter,
+    text, self` in `computer-use-preview/computers/kvm/kvm.py:122`.
 
 
-    Arguments (press_enter, clear_before_typing, text, y, x, self) are used together
+    Arguments (clear_before_typing, y, x, press_enter, text, self) are used together
     in multiple functions: computer-use-preview.computers.computer.Computer.type_text_at,
     computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at,
     computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at.
@@ -731,13 +814,189 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:122:Data
-    Clump: press_enter, clear_before_typing, text, y, x, self'
+    Clump: clear_before_typing, y, x, press_enter, text, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: route, payload, self'
-  description: 'code2llm reports `Data Clump: route, payload, self` in `xlang/transport_swap.py:48`.
+  title: 'Address code smell: Data Clump: destination_y, y, x, destination_x, self'
+  description: 'code2llm reports `Data Clump: destination_y, y, x, destination_x,
+    self` in `computer-use-preview/computers/computer.py:189`.
 
 
-    Arguments (route, payload, self) are used together in multiple functions: xlang.transport_swap.HttpNode.call,
+    Arguments (destination_y, y, x, destination_x, self) are used together in multiple
+    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:189:Data
+    Clump: destination_y, y, x, destination_x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: destination_y, y, x, destination_x, self'
+  description: 'code2llm reports `Data Clump: destination_y, y, x, destination_x,
+    self` in `computer-use-preview/computers/playwright/playwright.py:358`.
+
+
+    Arguments (destination_y, y, x, destination_x, self) are used together in multiple
+    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:358:Data
+    Clump: destination_y, y, x, destination_x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: destination_y, y, x, destination_x, self'
+  description: 'code2llm reports `Data Clump: destination_y, y, x, destination_x,
+    self` in `computer-use-preview/computers/kvm/kvm.py:108`.
+
+
+    Arguments (destination_y, y, x, destination_x, self) are used together in multiple
+    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:108:Data
+    Clump: destination_y, y, x, destination_x, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: direction, y, x, magnitude, self'
+  description: 'code2llm reports `Data Clump: direction, y, x, magnitude, self` in
+    `computer-use-preview/computers/computer.py:130`.
+
+
+    Arguments (direction, y, x, magnitude, self) are used together in multiple functions:
+    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/computer.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:130:Data
+    Clump: direction, y, x, magnitude, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: direction, y, x, magnitude, self'
+  description: 'code2llm reports `Data Clump: direction, y, x, magnitude, self` in
+    `computer-use-preview/computers/playwright/playwright.py:271`.
+
+
+    Arguments (direction, y, x, magnitude, self) are used together in multiple functions:
+    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:271:Data
+    Clump: direction, y, x, magnitude, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: direction, y, x, magnitude, self'
+  description: 'code2llm reports `Data Clump: direction, y, x, magnitude, self` in
+    `computer-use-preview/computers/kvm/kvm.py:151`.
+
+
+    Arguments (direction, y, x, magnitude, self) are used together in multiple functions:
+    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
+    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/kvm/kvm.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:151:Data
+    Clump: direction, y, x, magnitude, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: self, exc_type, exc_tb, exc_val'
+  description: 'code2llm reports `Data Clump: self, exc_type, exc_tb, exc_val` in
+    `computer-use-preview/computers/playwright/playwright.py:134`.
+
+
+    Arguments (self, exc_type, exc_tb, exc_val) are used together in multiple functions:
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__,
+    computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/playwright/playwright.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:134:Data
+    Clump: self, exc_type, exc_tb, exc_val'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: self, exc_type, exc_tb, exc_val'
+  description: 'code2llm reports `Data Clump: self, exc_type, exc_tb, exc_val` in
+    `computer-use-preview/computers/browserbase/browserbase.py:71`.
+
+
+    Arguments (self, exc_type, exc_tb, exc_val) are used together in multiple functions:
+    computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__,
+    computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - computer-use-preview/computers/browserbase/browserbase.py
+  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/browserbase/browserbase.py:71:Data
+    Clump: self, exc_type, exc_tb, exc_val'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: self, payload, route'
+  description: 'code2llm reports `Data Clump: self, payload, route` in `xlang/transport_swap.py:51`.
+
+
+    Arguments (self, payload, route) are used together in multiple functions: xlang.transport_swap.HttpNode.call,
     xlang.conformance_driver.Node.call.
 
 
@@ -750,14 +1009,14 @@ tickets:
   - data-clump
   files:
   - xlang/transport_swap.py
-  dedupe_key: 'code2llm:smell:data_clump:xlang/transport_swap.py:48:Data Clump: route,
-    payload, self'
+  dedupe_key: 'code2llm:smell:data_clump:xlang/transport_swap.py:51:Data Clump: self,
+    payload, route'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: route, payload, self'
-  description: 'code2llm reports `Data Clump: route, payload, self` in `xlang/conformance_driver.py:52`.
+  title: 'Address code smell: Data Clump: self, payload, route'
+  description: 'code2llm reports `Data Clump: self, payload, route` in `xlang/conformance_driver.py:55`.
 
 
-    Arguments (route, payload, self) are used together in multiple functions: xlang.transport_swap.HttpNode.call,
+    Arguments (self, payload, route) are used together in multiple functions: xlang.transport_swap.HttpNode.call,
     xlang.conformance_driver.Node.call.
 
 
@@ -770,54 +1029,14 @@ tickets:
   - data-clump
   files:
   - xlang/conformance_driver.py
-  dedupe_key: 'code2llm:smell:data_clump:xlang/conformance_driver.py:52:Data Clump:
-    route, payload, self'
+  dedupe_key: 'code2llm:smell:data_clump:xlang/conformance_driver.py:55:Data Clump:
+    self, payload, route'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: text, op, role, name, value'
-  description: 'code2llm reports `Data Clump: text, op, role, name, value` in `urirun_connector_kvm/cdp.py:198`.
+  title: 'Address code smell: Data Clump: self, press_enter, text'
+  description: 'code2llm reports `Data Clump: self, press_enter, text` in `computer-use-preview/computers/computer.py:86`.
 
 
-    Arguments (text, op, role, name, value) are used together in multiple functions:
-    urirun_connector_kvm.cdp._run, urirun_connector_kvm.cdp.act.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - urirun_connector_kvm/cdp.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:198:Data Clump:
-    text, op, role, name, value'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: text, op, role, name, value'
-  description: 'code2llm reports `Data Clump: text, op, role, name, value` in `urirun_connector_kvm/cdp.py:216`.
-
-
-    Arguments (text, op, role, name, value) are used together in multiple functions:
-    urirun_connector_kvm.cdp._run, urirun_connector_kvm.cdp.act.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - urirun_connector_kvm/cdp.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:216:Data Clump:
-    text, op, role, name, value'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: text, press_enter, self'
-  description: 'code2llm reports `Data Clump: text, press_enter, self` in `computer-use-preview/computers/computer.py:86`.
-
-
-    Arguments (text, press_enter, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
+    Arguments (self, press_enter, text) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
     computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text,
     computer-use-preview.computers.kvm.kvm.KvmComputer.type_text.
 
@@ -832,13 +1051,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:86:Data
-    Clump: text, press_enter, self'
+    Clump: self, press_enter, text'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: text, press_enter, self'
-  description: 'code2llm reports `Data Clump: text, press_enter, self` in `computer-use-preview/computers/playwright/playwright.py:197`.
+  title: 'Address code smell: Data Clump: self, press_enter, text'
+  description: 'code2llm reports `Data Clump: self, press_enter, text` in `computer-use-preview/computers/playwright/playwright.py:197`.
 
 
-    Arguments (text, press_enter, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
+    Arguments (self, press_enter, text) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
     computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text,
     computer-use-preview.computers.kvm.kvm.KvmComputer.type_text.
 
@@ -853,13 +1072,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:197:Data
-    Clump: text, press_enter, self'
+    Clump: self, press_enter, text'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: text, press_enter, self'
-  description: 'code2llm reports `Data Clump: text, press_enter, self` in `computer-use-preview/computers/kvm/kvm.py:116`.
+  title: 'Address code smell: Data Clump: self, press_enter, text'
+  description: 'code2llm reports `Data Clump: self, press_enter, text` in `computer-use-preview/computers/kvm/kvm.py:116`.
 
 
-    Arguments (text, press_enter, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
+    Arguments (self, press_enter, text) are used together in multiple functions: computer-use-preview.computers.computer.Computer.type_text,
     computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text,
     computer-use-preview.computers.kvm.kvm.KvmComputer.type_text.
 
@@ -874,55 +1093,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:116:Data
-    Clump: text, press_enter, self'
+    Clump: self, press_enter, text'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: url, user_data_dir, copy_from, wait'
-  description: 'code2llm reports `Data Clump: url, user_data_dir, copy_from, wait`
-    in `urirun_connector_kvm/cdp.py:129`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:37`.
 
 
-    Arguments (url, user_data_dir, copy_from, wait) are used together in multiple
-    functions: urirun_connector_kvm.cdp.launch_session, urirun_connector_kvm.core.cdp_ensure.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - urirun_connector_kvm/cdp.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:129:Data Clump:
-    url, user_data_dir, copy_from, wait'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: url, user_data_dir, copy_from, wait'
-  description: 'code2llm reports `Data Clump: url, user_data_dir, copy_from, wait`
-    in `urirun_connector_kvm/core.py:679`.
-
-
-    Arguments (url, user_data_dir, copy_from, wait) are used together in multiple
-    functions: urirun_connector_kvm.cdp.launch_session, urirun_connector_kvm.core.cdp_ensure.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - urirun_connector_kvm/core.py
-  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/core.py:679:Data Clump:
-    url, user_data_dir, copy_from, wait'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:37`.
-
-
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -951,13 +1128,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:37:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:44`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:44`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -986,13 +1163,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:44:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:51`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:51`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1021,13 +1198,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:51:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:58`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:58`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1056,13 +1233,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:58:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:65`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:65`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1091,13 +1268,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:65:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:72`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:72`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1126,13 +1303,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:72:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:79`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:79`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1161,13 +1338,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:79:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/computer.py:100`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/computer.py:100`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1196,13 +1373,13 @@ tickets:
   files:
   - computer-use-preview/computers/computer.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:100:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:153`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:153`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1231,13 +1408,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:153:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:159`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:159`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1266,13 +1443,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:159:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:165`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:165`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1301,13 +1478,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:165:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:171`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:171`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1336,13 +1513,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:171:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:177`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:177`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1371,13 +1548,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:177:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:183`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:183`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1406,13 +1583,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:183:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:190`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:190`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1441,13 +1618,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:190:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:211`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:211`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1476,13 +1653,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:211:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/playwright/playwright.py:389`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/playwright/playwright.py:389`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1511,13 +1688,13 @@ tickets:
   files:
   - computer-use-preview/computers/playwright/playwright.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:389:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:78`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:78`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1546,13 +1723,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:78:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:81`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:81`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1581,13 +1758,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:81:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:85`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:85`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1616,13 +1793,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:85:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:89`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:89`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1651,13 +1828,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:89:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:93`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:93`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1686,13 +1863,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:93:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:97`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:97`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1721,13 +1898,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:97:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:101`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:101`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1756,13 +1933,13 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:101:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: x, y, self'
-  description: 'code2llm reports `Data Clump: x, y, self` in `computer-use-preview/computers/kvm/kvm.py:105`.
+  title: 'Address code smell: Data Clump: self, y, x'
+  description: 'code2llm reports `Data Clump: self, y, x` in `computer-use-preview/computers/kvm/kvm.py:105`.
 
 
-    Arguments (x, y, self) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
+    Arguments (self, y, x) are used together in multiple functions: computer-use-preview.computers.computer.Computer.click_at,
     computer-use-preview.computers.computer.Computer.double_click_at, computer-use-preview.computers.computer.Computer.triple_click_at,
     computer-use-preview.computers.computer.Computer.middle_click_at, computer-use-preview.computers.computer.Computer.right_click_at,
     computer-use-preview.computers.computer.Computer.mouse_down, computer-use-preview.computers.computer.Computer.mouse_up,
@@ -1791,16 +1968,14 @@ tickets:
   files:
   - computer-use-preview/computers/kvm/kvm.py
   dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:105:Data
-    Clump: x, y, self'
+    Clump: self, y, x'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: y, destination_y, x, destination_x, self'
-  description: 'code2llm reports `Data Clump: y, destination_y, x, destination_x,
-    self` in `computer-use-preview/computers/computer.py:189`.
+  title: 'Address code smell: Data Clump: settle, args, app'
+  description: 'code2llm reports `Data Clump: settle, args, app` in `urirun_connector_kvm/launch_backends.py:240`.
 
 
-    Arguments (y, destination_y, x, destination_x, self) are used together in multiple
-    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
-    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+    Arguments (settle, args, app) are used together in multiple functions: urirun_connector_kvm.launch_backends._launch_macos,
+    urirun_connector_kvm.launch_backends._launch_windows.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1811,18 +1986,16 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - computer-use-preview/computers/computer.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:189:Data
-    Clump: y, destination_y, x, destination_x, self'
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/launch_backends.py:240:Data
+    Clump: settle, args, app'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: y, destination_y, x, destination_x, self'
-  description: 'code2llm reports `Data Clump: y, destination_y, x, destination_x,
-    self` in `computer-use-preview/computers/playwright/playwright.py:358`.
+  title: 'Address code smell: Data Clump: settle, args, app'
+  description: 'code2llm reports `Data Clump: settle, args, app` in `urirun_connector_kvm/launch_backends.py:250`.
 
 
-    Arguments (y, destination_y, x, destination_x, self) are used together in multiple
-    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
-    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+    Arguments (settle, args, app) are used together in multiple functions: urirun_connector_kvm.launch_backends._launch_macos,
+    urirun_connector_kvm.launch_backends._launch_windows.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1833,18 +2006,17 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - computer-use-preview/computers/playwright/playwright.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:358:Data
-    Clump: y, destination_y, x, destination_x, self'
+  - urirun_connector_kvm/launch_backends.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/launch_backends.py:250:Data
+    Clump: settle, args, app'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: y, destination_y, x, destination_x, self'
-  description: 'code2llm reports `Data Clump: y, destination_y, x, destination_x,
-    self` in `computer-use-preview/computers/kvm/kvm.py:108`.
+  title: 'Address code smell: Data Clump: user_data_dir, wait, copy_from, url'
+  description: 'code2llm reports `Data Clump: user_data_dir, wait, copy_from, url`
+    in `urirun_connector_kvm/cdp.py:129`.
 
 
-    Arguments (y, destination_y, x, destination_x, self) are used together in multiple
-    functions: computer-use-preview.computers.computer.Computer.drag_and_drop, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop,
-    computer-use-preview.computers.kvm.kvm.KvmComputer.drag_and_drop.
+    Arguments (user_data_dir, wait, copy_from, url) are used together in multiple
+    functions: urirun_connector_kvm.cdp.launch_session, urirun_connector_kvm.core.cdp_ensure.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1855,18 +2027,17 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - computer-use-preview/computers/kvm/kvm.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:108:Data
-    Clump: y, destination_y, x, destination_x, self'
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:129:Data Clump:
+    user_data_dir, wait, copy_from, url'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: y, direction, x, self, magnitude'
-  description: 'code2llm reports `Data Clump: y, direction, x, self, magnitude` in
-    `computer-use-preview/computers/computer.py:130`.
+  title: 'Address code smell: Data Clump: user_data_dir, wait, copy_from, url'
+  description: 'code2llm reports `Data Clump: user_data_dir, wait, copy_from, url`
+    in `urirun_connector_kvm/core.py:679`.
 
 
-    Arguments (y, direction, x, self, magnitude) are used together in multiple functions:
-    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
-    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+    Arguments (user_data_dir, wait, copy_from, url) are used together in multiple
+    functions: urirun_connector_kvm.cdp.launch_session, urirun_connector_kvm.core.cdp_ensure.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1877,18 +2048,16 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - computer-use-preview/computers/computer.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/computer.py:130:Data
-    Clump: y, direction, x, self, magnitude'
+  - urirun_connector_kvm/core.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/core.py:679:Data Clump:
+    user_data_dir, wait, copy_from, url'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: y, direction, x, self, magnitude'
-  description: 'code2llm reports `Data Clump: y, direction, x, self, magnitude` in
-    `computer-use-preview/computers/playwright/playwright.py:271`.
+  title: 'Address code smell: Data Clump: value, text, role, name, op'
+  description: 'code2llm reports `Data Clump: value, text, role, name, op` in `urirun_connector_kvm/cdp.py:198`.
 
 
-    Arguments (y, direction, x, self, magnitude) are used together in multiple functions:
-    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
-    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+    Arguments (value, text, role, name, op) are used together in multiple functions:
+    urirun_connector_kvm.cdp._run, urirun_connector_kvm.cdp.act.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1899,18 +2068,16 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - computer-use-preview/computers/playwright/playwright.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/playwright/playwright.py:271:Data
-    Clump: y, direction, x, self, magnitude'
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:198:Data Clump:
+    value, text, role, name, op'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: y, direction, x, self, magnitude'
-  description: 'code2llm reports `Data Clump: y, direction, x, self, magnitude` in
-    `computer-use-preview/computers/kvm/kvm.py:151`.
+  title: 'Address code smell: Data Clump: value, text, role, name, op'
+  description: 'code2llm reports `Data Clump: value, text, role, name, op` in `urirun_connector_kvm/cdp.py:216`.
 
 
-    Arguments (y, direction, x, self, magnitude) are used together in multiple functions:
-    computer-use-preview.computers.computer.Computer.scroll_at, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.scroll_at,
-    computer-use-preview.computers.kvm.kvm.KvmComputer.scroll_at.
+    Arguments (value, text, role, name, op) are used together in multiple functions:
+    urirun_connector_kvm.cdp._run, urirun_connector_kvm.cdp.act.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1921,9 +2088,9 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - computer-use-preview/computers/kvm/kvm.py
-  dedupe_key: 'code2llm:smell:data_clump:computer-use-preview/computers/kvm/kvm.py:151:Data
-    Clump: y, direction, x, self, magnitude'
+  - urirun_connector_kvm/cdp.py
+  dedupe_key: 'code2llm:smell:data_clump:urirun_connector_kvm/cdp.py:216:Data Clump:
+    value, text, role, name, op'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: __enter__'
   description: 'code2llm reports `God Function: __enter__` in `computer-use-preview/computers/playwright/playwright.py:100`.
@@ -1965,7 +2132,7 @@ tickets:
     _apply_capture_postprocessing'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _calib'
-  description: 'code2llm reports `God Function: _calib` in `urirun_connector_kvm/backends.py:1182`.
+  description: 'code2llm reports `God Function: _calib` in `urirun_connector_kvm/backends.py:1188`.
 
 
     Function ''_calib'' is oversized: CC=3, fan-out=3, mutations=8.
@@ -1980,7 +2147,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1182:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1188:God
     Function: _calib'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _cap_portal'
@@ -2041,7 +2208,7 @@ tickets:
     _click_hit'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _compute_abs_coords'
-  description: 'code2llm reports `God Function: _compute_abs_coords` in `urirun_connector_kvm/backends.py:1195`.
+  description: 'code2llm reports `God Function: _compute_abs_coords` in `urirun_connector_kvm/backends.py:1201`.
 
 
     Function ''_compute_abs_coords'' is oversized: CC=6, fan-out=5, mutations=15.
@@ -2056,7 +2223,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1195:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1201:God
     Function: _compute_abs_coords'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _copy_auth'
@@ -2117,7 +2284,7 @@ tickets:
     _dispatch_legacy_action'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _gnome_monitors'
-  description: 'code2llm reports `God Function: _gnome_monitors` in `urirun_connector_kvm/backends.py:1263`.
+  description: 'code2llm reports `God Function: _gnome_monitors` in `urirun_connector_kvm/backends.py:1269`.
 
 
     Function ''_gnome_monitors'' is oversized: CC=5, fan-out=12, mutations=14.
@@ -2132,7 +2299,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1263:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1269:God
     Function: _gnome_monitors'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _launch_xdg'
@@ -2155,7 +2322,7 @@ tickets:
     Function: _launch_xdg'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _line_match'
-  description: 'code2llm reports `God Function: _line_match` in `urirun_connector_kvm/backends.py:908`.
+  description: 'code2llm reports `God Function: _line_match` in `urirun_connector_kvm/backends.py:914`.
 
 
     Function ''_line_match'' is oversized: CC=13, fan-out=8, mutations=5.
@@ -2170,11 +2337,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:908:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:914:God
     Function: _line_match'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_atspi'
-  description: 'code2llm reports `God Function: _locate_atspi` in `urirun_connector_kvm/backends.py:1036`.
+  description: 'code2llm reports `God Function: _locate_atspi` in `urirun_connector_kvm/backends.py:1042`.
 
 
     Function ''_locate_atspi'' is oversized: CC=9, fan-out=5, mutations=9.
@@ -2189,11 +2356,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1036:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1042:God
     Function: _locate_atspi'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_imgl'
-  description: 'code2llm reports `God Function: _locate_imgl` in `urirun_connector_kvm/backends.py:1057`.
+  description: 'code2llm reports `God Function: _locate_imgl` in `urirun_connector_kvm/backends.py:1063`.
 
 
     Function ''_locate_imgl'' is oversized: CC=6, fan-out=9, mutations=8.
@@ -2208,11 +2375,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1057:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1063:God
     Function: _locate_imgl'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_tesseract'
-  description: 'code2llm reports `God Function: _locate_tesseract` in `urirun_connector_kvm/backends.py:933`.
+  description: 'code2llm reports `God Function: _locate_tesseract` in `urirun_connector_kvm/backends.py:939`.
 
 
     Function ''_locate_tesseract'' is oversized: CC=9, fan-out=13, mutations=16.
@@ -2227,11 +2394,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:933:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:939:God
     Function: _locate_tesseract'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _locate_vql'
-  description: 'code2llm reports `God Function: _locate_vql` in `urirun_connector_kvm/backends.py:1079`.
+  description: 'code2llm reports `God Function: _locate_vql` in `urirun_connector_kvm/backends.py:1085`.
 
 
     Function ''_locate_vql'' is oversized: CC=11, fan-out=14, mutations=6.
@@ -2246,7 +2413,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1079:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1085:God
     Function: _locate_vql'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _parse_desktop'
@@ -2287,6 +2454,25 @@ tickets:
   dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/launch_backends.py:81:God
     Function: _parse_desktop_section'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: _py_value'
+  description: 'code2llm reports `God Function: _py_value` in `ci/contract_codegen.py:53`.
+
+
+    Function ''_py_value'' is oversized: CC=8, fan-out=12, mutations=3.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - ci/contract_codegen.py
+  dedupe_key: 'code2llm:smell:god_function:ci/contract_codegen.py:53:God Function:
+    _py_value'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _run'
   description: 'code2llm reports `God Function: _run` in `computer-use-preview/computers/kvm/kvm.py:44`.
 
@@ -2307,7 +2493,7 @@ tickets:
     Function: _run'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _screen_wh'
-  description: 'code2llm reports `God Function: _screen_wh` in `urirun_connector_kvm/backends.py:1141`.
+  description: 'code2llm reports `God Function: _screen_wh` in `urirun_connector_kvm/backends.py:1147`.
 
 
     Function ''_screen_wh'' is oversized: CC=8, fan-out=11, mutations=10.
@@ -2322,11 +2508,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1141:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1147:God
     Function: _screen_wh'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _tesseract_words_by_line'
-  description: 'code2llm reports `God Function: _tesseract_words_by_line` in `urirun_connector_kvm/backends.py:890`.
+  description: 'code2llm reports `God Function: _tesseract_words_by_line` in `urirun_connector_kvm/backends.py:896`.
 
 
     Function ''_tesseract_words_by_line'' is oversized: CC=7, fan-out=8, mutations=14.
@@ -2341,7 +2527,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:890:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:896:God
     Function: _tesseract_words_by_line'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _trim_old_screenshots'
@@ -2364,7 +2550,7 @@ tickets:
     _trim_old_screenshots'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _uinput_create_abs'
-  description: 'code2llm reports `God Function: _uinput_create_abs` in `urirun_connector_kvm/backends.py:1121`.
+  description: 'code2llm reports `God Function: _uinput_create_abs` in `urirun_connector_kvm/backends.py:1127`.
 
 
     Function ''_uinput_create_abs'' is oversized: CC=3, fan-out=4, mutations=8.
@@ -2379,11 +2565,11 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1121:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1127:God
     Function: _uinput_create_abs'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _wayland_present'
-  description: 'code2llm reports `God Function: _wayland_present` in `urirun_connector_kvm/backends.py:1287`.
+  description: 'code2llm reports `God Function: _wayland_present` in `urirun_connector_kvm/backends.py:1293`.
 
 
     Function ''_wayland_present'' is oversized: CC=13, fan-out=10, mutations=2.
@@ -2398,7 +2584,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1287:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1293:God
     Function: _wayland_present'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _xdg_app_dirs'
@@ -2459,7 +2645,7 @@ tickets:
     Function: action_matrix'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: bbox_center'
-  description: 'code2llm reports `God Function: bbox_center` in `urirun_connector_kvm/backends.py:1030`.
+  description: 'code2llm reports `God Function: bbox_center` in `urirun_connector_kvm/backends.py:1036`.
 
 
     Function ''bbox_center'' is oversized: CC=1, fan-out=1, mutations=8.
@@ -2474,7 +2660,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1030:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1036:God
     Function: bbox_center'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: cdp_ensure'
@@ -2552,6 +2738,25 @@ tickets:
   - xlang/peer.mjs
   dedupe_key: 'code2llm:smell:god_function:xlang/peer.mjs:114:God Function: consumerInputCheck'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: consumer_input_check'
+  description: 'code2llm reports `God Function: consumer_input_check` in `xlang/rust/src/main.rs:239`.
+
+
+    Function ''consumer_input_check'' is oversized: CC=12, fan-out=24, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - xlang/rust/src/main.rs
+  dedupe_key: 'code2llm:smell:god_function:xlang/rust/src/main.rs:239:God Function:
+    consumer_input_check'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: dispatch'
   description: 'code2llm reports `God Function: dispatch` in `urirun_connector_kvm/backends.py:133`.
 
@@ -2608,6 +2813,44 @@ tickets:
   - xlang/peer.go
   dedupe_key: 'code2llm:smell:god_function:xlang/peer.go:399:God Function: handle'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: js_stub'
+  description: 'code2llm reports `God Function: js_stub` in `ci/contract_codegen.py:93`.
+
+
+    Function ''js_stub'' is oversized: CC=4, fan-out=14, mutations=4.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - ci/contract_codegen.py
+  dedupe_key: 'code2llm:smell:god_function:ci/contract_codegen.py:93:God Function:
+    js_stub'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: load_doc'
+  description: 'code2llm reports `God Function: load_doc` in `xlang/rust/src/main.rs:34`.
+
+
+    Function ''load_doc'' is oversized: CC=5, fan-out=13, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - xlang/rust/src/main.rs
+  dedupe_key: 'code2llm:smell:god_function:xlang/rust/src/main.rs:34:God Function:
+    load_doc'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: main'
   description: 'code2llm reports `God Function: main` in `computer-use-preview/main.py:27`.
 
@@ -2628,7 +2871,7 @@ tickets:
     main'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: main'
-  description: 'code2llm reports `God Function: main` in `xlang/transport_swap.py:60`.
+  description: 'code2llm reports `God Function: main` in `xlang/transport_swap.py:63`.
 
 
     Function ''main'' is oversized: CC=12, fan-out=11, mutations=17.
@@ -2643,7 +2886,26 @@ tickets:
   - god-function
   files:
   - xlang/transport_swap.py
-  dedupe_key: 'code2llm:smell:god_function:xlang/transport_swap.py:60:God Function:
+  dedupe_key: 'code2llm:smell:god_function:xlang/transport_swap.py:63:God Function:
+    main'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: main'
+  description: 'code2llm reports `God Function: main` in `xlang/jsonschema_proof.py:35`.
+
+
+    Function ''main'' is oversized: CC=10, fan-out=5, mutations=11.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - xlang/jsonschema_proof.py
+  dedupe_key: 'code2llm:smell:god_function:xlang/jsonschema_proof.py:35:God Function:
     main'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: proc_kill'
@@ -2664,6 +2926,25 @@ tickets:
   - urirun_connector_kvm/core.py
   dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/core.py:501:God Function:
     proc_kill'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: py_stub'
+  description: 'code2llm reports `God Function: py_stub` in `ci/contract_codegen.py:70`.
+
+
+    Function ''py_stub'' is oversized: CC=6, fan-out=9, mutations=14.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - ci/contract_codegen.py
+  dedupe_key: 'code2llm:smell:god_function:ci/contract_codegen.py:70:God Function:
+    py_stub'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: route'
   description: 'code2llm reports `God Function: route` in `urirun_connector_kvm/control.py:107`.
@@ -2704,7 +2985,7 @@ tickets:
     run_one_iteration'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: session_env'
-  description: 'code2llm reports `God Function: session_env` in `urirun_connector_kvm/backends.py:448`.
+  description: 'code2llm reports `God Function: session_env` in `urirun_connector_kvm/backends.py:454`.
 
 
     Function ''session_env'' is oversized: CC=8, fan-out=6, mutations=8.
@@ -2719,7 +3000,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:448:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:454:God
     Function: session_env'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: start_session'
@@ -2742,7 +3023,7 @@ tickets:
     start_session'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: surface_report'
-  description: 'code2llm reports `God Function: surface_report` in `urirun_connector_kvm/backends.py:1357`.
+  description: 'code2llm reports `God Function: surface_report` in `urirun_connector_kvm/backends.py:1363`.
 
 
     Function ''surface_report'' is oversized: CC=4, fan-out=6, mutations=17.
@@ -2757,7 +3038,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1357:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1363:God
     Function: surface_report'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: task_run'
@@ -2837,7 +3118,7 @@ tickets:
     ui_wait'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: uinput_abs_click'
-  description: 'code2llm reports `God Function: uinput_abs_click` in `urirun_connector_kvm/backends.py:1226`.
+  description: 'code2llm reports `God Function: uinput_abs_click` in `urirun_connector_kvm/backends.py:1232`.
 
 
     Function ''uinput_abs_click'' is oversized: CC=9, fan-out=15, mutations=13.
@@ -2852,7 +3133,7 @@ tickets:
   - god-function
   files:
   - urirun_connector_kvm/backends.py
-  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1226:God
+  dedupe_key: 'code2llm:smell:god_function:urirun_connector_kvm/backends.py:1232:God
     Function: uinput_abs_click'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: window_restore'

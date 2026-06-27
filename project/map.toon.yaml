@@ -1,14 +1,14 @@
-# urirun-connector-kvm | 43f 8380L | python:34,shell:7,less:1,go:1 | 2026-06-27
-# stats: 286 func | 14 cls | 43 mod | CC̄=4.3 | critical:23 | cycles:0
-# alerts[5]: CC browser_sessions=17; CC _running_browser_processes=15; CC main=15; CC _locate_easyocr=14; CC capture=14
+# urirun-connector-kvm | 47f 9123L | python:36,shell:8,less:1,go:1,rust:1 | 2026-06-27
+# stats: 293 func | 14 cls | 47 mod | CC̄=4.3 | critical:25 | cycles:0
+# alerts[5]: CC check_route=17; CC browser_sessions=17; CC to_schema=17; CC _running_browser_processes=15; CC main=15
 # hotspots[5]: main fan=25; capture fan=24; _locate_easyocr fan=18; browser_sessions fan=16; uinput_abs_click fan=15
 # evolution: baseline
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
-M[43]:
+M[47]:
   app.doql.less,71
-  ci/contract_ci.sh,55
+  ci/contract_ci.sh,69
   ci/contract_codegen.py,141
-  ci/contract_shape_lint.py,135
+  ci/contract_shape_lint.py,144
   ci/cross_process_roundtrip.py,84
   computer-use-preview/agent.py,513
   computer-use-preview/computers/__init__.py,26
@@ -28,10 +28,10 @@ M[43]:
   tests/test_contract_composition.py,99
   tests/test_contract_conformance.py,153
   tests/test_kvm.py,608
-  tests/test_xlang_polyglot.py,73
+  tests/test_xlang_polyglot.py,84
   tree.sh,5
   urirun_connector_kvm/__init__.py,39
-  urirun_connector_kvm/backends.py,1382
+  urirun_connector_kvm/backends.py,1388
   urirun_connector_kvm/cdp.py,222
   urirun_connector_kvm/contracts.py,208
   urirun_connector_kvm/control.py,213
@@ -40,14 +40,18 @@ M[43]:
   urirun_connector_kvm/launch_backends.py,285
   urirun_connector_kvm/strategies.py,133
   urirun_connector_kvm/surface.py,59
-  xlang/conformance_driver.py,121
-  xlang/driver.sh,22
+  xlang/conformance_driver.py,124
+  xlang/driver.sh,27
   xlang/emit_contracts.py,63
+  xlang/emit_jsonschema.py,110
+  xlang/jsonschema_proof.py,70
+  xlang/jsonschema_proof.sh,20
   xlang/peer.go,543
   xlang/peer.py,143
-  xlang/run.sh,92
-  xlang/transport_swap.py,101
-  xlang/transport_swap.sh,20
+  xlang/run.sh,99
+  xlang/rust/src/main.rs,480
+  xlang/transport_swap.py,104
+  xlang/transport_swap.sh,25
 D:
   ci/contract_codegen.py:
     e: _base,_snake,_camel,_const,_py_value,py_stub,js_stub,go_stub
@@ -176,13 +180,14 @@ D:
     test_capture_portal_denied_returns_degraded(monkeypatch)
     test_capture_other_backend_error_stays_fail(monkeypatch)
   tests/test_xlang_polyglot.py:
-    e: _toolkit_dir,_run,_assert_ok,test_roundtrip_matrix,test_external_conformance_driver,test_transport_invariance
+    e: _toolkit_dir,_run,_assert_ok,test_roundtrip_matrix,test_external_conformance_driver,test_transport_invariance,test_jsonschema_export
     _toolkit_dir()
     _run(script)
     _assert_ok(res)
     test_roundtrip_matrix()
     test_external_conformance_driver()
     test_transport_invariance()
+    test_jsonschema_export()
   urirun_connector_kvm/__init__.py:
   urirun_connector_kvm/backends.py:
     e: _runtime_dir,_wayland_socket,_x_display,is_wayland,is_x11,platform_tag,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_mutter_python,_cap_mutter,_is_wlroots_compositor,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,session_env,_clipboard_set,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_uinput_abs,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_tesseract_words_by_line,_line_match,_tesseract_query_matches,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,_screen_wh,_read_text,_calib,_compute_abs_coords,_uinput_emit_clicks,uinput_abs_click,_gnome_monitors,_wayland_present,_surface_warnings,_os_level_reliable,_surface_flags,surface_report,Backend
@@ -400,6 +405,16 @@ D:
     e: _contract_to_json,build_doc,main
     _contract_to_json(c)
     build_doc()
+    main()
+  xlang/emit_jsonschema.py:
+    e: _const,to_schema,build_doc,main
+    _const(token)
+    to_schema(node)
+    build_doc()
+    main()
+  xlang/jsonschema_proof.py:
+    e: _valid,main
+    _valid(schema;value)
     main()
   xlang/peer.py:
     e: _find_wire,_ok_example,handle,main

@@ -184,17 +184,17 @@ pip install -e .[dev]
 ### `project/map.toon.yaml`
 
 ```toon markpact:analysis path=project/map.toon.yaml
-# urirun-connector-kvm | 43f 8380L | python:34,shell:7,less:1,go:1 | 2026-06-27
-# stats: 286 func | 14 cls | 43 mod | CC̄=4.3 | critical:23 | cycles:0
-# alerts[5]: CC browser_sessions=17; CC _running_browser_processes=15; CC main=15; CC _locate_easyocr=14; CC capture=14
+# urirun-connector-kvm | 47f 9123L | python:36,shell:8,less:1,go:1,rust:1 | 2026-06-27
+# stats: 293 func | 14 cls | 47 mod | CC̄=4.3 | critical:25 | cycles:0
+# alerts[5]: CC check_route=17; CC browser_sessions=17; CC to_schema=17; CC _running_browser_processes=15; CC main=15
 # hotspots[5]: main fan=25; capture fan=24; _locate_easyocr fan=18; browser_sessions fan=16; uinput_abs_click fan=15
 # evolution: baseline
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
-M[43]:
+M[47]:
   app.doql.less,71
-  ci/contract_ci.sh,55
+  ci/contract_ci.sh,69
   ci/contract_codegen.py,141
-  ci/contract_shape_lint.py,135
+  ci/contract_shape_lint.py,144
   ci/cross_process_roundtrip.py,84
   computer-use-preview/agent.py,513
   computer-use-preview/computers/__init__.py,26
@@ -214,10 +214,10 @@ M[43]:
   tests/test_contract_composition.py,99
   tests/test_contract_conformance.py,153
   tests/test_kvm.py,608
-  tests/test_xlang_polyglot.py,73
+  tests/test_xlang_polyglot.py,84
   tree.sh,5
   urirun_connector_kvm/__init__.py,39
-  urirun_connector_kvm/backends.py,1382
+  urirun_connector_kvm/backends.py,1388
   urirun_connector_kvm/cdp.py,222
   urirun_connector_kvm/contracts.py,208
   urirun_connector_kvm/control.py,213
@@ -226,14 +226,18 @@ M[43]:
   urirun_connector_kvm/launch_backends.py,285
   urirun_connector_kvm/strategies.py,133
   urirun_connector_kvm/surface.py,59
-  xlang/conformance_driver.py,121
-  xlang/driver.sh,22
+  xlang/conformance_driver.py,124
+  xlang/driver.sh,27
   xlang/emit_contracts.py,63
+  xlang/emit_jsonschema.py,110
+  xlang/jsonschema_proof.py,70
+  xlang/jsonschema_proof.sh,20
   xlang/peer.go,543
   xlang/peer.py,143
-  xlang/run.sh,92
-  xlang/transport_swap.py,101
-  xlang/transport_swap.sh,20
+  xlang/run.sh,99
+  xlang/rust/src/main.rs,480
+  xlang/transport_swap.py,104
+  xlang/transport_swap.sh,25
 D:
   ci/contract_codegen.py:
     e: _base,_snake,_camel,_const,_py_value,py_stub,js_stub,go_stub
@@ -362,13 +366,14 @@ D:
     test_capture_portal_denied_returns_degraded(monkeypatch)
     test_capture_other_backend_error_stays_fail(monkeypatch)
   tests/test_xlang_polyglot.py:
-    e: _toolkit_dir,_run,_assert_ok,test_roundtrip_matrix,test_external_conformance_driver,test_transport_invariance
+    e: _toolkit_dir,_run,_assert_ok,test_roundtrip_matrix,test_external_conformance_driver,test_transport_invariance,test_jsonschema_export
     _toolkit_dir()
     _run(script)
     _assert_ok(res)
     test_roundtrip_matrix()
     test_external_conformance_driver()
     test_transport_invariance()
+    test_jsonschema_export()
   urirun_connector_kvm/__init__.py:
   urirun_connector_kvm/backends.py:
     e: _runtime_dir,_wayland_socket,_x_display,is_wayland,is_x11,platform_tag,backend,dispatch,registry_report,_run,_portal_python,_cap_portal,_mutter_python,_cap_mutter,_is_wlroots_compositor,_cap_grim,_cap_mss,_cap_pillow,_cap_scrot,_cap_im,_cap_gnome,_cap_macos,_ydotool_socket,ensure_ydotoold,_yd_env,_yd_keyseq,session_env,_clipboard_set,_type_ydotool,_type_wtype,_type_xdotool,_type_pynput,_click_ydotool,_click_xdotool,_click_pynput,_move_uinput_abs,_move_ydotool,_move_xdotool,_move_pynput,_key_ydotool,_key_xdotool,_key_pynput,_scroll_ydotool,_scroll_pynput,_focus_wmctrl,_focus_pgw,_winlist_wmctrl,_atspi_python,_focus_atspi,_a11y_atspi,_tsv_lines,_tesseract_words_by_line,_line_match,_tesseract_query_matches,_locate_tesseract,_easyocr_reader,_locate_easyocr,bbox_center,_locate_atspi,_capture_tmp,_locate_imgl,_locate_vql,_ui_io,_ui_iow,uinput_available,_uinput_create_abs,_screen_wh,_read_text,_calib,_compute_abs_coords,_uinput_emit_clicks,uinput_abs_click,_gnome_monitors,_wayland_present,_surface_warnings,_os_level_reliable,_surface_flags,surface_report,Backend
@@ -587,6 +592,16 @@ D:
     _contract_to_json(c)
     build_doc()
     main()
+  xlang/emit_jsonschema.py:
+    e: _const,to_schema,build_doc,main
+    _const(token)
+    to_schema(node)
+    build_doc()
+    main()
+  xlang/jsonschema_proof.py:
+    e: _valid,main
+    _valid(schema;value)
+    main()
   xlang/peer.py:
     e: _find_wire,_ok_example,handle,main
     _find_wire(producer;consumer)
@@ -607,9 +622,9 @@ project_metadata('urirun-connector-kvm', '0.3.0', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 71, 'less').
-project_file('ci/contract_ci.sh', 55, 'shell').
+project_file('ci/contract_ci.sh', 69, 'shell').
 project_file('ci/contract_codegen.py', 141, 'python').
-project_file('ci/contract_shape_lint.py', 135, 'python').
+project_file('ci/contract_shape_lint.py', 144, 'python').
 project_file('ci/cross_process_roundtrip.py', 84, 'python').
 project_file('computer-use-preview/agent.py', 513, 'python').
 project_file('computer-use-preview/computers/__init__.py', 26, 'python').
@@ -629,10 +644,10 @@ project_file('project.sh', 69, 'shell').
 project_file('tests/test_contract_composition.py', 99, 'python').
 project_file('tests/test_contract_conformance.py', 153, 'python').
 project_file('tests/test_kvm.py', 608, 'python').
-project_file('tests/test_xlang_polyglot.py', 73, 'python').
+project_file('tests/test_xlang_polyglot.py', 84, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1382, 'python').
+project_file('urirun_connector_kvm/backends.py', 1388, 'python').
 project_file('urirun_connector_kvm/cdp.py', 222, 'python').
 project_file('urirun_connector_kvm/contracts.py', 208, 'python').
 project_file('urirun_connector_kvm/control.py', 213, 'python').
@@ -641,14 +656,18 @@ project_file('urirun_connector_kvm/environment.py', 402, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 285, 'python').
 project_file('urirun_connector_kvm/strategies.py', 133, 'python').
 project_file('urirun_connector_kvm/surface.py', 59, 'python').
-project_file('xlang/conformance_driver.py', 121, 'python').
-project_file('xlang/driver.sh', 22, 'shell').
+project_file('xlang/conformance_driver.py', 124, 'python').
+project_file('xlang/driver.sh', 27, 'shell').
 project_file('xlang/emit_contracts.py', 63, 'python').
+project_file('xlang/emit_jsonschema.py', 110, 'python').
+project_file('xlang/jsonschema_proof.py', 70, 'python').
+project_file('xlang/jsonschema_proof.sh', 20, 'shell').
 project_file('xlang/peer.go', 543, 'go').
 project_file('xlang/peer.py', 143, 'python').
-project_file('xlang/run.sh', 92, 'shell').
-project_file('xlang/transport_swap.py', 101, 'python').
-project_file('xlang/transport_swap.sh', 20, 'shell').
+project_file('xlang/run.sh', 99, 'shell').
+project_file('xlang/rust/src/main.rs', 480, 'rust').
+project_file('xlang/transport_swap.py', 104, 'python').
+project_file('xlang/transport_swap.sh', 25, 'shell').
 
 % ── Python Functions ─────────────────────────────────────
 python_function('ci/contract_codegen.py', '_base', 1, 2, 1).
@@ -665,7 +684,7 @@ python_function('ci/contract_shape_lint.py', '_fn_for_route', 1, 7, 5).
 python_function('ci/contract_shape_lint.py', '_fn_params', 1, 2, 2).
 python_function('ci/contract_shape_lint.py', '_fn_source', 1, 2, 1).
 python_function('ci/contract_shape_lint.py', '_is_implemented', 1, 2, 1).
-python_function('ci/contract_shape_lint.py', 'check_route', 2, 12, 8).
+python_function('ci/contract_shape_lint.py', 'check_route', 2, 17, 11).
 python_function('ci/contract_shape_lint.py', 'main', 0, 5, 4).
 python_function('ci/cross_process_roundtrip.py', '_ok_example', 1, 4, 2).
 python_function('ci/cross_process_roundtrip.py', 'produce', 1, 1, 2).
@@ -741,6 +760,7 @@ python_function('tests/test_xlang_polyglot.py', '_assert_ok', 1, 5, 1).
 python_function('tests/test_xlang_polyglot.py', 'test_roundtrip_matrix', 0, 1, 2).
 python_function('tests/test_xlang_polyglot.py', 'test_external_conformance_driver', 0, 1, 2).
 python_function('tests/test_xlang_polyglot.py', 'test_transport_invariance', 0, 1, 2).
+python_function('tests/test_xlang_polyglot.py', 'test_jsonschema_export', 0, 1, 4).
 python_function('urirun_connector_kvm/backends.py', '_runtime_dir', 0, 3, 3).
 python_function('urirun_connector_kvm/backends.py', '_wayland_socket', 0, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_x_display', 0, 6, 4).
@@ -759,7 +779,7 @@ python_function('urirun_connector_kvm/backends.py', '_is_wlroots_compositor', 0,
 python_function('urirun_connector_kvm/backends.py', '_cap_grim', 1, 4, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_mss', 2, 2, 6).
 python_function('urirun_connector_kvm/backends.py', '_cap_pillow', 1, 1, 3).
-python_function('urirun_connector_kvm/backends.py', '_cap_scrot', 1, 1, 2).
+python_function('urirun_connector_kvm/backends.py', '_cap_scrot', 1, 2, 5).
 python_function('urirun_connector_kvm/backends.py', '_cap_im', 1, 1, 2).
 python_function('urirun_connector_kvm/backends.py', '_cap_gnome', 1, 1, 2).
 python_function('urirun_connector_kvm/backends.py', '_cap_macos', 1, 1, 2).
@@ -932,6 +952,12 @@ python_function('xlang/conformance_driver.py', 'main', 0, 15, 7).
 python_function('xlang/emit_contracts.py', '_contract_to_json', 1, 3, 2).
 python_function('xlang/emit_contracts.py', 'build_doc', 0, 3, 2).
 python_function('xlang/emit_contracts.py', 'main', 0, 1, 7).
+python_function('xlang/emit_jsonschema.py', '_const', 1, 3, 1).
+python_function('xlang/emit_jsonschema.py', 'to_schema', 1, 17, 11).
+python_function('xlang/emit_jsonschema.py', 'build_doc', 0, 2, 2).
+python_function('xlang/emit_jsonschema.py', 'main', 0, 1, 7).
+python_function('xlang/jsonschema_proof.py', '_valid', 2, 4, 5).
+python_function('xlang/jsonschema_proof.py', 'main', 0, 10, 5).
 python_function('xlang/peer.py', '_find_wire', 2, 4, 1).
 python_function('xlang/peer.py', '_ok_example', 1, 3, 2).
 python_function('xlang/peer.py', 'handle', 3, 9, 3).
@@ -1147,72 +1173,90 @@ sumd_workflow_step('xlang', 1, 'bash xlang/run.sh && bash xlang/driver.sh && bas
 
 ## Call Graph
 
-*225 nodes · 290 edges · 15 modules · CC̄=3.6*
+*256 nodes · 321 edges · 20 modules · CC̄=3.8*
 
 ### Hubs (by degree)
 
 | Function | CC | in | out | total |
 |----------|----|----|-----|-------|
+| `main` *(in xlang.rust.src.main)* | 13 ⚠ | 0 | 49 | **49** |
 | `backend` *(in urirun_connector_kvm.backends)* | 1 | 40 | 6 | **46** |
 | `_ok` *(in urirun_connector_kvm.core)* | 1 | 41 | 1 | **42** |
 | `task_run` *(in urirun_connector_kvm.core)* | 13 ⚠ | 0 | 41 | **41** |
-| `_run` *(in urirun_connector_kvm.backends)* | 4 | 27 | 4 | **31** |
-| `main` *(in xlang.peer)* | 21 ⚠ | 0 | 31 | **31** |
 | `capture` *(in urirun_connector_kvm.core)* | 14 ⚠ | 0 | 31 | **31** |
-| `_fail_from` *(in urirun_connector_kvm.core)* | 1 | 25 | 3 | **28** |
+| `main` *(in xlang.peer)* | 21 ⚠ | 0 | 31 | **31** |
+| `_run` *(in urirun_connector_kvm.backends)* | 4 | 25 | 4 | **29** |
 | `_apply_capture_postprocessing` *(in urirun_connector_kvm.core)* | 10 ⚠ | 1 | 27 | **28** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
-# generated in 0.10s
-# nodes: 225 | edges: 290 | modules: 15
-# CC̄=3.6
+# generated in 0.12s
+# nodes: 256 | edges: 321 | modules: 20
+# CC̄=3.8
 
 HUBS[20]:
+  xlang.rust.src.main.main
+    CC=13  in:0  out:49  total:49
   urirun_connector_kvm.backends.backend
     CC=1  in:40  out:6  total:46
   urirun_connector_kvm.core._ok
     CC=1  in:41  out:1  total:42
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
-  urirun_connector_kvm.backends._run
-    CC=4  in:27  out:4  total:31
-  xlang.peer.main
-    CC=21  in:0  out:31  total:31
   urirun_connector_kvm.core.capture
     CC=14  in:0  out:31  total:31
-  urirun_connector_kvm.core._fail_from
-    CC=1  in:25  out:3  total:28
+  xlang.peer.main
+    CC=21  in:0  out:31  total:31
+  urirun_connector_kvm.backends._run
+    CC=4  in:25  out:4  total:29
   urirun_connector_kvm.core._apply_capture_postprocessing
     CC=10  in:1  out:27  total:28
-  urirun_connector_kvm.backends._locate_easyocr
-    CC=14  in:0  out:26  total:26
+  urirun_connector_kvm.core._fail_from
+    CC=1  in:25  out:3  total:28
   urirun_connector_kvm.environment.profile
     CC=13  in:0  out:26  total:26
+  xlang.rust.src.main.consumer_input_check
+    CC=12  in:2  out:24  total:26
+  urirun_connector_kvm.backends._locate_easyocr
+    CC=14  in:0  out:26  total:26
+  xlang.emit_jsonschema.to_schema
+    CC=17  in:5  out:20  total:25
   urirun_connector_kvm.core.ui_click_text
     CC=8  in:0  out:23  total:23
-  urirun_connector_kvm.backends.uinput_abs_click
-    CC=9  in:1  out:21  total:22
   urirun_connector_kvm.environment.browser_sessions
     CC=17  in:0  out:22  total:22
   urirun_connector_kvm.core.window_restore
     CC=5  in:0  out:22  total:22
+  urirun_connector_kvm.backends.uinput_abs_click
+    CC=9  in:1  out:21  total:22
+  xlang.conformance_driver.main
+    CC=15  in:0  out:21  total:21
   urirun_connector_kvm.core.proc_kill
     CC=12  in:0  out:21  total:21
   urirun_connector_kvm.backends._locate_vql
     CC=11  in:0  out:21  total:21
-  xlang.conformance_driver.main
-    CC=15  in:0  out:21  total:21
-  computer-use-preview.agent.BrowserAgent._dispatch_legacy_action
-    CC=11  in:0  out:20  total:20
-  urirun_connector_kvm.backends.dispatch
-    CC=11  in:2  out:17  total:19
-  urirun_connector_kvm.environment._running_browser_processes
-    CC=15  in:1  out:17  total:18
 
 MODULES:
-  ci.cross_process_roundtrip  [2 funcs]
+  ci.contract_codegen  [8 funcs]
+    _base  CC=2  out:1
+    _camel  CC=2  out:5
+    _const  CC=3  out:1
+    _py_value  CC=8  out:16
+    _snake  CC=1  out:2
+    go_stub  CC=2  out:12
+    js_stub  CC=4  out:20
+    py_stub  CC=6  out:12
+  ci.contract_shape_lint  [7 funcs]
+    _fn_for_route  CC=7  out:8
+    _fn_params  CC=2  out:3
+    _fn_source  CC=2  out:1
+    _is_implemented  CC=2  out:1
+    _required_inp_keys  CC=4  out:3
+    check_route  CC=17  out:14
+    main  CC=5  out:7
+  ci.cross_process_roundtrip  [3 funcs]
     _ok_example  CC=4  out:3
+    consume  CC=2  out:5
     produce  CC=1  out:2
   computer-use-preview.agent  [3 funcs]
     _dispatch_action  CC=11  out:16
@@ -1298,6 +1342,13 @@ MODULES:
     _contract_to_json  CC=3  out:2
     build_doc  CC=3  out:2
     main  CC=1  out:8
+  xlang.emit_jsonschema  [3 funcs]
+    build_doc  CC=2  out:3
+    main  CC=1  out:7
+    to_schema  CC=17  out:20
+  xlang.jsonschema_proof  [2 funcs]
+    _valid  CC=4  out:5
+    main  CC=10  out:16
   xlang.peer  [36 funcs]
     carried  CC=4  out:4
     check  CC=2  out:1
@@ -1309,6 +1360,17 @@ MODULES:
     findWire  CC=3  out:2
     handle  CC=19  out:4
     inp  CC=4  out:4
+  xlang.rust.src.main  [10 funcs]
+    conform  CC=16  out:18
+    consumer_input_check  CC=12  out:24
+    contracts  CC=1  out:3
+    doc  CC=1  out:2
+    find_wire  CC=4  out:4
+    load_doc  CC=5  out:13
+    main  CC=13  out:49
+    ok_example  CC=4  out:7
+    wire_payload  CC=5  out:7
+    wires  CC=1  out:3
 
 EDGES:
   examples.calibrate_abs.cap → examples.calibrate_abs.run
@@ -1326,41 +1388,41 @@ EDGES:
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._cdp_wait
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.session_env
   urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.cdp._run
   urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.cdp._run
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.launch_backends._desktop_entries
   urirun_connector_kvm.launch_backends._list_macos → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.strategies.CdpStrategy.available → urirun_connector_kvm.strategies.is_browser
   urirun_connector_kvm.surface.current → urirun_connector_kvm.surface._active_window
-  urirun_connector_kvm.backends._wayland_socket → urirun_connector_kvm.backends._runtime_dir
-  urirun_connector_kvm.backends.is_wayland → urirun_connector_kvm.backends._wayland_socket
-  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends.is_wayland
-  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends._x_display
-  urirun_connector_kvm.backends.platform_tag → urirun_connector_kvm.backends.is_wayland
-  urirun_connector_kvm.backends.Backend.available → urirun_connector_kvm.backends.platform_tag
-  urirun_connector_kvm.backends.dispatch → urirun_connector_kvm.backends.platform_tag
-  urirun_connector_kvm.backends._run → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._portal_python
-  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._run
-  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._mutter_python
-  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._run
-  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.backends._is_wlroots_compositor → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._run
-  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._is_wlroots_compositor
-  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.session_env
-  urirun_connector_kvm.backends._cap_mss → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.backends._cap_pillow → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends._run
-  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends._run
-  urirun_connector_kvm.backends._cap_gnome → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._copy_auth
+  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._find_chrome
+  urirun_connector_kvm.cdp.start_session → computer-use-preview.computers.computer.Computer.navigate
+  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.start_session
+  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.await_ready
+  urirun_connector_kvm.cdp.find → urirun_connector_kvm.cdp._run
+  urirun_connector_kvm.cdp.act → urirun_connector_kvm.cdp._run
+  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._apply_capture_postprocessing
+  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.type_text → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.type_text → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.key → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.key → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.click → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.click → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.click → urirun_connector_kvm.core._positioned_click
+  urirun_connector_kvm.core.move → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.move → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.wait → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.wait → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.scroll → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.scroll → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._fail_from
+  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._positioned_click
+  urirun_connector_kvm.core.triple_click → urirun_connector_kvm.core._ok
 ```
 
 ## Test Contracts

@@ -1,5 +1,25 @@
 flowchart TD
 %% generated in 0.00s
+    subgraph ci__contract_codegen
+        ci__contract_codegen___base["_base"]
+        ci__contract_codegen___snake["_snake"]
+        ci__contract_codegen___camel["_camel"]
+        ci__contract_codegen___const["_const"]
+        ci__contract_codegen___py_value("_py_value CC=8")
+        ci__contract_codegen__py_stub["py_stub"]
+        ci__contract_codegen__js_stub["js_stub"]
+        ci__contract_codegen__go_stub["go_stub"]
+    end
+    subgraph ci__contract_shape_lint
+        ci__contract_shape_lint___required_inp_keys["_required_inp_keys"]
+        ci__contract_shape_lint___out_leaf_keys["_out_leaf_keys"]
+        ci__contract_shape_lint___fn_for_route["_fn_for_route"]
+        ci__contract_shape_lint___fn_params["_fn_params"]
+        ci__contract_shape_lint___fn_source["_fn_source"]
+        ci__contract_shape_lint___is_implemented["_is_implemented"]
+        ci__contract_shape_lint__check_route{{check_route CC=17}}
+        ci__contract_shape_lint__main["main"]
+    end
     subgraph ci__cross_process_roundtrip
         ci__cross_process_roundtrip___ok_example["_ok_example"]
         ci__cross_process_roundtrip__produce["produce"]
@@ -309,6 +329,16 @@ flowchart TD
         xlang__emit_contracts__build_doc["build_doc"]
         xlang__emit_contracts__main["main"]
     end
+    subgraph xlang__emit_jsonschema
+        xlang__emit_jsonschema___const["_const"]
+        xlang__emit_jsonschema__to_schema{{to_schema CC=17}}
+        xlang__emit_jsonschema__build_doc["build_doc"]
+        xlang__emit_jsonschema__main["main"]
+    end
+    subgraph xlang__jsonschema_proof
+        xlang__jsonschema_proof___valid["_valid"]
+        xlang__jsonschema_proof__main("main CC=10")
+    end
     subgraph xlang__peer
         xlang__peer__HERE["HERE"]
         xlang__peer__DOC["DOC"]
@@ -374,6 +404,25 @@ flowchart TD
     subgraph xlang__run
         xlang__run__conform["conform"]
     end
+    subgraph xlang__rust
+        xlang__rust__src__main__doc["doc"]
+        xlang__rust__src__main__contracts["contracts"]
+        xlang__rust__src__main__wires["wires"]
+        xlang__rust__src__main__load_doc["load_doc"]
+        xlang__rust__src__main__type_name["type_name"]
+        xlang__rust__src__main__type_ok["type_ok"]
+        xlang__rust__src__main__const_value["const_value"]
+        xlang__rust__src__main__root["root"]
+        xlang__rust__src__main__dot["dot"]
+        xlang__rust__src__main__check{{check CC=30}}
+        xlang__rust__src__main__find_wire["find_wire"]
+        xlang__rust__src__main__wire_payload["wire_payload"]
+        xlang__rust__src__main__consumer_input_check("consumer_input_check CC=12")
+        xlang__rust__src__main__conform{{conform CC=16}}
+        xlang__rust__src__main__handle["handle"]
+        xlang__rust__src__main__ok_example["ok_example"]
+        xlang__rust__src__main__main("main CC=13")
+    end
     subgraph xlang__transport_swap
         xlang__transport_swap__HttpNode____init__["__init__"]
         xlang__transport_swap__HttpNode__call["call"]
@@ -395,14 +444,176 @@ flowchart TD
     urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__launch_backends___cdp_wait
     urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__backends__session_env
     urirun_connector_kvm__launch_backends___launch_macos --> urirun_connector_kvm__backends__backend
-    urirun_connector_kvm__launch_backends___launch_macos --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__launch_backends___launch_macos --> urirun_connector_kvm__cdp___run
     urirun_connector_kvm__launch_backends___launch_windows --> urirun_connector_kvm__backends__backend
-    urirun_connector_kvm__launch_backends___launch_windows --> urirun_connector_kvm__backends___run
+    urirun_connector_kvm__launch_backends___launch_windows --> urirun_connector_kvm__cdp___run
     urirun_connector_kvm__launch_backends___list_xdg --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__launch_backends___list_xdg --> urirun_connector_kvm__launch_backends___desktop_entries
     urirun_connector_kvm__launch_backends___list_macos --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__strategies__CdpStrategy__available --> urirun_connector_kvm__strategies__is_browser
     urirun_connector_kvm__surface__current --> urirun_connector_kvm__surface___active_window
+    urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp___copy_auth
+    urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp___find_chrome
+    urirun_connector_kvm__cdp__start_session --> computer_use_preview__computers__computer__Computer__navigate
+    urirun_connector_kvm__cdp__launch_session --> urirun_connector_kvm__cdp__start_session
+    urirun_connector_kvm__cdp__launch_session --> urirun_connector_kvm__cdp__await_ready
+    urirun_connector_kvm__cdp__find --> urirun_connector_kvm__cdp___run
+    urirun_connector_kvm__cdp__act --> urirun_connector_kvm__cdp___run
+    urirun_connector_kvm__core__capture --> urirun_connector_kvm__core___apply_capture_postprocessing
+    urirun_connector_kvm__core__capture --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__display_info --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__display_info --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__type_text --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__type_text --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__key --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__key --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__click --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__click --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__click --> urirun_connector_kvm__core___positioned_click
+    urirun_connector_kvm__core__move --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__move --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__wait --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__wait --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__scroll --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__scroll --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__double_click --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__double_click --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__double_click --> urirun_connector_kvm__core___positioned_click
+    urirun_connector_kvm__core__triple_click --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__triple_click --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__triple_click --> urirun_connector_kvm__core___positioned_click
+    urirun_connector_kvm__core__right_click --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__right_click --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__right_click --> urirun_connector_kvm__core___positioned_click
+    urirun_connector_kvm__core__middle_click --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__middle_click --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__middle_click --> urirun_connector_kvm__core___positioned_click
+    urirun_connector_kvm__core__hover --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__hover --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__drag_and_drop --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__drag_and_drop --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__drag_and_drop --> urirun_connector_kvm__core___spread
+    urirun_connector_kvm__core__click_abs --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__click_abs --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__task_run --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__focus --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__focus --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__window_list --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__window_list --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__window_close --> urirun_connector_kvm__core___cdp_mod
+    urirun_connector_kvm__core__window_close --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__window_close --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__window_restore --> urirun_connector_kvm__core___cdp_mod
+    urirun_connector_kvm__core__window_restore --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__window_restore --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__proc_kill --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__a11y_act --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__a11y_act --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__a11y_act --> urirun_connector_kvm__core___spread
+    urirun_connector_kvm__core___click_hit --> urirun_connector_kvm__core___positioned_click
+    urirun_connector_kvm__core___router_return --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__ui_find --> urirun_connector_kvm__core___router_return
+    urirun_connector_kvm__core__ui_click --> urirun_connector_kvm__core___router_return
+    urirun_connector_kvm__core__ui_fill --> urirun_connector_kvm__core___router_return
+    urirun_connector_kvm__core__ui_strategies --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__env_profile --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__browser_sessions --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__surface_current --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__surface_current --> urirun_connector_kvm__core___surface_mod
+    urirun_connector_kvm__core__cdp_ensure --> urirun_connector_kvm__core___cdp_mod
+    urirun_connector_kvm__core__cdp_ensure --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__cdp_session_ready --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__cdp_session_ready --> urirun_connector_kvm__core___cdp_mod
+    urirun_connector_kvm__core__cdp_session_ready --> urirun_connector_kvm__core___spread
+    urirun_connector_kvm__core__cdp_navigate --> urirun_connector_kvm__core___cdp_mod
+    urirun_connector_kvm__core__cdp_navigate --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__cdp_navigate --> urirun_connector_kvm__core___spread
+    urirun_connector_kvm__core__cdp_ready --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__cdp_ready --> urirun_connector_kvm__core___cdp_mod
+    urirun_connector_kvm__core__cdp_ready --> urirun_connector_kvm__core___spread
+    urirun_connector_kvm__core___resolve_act_app --> urirun_connector_kvm__core___surface_mod
+    urirun_connector_kvm__core___act_ready --> urirun_connector_kvm__core___cdp_mod
+    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___act_reject
+    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___resolve_act_app
+    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___act_ready
+    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___act_retry_loop
+    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__cdp_status --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__ui_wait --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__ui_verify --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___capture_native
+    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___spread
+    urirun_connector_kvm__core__ui_click_text --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__ui_click_text --> urirun_connector_kvm__core___capture_native
+    urirun_connector_kvm__core__ui_click_text --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__doctor --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__launch --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__launch --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__core__list_apps --> urirun_connector_kvm__core___ok
+    urirun_connector_kvm__core__list_apps --> urirun_connector_kvm__core___fail_from
+    urirun_connector_kvm__control___try_act_one --> urirun_connector_kvm__control___verify_value
+    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_locate_one
+    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_act_one
+    urirun_connector_kvm__control___check_post_condition --> urirun_connector_kvm__control__route
+    urirun_connector_kvm__control__act --> urirun_connector_kvm__control__route
+    urirun_connector_kvm__control__act --> urirun_connector_kvm__control___check_post_condition
+    urirun_connector_kvm__control__report --> urirun_connector_kvm__control___safe_avail
+    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment___safe
+    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__atspi_ready
+    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__action_matrix
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_argv
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___browser_name_from_binary
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_ppid
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___parse_browser_args
+    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___running_browser_processes
+    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___find_cookie_db
+    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___check_cookies_for_services
+    ci__cross_process_roundtrip__produce --> ci__cross_process_roundtrip___ok_example
+    ci__cross_process_roundtrip__consume --> xlang__rust__src__main__find_wire
+    ci__cross_process_roundtrip__consume --> xlang__rust__src__main__wire_payload
+    ci__cross_process_roundtrip__consume --> xlang__rust__src__main__consumer_input_check
+    computer_use_preview__agent__BrowserAgent___dispatch_action --> computer_use_preview__agent__multiply_numbers
+    computer_use_preview__agent__BrowserAgent___dispatch_legacy_action --> computer_use_preview__agent__multiply_numbers
+    xlang__peer__ContractViolation__dig --> xlang__peer__ContractViolation__test
+    xlang__peer__ContractViolation__dig --> xlang__peer__Error
+    xlang__peer__ContractViolation__cur --> xlang__peer__ContractViolation__test
+    xlang__peer__ContractViolation__cur --> xlang__peer__Error
+    xlang__peer__ContractViolation__findWire --> xlang__peer__Error
+    xlang__peer__ContractViolation__w --> xlang__peer__Error
+    xlang__peer__ContractViolation__wirePayload --> xlang__peer__ContractViolation__dig
+    xlang__peer__ContractViolation__consumerInputCheck --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__inp --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__required --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__carried --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__sub --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__opt --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__conform --> xlang__peer__ContractViolation__fail
+    xlang__peer__ContractViolation__conform --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__ex --> xlang__peer__Error
+    xlang__peer__ContractViolation__okExample --> xlang__peer__Error
+    xlang__peer__ContractViolation__handle --> xlang__peer__Error
+    xlang__peer__ContractViolation__lie --> xlang__peer__ContractViolation__handle
+    xlang__peer__ContractViolation__server --> xlang__peer__ContractViolation__handle
+    xlang__emit_contracts__build_doc --> xlang__emit_contracts___contract_to_json
+    xlang__emit_contracts__main --> xlang__emit_contracts__build_doc
+    xlang__peer__handle --> xlang__peer__numOr
+    xlang__peer__handle --> xlang__peer__strOr
+    xlang__peer__main --> xlang__peer__loadDoc
+    xlang__peer__main --> xlang__peer__okExample
+    xlang__peer__main --> xlang__peer__findWire
+    xlang__peer__main --> xlang__peer__wirePayload
+    xlang__peer__main --> xlang__peer__consumerInputCheck
+    xlang__peer__check --> xlang__peer__root
+    xlang__peer__check --> xlang__peer__dotKey
+    xlang__peer__check --> xlang__peer__constValue
+    xlang__peer__check --> xlang__peer__typeOK
+    xlang__peer__wirePayload --> xlang__peer__dig
+    xlang__peer__consumerInputCheck --> xlang__peer__check
+    xlang__peer__consumerInputCheck --> xlang__peer__Error
+    xlang__peer__conform --> xlang__peer__check
+    xlang__peer__conform --> xlang__peer__Error
     urirun_connector_kvm__backends___wayland_socket --> urirun_connector_kvm__backends___runtime_dir
     urirun_connector_kvm__backends__is_wayland --> urirun_connector_kvm__backends___wayland_socket
     urirun_connector_kvm__backends__is_x11 --> urirun_connector_kvm__backends__is_wayland
@@ -427,6 +638,7 @@ flowchart TD
     urirun_connector_kvm__backends___cap_mss --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__backends___cap_pillow --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__backends___cap_scrot --> urirun_connector_kvm__backends__backend
+    urirun_connector_kvm__backends___cap_scrot --> urirun_connector_kvm__backends__session_env
     urirun_connector_kvm__backends___cap_scrot --> urirun_connector_kvm__backends___run
     urirun_connector_kvm__backends___cap_im --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__backends___cap_im --> urirun_connector_kvm__backends___run
@@ -522,168 +734,41 @@ flowchart TD
     urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends___surface_flags
     urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends___surface_warnings
     urirun_connector_kvm__backends__surface_report --> urirun_connector_kvm__backends___gnome_monitors
-    urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp___copy_auth
-    urirun_connector_kvm__cdp__start_session --> urirun_connector_kvm__cdp___find_chrome
-    urirun_connector_kvm__cdp__start_session --> computer_use_preview__computers__computer__Computer__navigate
-    urirun_connector_kvm__cdp__launch_session --> urirun_connector_kvm__cdp__start_session
-    urirun_connector_kvm__cdp__launch_session --> urirun_connector_kvm__cdp__await_ready
-    urirun_connector_kvm__cdp__find --> urirun_connector_kvm__cdp___run
-    urirun_connector_kvm__cdp__act --> urirun_connector_kvm__cdp___run
-    urirun_connector_kvm__control___try_act_one --> urirun_connector_kvm__control___verify_value
-    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_locate_one
-    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_act_one
-    urirun_connector_kvm__control___check_post_condition --> urirun_connector_kvm__control__route
-    urirun_connector_kvm__control__act --> urirun_connector_kvm__control__route
-    urirun_connector_kvm__control__act --> urirun_connector_kvm__control___check_post_condition
-    urirun_connector_kvm__control__report --> urirun_connector_kvm__control___safe_avail
-    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment___safe
-    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__atspi_ready
-    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__action_matrix
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_argv
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___browser_name_from_binary
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_ppid
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___parse_browser_args
-    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___running_browser_processes
-    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___find_cookie_db
-    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___check_cookies_for_services
-    ci__cross_process_roundtrip__produce --> ci__cross_process_roundtrip___ok_example
-    computer_use_preview__agent__BrowserAgent___dispatch_action --> computer_use_preview__agent__multiply_numbers
-    computer_use_preview__agent__BrowserAgent___dispatch_legacy_action --> computer_use_preview__agent__multiply_numbers
-    xlang__emit_contracts__build_doc --> xlang__emit_contracts___contract_to_json
-    xlang__emit_contracts__main --> xlang__emit_contracts__build_doc
+    ci__contract_shape_lint___is_implemented --> ci__contract_shape_lint___fn_source
+    ci__contract_shape_lint__check_route --> ci__contract_shape_lint___fn_for_route
+    ci__contract_shape_lint__check_route --> ci__contract_shape_lint___fn_params
+    ci__contract_shape_lint__check_route --> ci__contract_shape_lint___required_inp_keys
+    ci__contract_shape_lint__check_route --> ci__contract_shape_lint___fn_source
+    ci__contract_shape_lint__check_route --> ci__contract_shape_lint___is_implemented
+    ci__contract_shape_lint__main --> ci__contract_shape_lint__check_route
+    ci__contract_codegen___py_value --> ci__contract_codegen___base
+    ci__contract_codegen___py_value --> ci__contract_codegen___const
+    ci__contract_codegen__py_stub --> ci__contract_codegen___base
+    ci__contract_codegen__py_stub --> ci__contract_codegen___snake
+    ci__contract_codegen__py_stub --> ci__contract_codegen___py_value
+    ci__contract_codegen__js_stub --> ci__contract_codegen___base
+    ci__contract_codegen__js_stub --> ci__contract_codegen___const
+    ci__contract_codegen__js_stub --> ci__contract_codegen___camel
+    ci__contract_codegen__go_stub --> ci__contract_codegen___base
+    ci__contract_codegen__go_stub --> ci__contract_codegen___camel
+    xlang__emit_jsonschema__to_schema --> xlang__emit_jsonschema___const
+    xlang__emit_jsonschema__build_doc --> xlang__emit_jsonschema__to_schema
+    xlang__emit_jsonschema__main --> xlang__emit_jsonschema__build_doc
     xlang__conformance_driver__main --> xlang__conformance_driver__drive
-    urirun_connector_kvm__core__capture --> urirun_connector_kvm__core___apply_capture_postprocessing
-    urirun_connector_kvm__core__capture --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__display_info --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__display_info --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__type_text --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__type_text --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__key --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__key --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__click --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__click --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__click --> urirun_connector_kvm__core___positioned_click
-    urirun_connector_kvm__core__move --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__move --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__wait --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__wait --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__scroll --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__scroll --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__double_click --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__double_click --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__double_click --> urirun_connector_kvm__core___positioned_click
-    urirun_connector_kvm__core__triple_click --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__triple_click --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__triple_click --> urirun_connector_kvm__core___positioned_click
-    urirun_connector_kvm__core__right_click --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__right_click --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__right_click --> urirun_connector_kvm__core___positioned_click
-    urirun_connector_kvm__core__middle_click --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__middle_click --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__middle_click --> urirun_connector_kvm__core___positioned_click
-    urirun_connector_kvm__core__hover --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__hover --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__drag_and_drop --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__drag_and_drop --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__drag_and_drop --> urirun_connector_kvm__core___spread
-    urirun_connector_kvm__core__click_abs --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__click_abs --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__task_run --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__focus --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__focus --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__window_list --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__window_list --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__window_close --> urirun_connector_kvm__core___cdp_mod
-    urirun_connector_kvm__core__window_close --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__window_close --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__window_restore --> urirun_connector_kvm__core___cdp_mod
-    urirun_connector_kvm__core__window_restore --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__window_restore --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__proc_kill --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__a11y_act --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__a11y_act --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__a11y_act --> urirun_connector_kvm__core___spread
-    urirun_connector_kvm__core___click_hit --> urirun_connector_kvm__core___positioned_click
-    urirun_connector_kvm__core___router_return --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__ui_find --> urirun_connector_kvm__core___router_return
-    urirun_connector_kvm__core__ui_click --> urirun_connector_kvm__core___router_return
-    urirun_connector_kvm__core__ui_fill --> urirun_connector_kvm__core___router_return
-    urirun_connector_kvm__core__ui_strategies --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__env_profile --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__browser_sessions --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__surface_current --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__surface_current --> urirun_connector_kvm__core___surface_mod
-    urirun_connector_kvm__core__cdp_ensure --> urirun_connector_kvm__core___cdp_mod
-    urirun_connector_kvm__core__cdp_ensure --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__cdp_session_ready --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__cdp_session_ready --> urirun_connector_kvm__core___cdp_mod
-    urirun_connector_kvm__core__cdp_session_ready --> urirun_connector_kvm__core___spread
-    urirun_connector_kvm__core__cdp_navigate --> urirun_connector_kvm__core___cdp_mod
-    urirun_connector_kvm__core__cdp_navigate --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__cdp_navigate --> urirun_connector_kvm__core___spread
-    urirun_connector_kvm__core__cdp_ready --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__cdp_ready --> urirun_connector_kvm__core___cdp_mod
-    urirun_connector_kvm__core__cdp_ready --> urirun_connector_kvm__core___spread
-    urirun_connector_kvm__core___resolve_act_app --> urirun_connector_kvm__core___surface_mod
-    urirun_connector_kvm__core___act_ready --> urirun_connector_kvm__core___cdp_mod
-    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___act_reject
-    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___resolve_act_app
-    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___act_ready
-    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___act_retry_loop
-    urirun_connector_kvm__core__ui_act --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__cdp_status --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__ui_wait --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__ui_verify --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___capture_native
-    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__ui_locate --> urirun_connector_kvm__core___spread
-    urirun_connector_kvm__core__ui_click_text --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__ui_click_text --> urirun_connector_kvm__core___capture_native
-    urirun_connector_kvm__core__ui_click_text --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__doctor --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__launch --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__launch --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__core__list_apps --> urirun_connector_kvm__core___ok
-    urirun_connector_kvm__core__list_apps --> urirun_connector_kvm__core___fail_from
-    xlang__peer__ContractViolation__dig --> xlang__peer__ContractViolation__test
-    xlang__peer__ContractViolation__dig --> xlang__peer__Error
-    xlang__peer__ContractViolation__cur --> xlang__peer__ContractViolation__test
-    xlang__peer__ContractViolation__cur --> xlang__peer__Error
-    xlang__peer__ContractViolation__findWire --> xlang__peer__Error
-    xlang__peer__ContractViolation__w --> xlang__peer__Error
-    xlang__peer__ContractViolation__wirePayload --> xlang__peer__ContractViolation__dig
-    xlang__peer__ContractViolation__consumerInputCheck --> xlang__peer__ContractViolation__check
-    xlang__peer__ContractViolation__inp --> xlang__peer__ContractViolation__check
-    xlang__peer__ContractViolation__required --> xlang__peer__ContractViolation__check
-    xlang__peer__ContractViolation__carried --> xlang__peer__ContractViolation__check
-    xlang__peer__ContractViolation__sub --> xlang__peer__ContractViolation__check
-    xlang__peer__ContractViolation__opt --> xlang__peer__ContractViolation__check
-    xlang__peer__ContractViolation__conform --> xlang__peer__ContractViolation__fail
-    xlang__peer__ContractViolation__conform --> xlang__peer__ContractViolation__check
-    xlang__peer__ContractViolation__ex --> xlang__peer__Error
-    xlang__peer__ContractViolation__okExample --> xlang__peer__Error
-    xlang__peer__ContractViolation__handle --> xlang__peer__Error
-    xlang__peer__ContractViolation__lie --> xlang__peer__ContractViolation__handle
-    xlang__peer__ContractViolation__server --> xlang__peer__ContractViolation__handle
-    xlang__peer__handle --> xlang__peer__numOr
-    xlang__peer__handle --> xlang__peer__strOr
-    xlang__peer__main --> xlang__peer__loadDoc
-    xlang__peer__main --> xlang__peer__okExample
-    xlang__peer__main --> xlang__peer__findWire
-    xlang__peer__main --> xlang__peer__wirePayload
-    xlang__peer__main --> xlang__peer__consumerInputCheck
-    xlang__peer__check --> xlang__peer__root
-    xlang__peer__check --> xlang__peer__dotKey
-    xlang__peer__check --> xlang__peer__constValue
-    xlang__peer__check --> xlang__peer__typeOK
-    xlang__peer__wirePayload --> xlang__peer__dig
-    xlang__peer__consumerInputCheck --> xlang__peer__check
-    xlang__peer__consumerInputCheck --> xlang__peer__Error
-    xlang__peer__conform --> xlang__peer__check
-    xlang__peer__conform --> xlang__peer__Error
+    xlang__jsonschema_proof__main --> xlang__jsonschema_proof___valid
+    xlang__rust__src__main__contracts --> xlang__rust__src__main__doc
+    xlang__rust__src__main__wires --> xlang__rust__src__main__doc
+    xlang__rust__src__main__check --> xlang__rust__src__main__root
+    xlang__rust__src__main__check --> xlang__rust__src__main__dot
+    xlang__rust__src__main__find_wire --> xlang__rust__src__main__wires
+    xlang__rust__src__main__consumer_input_check --> xlang__rust__src__main__contracts
+    xlang__rust__src__main__conform --> xlang__rust__src__main__contracts
+    xlang__rust__src__main__conform --> xlang__rust__src__main__check
+    xlang__rust__src__main__ok_example --> xlang__rust__src__main__contracts
+    xlang__rust__src__main__main --> xlang__rust__src__main__load_doc
+    xlang__rust__src__main__main --> xlang__rust__src__main__ok_example
 
     classDef highCC fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef medCC fill:#ffd43b,stroke:#f08c00,color:#000
-    class urirun_connector_kvm__environment___running_browser_processes,urirun_connector_kvm__environment__browser_sessions,xlang__conformance_driver__main,xlang__peer__ContractViolation__conform,xlang__peer__ContractViolation__handle,xlang__peer__main,xlang__peer__check,xlang__peer__consumerInputCheck,xlang__peer__conform highCC
-    class urirun_connector_kvm__launch_backends___xdg_app_dirs,urirun_connector_kvm__launch_backends___parse_desktop_section,urirun_connector_kvm__launch_backends___find_app,urirun_connector_kvm__launch_backends___inject_chrome_flags,urirun_connector_kvm__backends__dispatch,urirun_connector_kvm__backends__session_env,urirun_connector_kvm__backends___tsv_lines,urirun_connector_kvm__backends___line_match,urirun_connector_kvm__backends___locate_tesseract,urirun_connector_kvm__backends___locate_easyocr,urirun_connector_kvm__backends___locate_atspi,urirun_connector_kvm__backends___locate_vql,urirun_connector_kvm__backends___screen_wh,urirun_connector_kvm__backends__uinput_abs_click,urirun_connector_kvm__backends___wayland_present,urirun_connector_kvm__backends___surface_warnings,urirun_connector_kvm__backends___surface_flags,urirun_connector_kvm__control___try_act_one,urirun_connector_kvm__control__route,urirun_connector_kvm__control__act,urirun_connector_kvm__environment__profile,urirun_connector_kvm__environment___check_cookies_for_services,urirun_connector_kvm__environment___browser_name_from_binary,computer_use_preview__agent__BrowserAgent___dispatch_action,computer_use_preview__agent__BrowserAgent___dispatch_legacy_action,computer_use_preview__agent__BrowserAgent___trim_old_screenshots,computer_use_preview__agent__BrowserAgent__run_one_iteration,computer_use_preview__computers__kvm__kvm__KvmComputer___run,xlang__transport_swap__main,urirun_connector_kvm__core___positioned_click medCC
+    class urirun_connector_kvm__environment___running_browser_processes,urirun_connector_kvm__environment__browser_sessions,xlang__peer__ContractViolation__conform,xlang__peer__ContractViolation__handle,xlang__peer__main,xlang__peer__check,xlang__peer__consumerInputCheck,xlang__peer__conform,ci__contract_shape_lint__check_route,xlang__emit_jsonschema__to_schema,xlang__conformance_driver__main,xlang__rust__src__main__check,xlang__rust__src__main__conform highCC
+    class urirun_connector_kvm__launch_backends___xdg_app_dirs,urirun_connector_kvm__launch_backends___parse_desktop_section,urirun_connector_kvm__launch_backends___find_app,urirun_connector_kvm__launch_backends___inject_chrome_flags,urirun_connector_kvm__core___positioned_click,urirun_connector_kvm__core___apply_capture_postprocessing,urirun_connector_kvm__core__capture,urirun_connector_kvm__core__task_run,urirun_connector_kvm__core__proc_kill,urirun_connector_kvm__core__ui_fill,urirun_connector_kvm__core___act_reject,urirun_connector_kvm__core__ui_click_text,urirun_connector_kvm__control___try_act_one,urirun_connector_kvm__control__route,urirun_connector_kvm__control__act,urirun_connector_kvm__environment__profile,urirun_connector_kvm__environment___check_cookies_for_services,urirun_connector_kvm__environment___browser_name_from_binary,computer_use_preview__agent__BrowserAgent___dispatch_action,computer_use_preview__agent__BrowserAgent___dispatch_legacy_action,computer_use_preview__agent__BrowserAgent___trim_old_screenshots,computer_use_preview__agent__BrowserAgent__run_one_iteration,computer_use_preview__computers__kvm__kvm__KvmComputer___run,xlang__peer__ContractViolation__consumerInputCheck,xlang__peer__handle,xlang__peer__loadDoc,xlang__peer__typeOK,xlang__peer__dig,urirun_connector_kvm__backends__dispatch,urirun_connector_kvm__backends__session_env medCC
