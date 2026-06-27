@@ -530,6 +530,39 @@ def test_cdp_await_ready_polls_without_spawn(monkeypatch) -> None:
     assert out["ready"] is False and "timeout" in out["error"]
 
 
+def test_cdp_start_session_reuses_matching_profile(monkeypatch) -> None:
+    """When user_data_dir matches running Chrome's profile, reuse without respawn."""
+    import subprocess
+    monkeypatch.setattr(cdp, "reachable", lambda: True)
+    monkeypatch.setattr(cdp, "_running_user_data_dir", lambda: "/home/user/.config/google-chrome/Default")
+    spawned = []
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: spawned.append(a) or object())
+    r = cdp.start_session(url="", user_data_dir="/home/user/.config/google-chrome/Default")
+    assert r["reused"] is True and r["launching"] is False
+    assert spawned == []
+
+
+def test_cdp_start_session_respawns_on_profile_mismatch(monkeypatch) -> None:
+    """When user_data_dir differs from running Chrome's profile, kill and relaunch."""
+    import subprocess, time as _t
+    killed = []
+    reachable_calls = [True, False]  # reachable before kill, not after
+    monkeypatch.setattr(cdp, "reachable", lambda: reachable_calls.pop(0) if reachable_calls else False)
+    monkeypatch.setattr(cdp, "_running_user_data_dir", lambda: "/tmp/urirun-kvm-cdp-9222")
+    monkeypatch.setattr(cdp, "_kill_chrome_on_port", lambda: killed.append(1))
+    monkeypatch.setattr(cdp, "_find_chrome", lambda: "/usr/bin/google-chrome")
+    monkeypatch.setattr(cdp.os, "makedirs", lambda *a, **k: None)
+    monkeypatch.setattr(_t, "sleep", lambda *_: None)
+
+    class _P:
+        pid = 777
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: _P())
+    r = cdp.start_session(url="", user_data_dir="/home/user/.config/google-chrome/Default")
+    assert killed == [1]           # old Chrome was killed
+    assert r["reused"] is False    # new Chrome launched
+    assert r["launching"] is True
+
+
 def test_ui_wait_success_has_no_found_collision(monkeypatch) -> None:
     # the route hit carries `found` -> _ok(found=True, **hit) used to raise
     # "_ok() got multiple values for keyword argument 'found'" on the SUCCESS path

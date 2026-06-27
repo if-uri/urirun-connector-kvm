@@ -80,23 +80,87 @@ def _copy_auth(src: str, dst: str) -> list:
     return copied
 
 
+def _running_user_data_dir() -> str | None:
+    """Read --user-data-dir from the command line of the Chrome process on our debug port."""
+    import glob
+    try:
+        port = endpoint().rsplit(":", 1)[-1].split("/")[0]
+        for cmdline_path in glob.glob("/proc/*/cmdline"):
+            try:
+                raw = open(cmdline_path, "rb").read().split(b"\x00")
+            except OSError:
+                continue
+            if not any(b"chrome" in a.lower() or b"chromium" in a.lower() for a in raw[:4]):
+                continue
+            if not any(f"--remote-debugging-port={port}".encode() in a for a in raw):
+                continue
+            for arg in raw:
+                if arg.startswith(b"--user-data-dir="):
+                    return arg[len(b"--user-data-dir="):].decode()
+    except Exception:  # noqa: BLE001
+        pass
+    return None
+
+
+def _kill_chrome_on_port() -> None:
+    """Kill the Chrome process currently listening on our debug port."""
+    import signal
+    import glob
+    try:
+        port = endpoint().rsplit(":", 1)[-1].split("/")[0]
+        for cmdline_path in glob.glob("/proc/*/cmdline"):
+            try:
+                raw = open(cmdline_path, "rb").read().split(b"\x00")
+            except OSError:
+                continue
+            if not any(b"chrome" in a.lower() or b"chromium" in a.lower() for a in raw[:4]):
+                continue
+            if not any(f"--remote-debugging-port={port}".encode() in a for a in raw):
+                continue
+            pid = int(cmdline_path.split("/")[2])
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError:
+                pass
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def start_session(url: str = "", user_data_dir: str = "", copy_from: str = "") -> dict:
     """Reuse a live CDP endpoint, or LAUNCH a dedicated-profile debug Chrome and return
     IMMEDIATELY — does NOT block on the debug port binding.
 
-    Spawns AT MOST one instance: if already reachable it REUSES. Callers must poll
-    readiness with await_ready rather than re-calling (re-calling spawns competing
-    Chrome instances that fight over the profile SingletonLock). ``copy_from`` clones
+    Spawns AT MOST one instance: if already reachable it REUSES — unless user_data_dir is
+    specified and differs from the running Chrome's profile, in which case the old Chrome is
+    terminated and a new one is launched with the correct profile (so auth cookies are available).
+    Callers must poll readiness with await_ready rather than re-calling. ``copy_from`` clones
     auth files first so the debug profile opens already logged in."""
     base = endpoint()
     if reachable():
-        nav = None
-        if url:
-            try:
-                nav = navigate(url)
-            except Exception as exc:  # noqa: BLE001
-                nav = {"ok": False, "error": str(exc)}
-        return {"ok": True, "reused": True, "launching": False, "endpoint": base, "navigate": nav}
+        if user_data_dir:
+            requested = os.path.abspath(os.path.expanduser(user_data_dir))
+            current = _running_user_data_dir()
+            if current and os.path.abspath(os.path.expanduser(current)) != requested:
+                _kill_chrome_on_port()
+                import time as _t
+                _t.sleep(0.5)
+                # fall through to launch new Chrome with the correct profile
+            else:
+                nav = None
+                if url:
+                    try:
+                        nav = navigate(url)
+                    except Exception as exc:  # noqa: BLE001
+                        nav = {"ok": False, "error": str(exc)}
+                return {"ok": True, "reused": True, "launching": False, "endpoint": base, "navigate": nav}
+        else:
+            nav = None
+            if url:
+                try:
+                    nav = navigate(url)
+                except Exception as exc:  # noqa: BLE001
+                    nav = {"ok": False, "error": str(exc)}
+            return {"ok": True, "reused": True, "launching": False, "endpoint": base, "navigate": nav}
     port = base.rsplit(":", 1)[-1].split("/")[0]
     ddir = user_data_dir or f"/tmp/urirun-kvm-cdp-{port}"
     os.makedirs(ddir, exist_ok=True)
