@@ -103,4 +103,31 @@ CONTRACTS: dict[str, Contract] = {
                         "blocked": "irreversible",
                         "error": "refusing to click 'publish' with safe=true (pass safe=false to allow)"}},
         )),
+
+    # The display geometry callers need without a screenshot — the coordinate space capture/click
+    # live in. Pins the field names the planner reads back (fullSize/width/height).
+    "display/query/info": Contract(
+        version="v1", effect="query",
+        inp={},
+        out={"ok": "const:true", "action": "const:display-info", "fullSize": "list",
+             "width": "int", "height": "int", "monitorCount": "int"},
+        examples=(
+            {"payload": {},
+             "result": {"ok": True, "connector": "kvm", "action": "display-info",
+                        "fullSize": [2560, 1440], "width": 2560, "height": 1440,
+                        "monitors": [{"x": 0, "y": 0, "w": 2560, "h": 1440}], "monitorCount": 1,
+                        "platform": "linux/wayland", "wayland": True, "multiMonitor": False,
+                        "fractionalHiDPI": False, "osLevelReliable": False}},
+        )),
+
+    # Is a CDP debug endpoint reachable, and where — the precondition the act/find router checks.
+    "cdp/session/query/status": Contract(
+        version="v1", effect="query",
+        inp={},
+        out={"ok": "const:true", "action": "const:cdp-status", "reachable": "bool", "endpoint": "?str"},
+        examples=(
+            {"payload": {},
+             "result": {"ok": True, "connector": "kvm", "action": "cdp-status",
+                        "reachable": False, "endpoint": "http://127.0.0.1:9222"}},
+        )),
 }

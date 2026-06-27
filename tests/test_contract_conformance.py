@@ -42,3 +42,30 @@ def test_code_matches_contract_inputs():
             f"{route}: contract inputs {set(c.inp)} not all in handler signature {props}"
         assert (binding.get("meta") or {}).get("contract"), \
             f"{route}: contract not attached to the binding meta"
+
+
+@pytest.mark.skipif(not os.environ.get("URIRUN_CONTRACT_CHECK"),
+                    reason="set URIRUN_CONTRACT_CHECK=1 to report contract coverage against live routes")
+def test_contract_coverage_report():
+    """Surface (don't hide) which kvm routes still lack a contract — no silent gaps.
+
+    Warns with the uncovered route list so the gap is visible in the pytest summary without
+    blocking; only hard-fails if a contract points at a route that no longer exists.
+    """
+    import warnings
+
+    import urirun_connector_kvm.core as core
+
+    live = {b["uri"] for b in core.conn.bindings()["bindings"].values()}
+    contracted = {core.conn.uri(route) for route in CONTRACTS}
+
+    dangling = contracted - live
+    assert not dangling, f"contracts point at routes that no longer exist: {sorted(dangling)}"
+
+    uncovered = sorted(live - contracted)
+    covered, total = len(contracted), len(live)
+    if uncovered:
+        warnings.warn(
+            f"contract coverage {covered}/{total} kvm routes; {len(uncovered)} uncovered: {uncovered}",
+            stacklevel=2,
+        )
