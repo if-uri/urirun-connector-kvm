@@ -384,7 +384,8 @@ def _cap_im(output: str, **_: Any) -> dict:
     return {"path": output, "via": "imagemagick"}
 
 
-@backend("capture", "gnome-screenshot", priority=35, platforms=("linux-x11",), needs_bin=("gnome-screenshot",))
+@backend("capture", "gnome-screenshot", priority=35,
+         platforms=("linux-x11", "linux-wayland"), needs_bin=("gnome-screenshot",))
 def _cap_gnome(output: str, **_: Any) -> dict:
     _run(["gnome-screenshot", "-f", output], timeout=20)
     return {"path": output, "via": "gnome-screenshot"}
