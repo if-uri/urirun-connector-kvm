@@ -877,15 +877,20 @@ def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0
 
 
 @conn.handler("ui/query/verify", isolated=True, meta={"label": "Assert a string is present on screen"})
-def ui_verify(expect: str = "", text: str = "", app: str = "") -> dict[str, Any]:
+def ui_verify(expect: str = "", text: str = "", app: str = "", required: bool = False) -> dict[str, Any]:
     expect = expect or text  # accept 'text' as alias (LLM planner uses both names)
     if not expect:
         return urirun.fail("expect is required", connector=CONNECTOR_ID)
+    hit: dict[str, Any] = {}
     try:
         hit = B.dispatch("locate", text=expect, app=app)
-        return _ok(action="verify", present=bool(hit.get("found")), via=hit.get("source"))
+        present = bool(hit.get("found"))
     except B.BackendError:
-        return _ok(action="verify", present=False)
+        present = False
+    if required and not present:
+        return urirun.fail(f"required text not found on screen: '{expect}'",
+                           connector=CONNECTOR_ID, action="verify", present=False)
+    return _ok(action="verify", present=present, via=hit.get("source"))
 
 
 # --------------------------------------------------------------------------- #
