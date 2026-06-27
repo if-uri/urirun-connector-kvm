@@ -877,7 +877,8 @@ def ui_wait(text: str = "", role: str = "", app: str = "", timeout: float = 10.0
 
 
 @conn.handler("ui/query/verify", isolated=True, meta={"label": "Assert a string is present on screen"})
-def ui_verify(expect: str = "", app: str = "") -> dict[str, Any]:
+def ui_verify(expect: str = "", text: str = "", app: str = "") -> dict[str, Any]:
+    expect = expect or text  # accept 'text' as alias (LLM planner uses both names)
     if not expect:
         return urirun.fail("expect is required", connector=CONNECTOR_ID)
     try:
