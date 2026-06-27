@@ -168,7 +168,10 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     except B.BackendError as exc:
         msg = str(exc)
         _need = _backend_need(msg)
-        if "portal denied" in msg or "portal cancelled" in msg or _need:
+        _portal_blocked = any(k in msg for k in (
+            "portal denied", "portal cancelled", "portal blocked", "placeholder",
+        ))
+        if _portal_blocked or _need:
             return urirun.ok(connector=CONNECTOR_ID, action="capture",
                              degraded=True, degradedReason=msg, platform=B.platform_tag(),
                              **({"need": _need} if _need else {}))
