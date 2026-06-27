@@ -154,6 +154,32 @@ def test_capture_tags_screenshot_as_frozen_artifact(monkeypatch) -> None:
     assert r["ok"] is True and r["kind"] == "screenshot" and r["live"] is False
 
 
+def test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatch) -> None:
+    """A tiny xdg-portal capture (~3.8 KB) is the empty/blocked-portal placeholder, not a real
+    screenshot. It must come back degraded — never a false ok — so the flow's degraded handling keeps
+    it out of known-good and the twin shows 'not a real capture' instead of logging a fake success."""
+    monkeypatch.setattr(
+        B, "dispatch",
+        lambda action, **kw: {"backend": "portal", "via": "xdg-portal", "path": kw.get("output")},
+    )
+    monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 3848)  # the empty-portal placeholder size
+    r = capture(output="/tmp/x.png")
+    assert r.get("degraded") is True and "placeholder" in (r.get("degradedReason") or "")
+
+    # a real-sized xdg-portal frame is a genuine success, not degraded
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 200_000)
+    r2 = capture(output="/tmp/x.png")
+    assert r2["ok"] is True and not r2.get("degraded")
+
+    # the guard is scoped to xdg-portal — a small grim frame must NOT be falsely degraded
+    monkeypatch.setattr(B, "dispatch",
+                        lambda action, **kw: {"backend": "grim", "via": "grim", "path": kw.get("output")})
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 5000)
+    r3 = capture(output="/tmp/x.png")
+    assert r3["ok"] is True and not r3.get("degraded")
+
+
 def test_manifest_prose_plus_derived_routes() -> None:
     m = connector_manifest()
     assert m["id"] == "kvm"
@@ -550,10 +576,22 @@ def test_capture_portal_denied_returns_degraded(monkeypatch) -> None:
 
 
 def test_capture_other_backend_error_stays_fail(monkeypatch) -> None:
-    """Non-permission errors (compositor missing, tool not found) still return ok=False."""
+    """'no available backend' is surfaced as degraded+need (preconditions system can remediate).
+    Truly unrecognised errors still return ok=False."""
     monkeypatch.setattr(
         B, "dispatch",
         lambda action, **kw: (_ for _ in ()).throw(B.BackendError("no available backend for 'capture'")),
     )
     r = capture(output="/tmp/x.png")
-    assert r["ok"] is False
+    # need_from_backend_error recognises this message → degraded (ok=True, degraded=True, need=...)
+    assert r["ok"] is True
+    assert r.get("degraded") is True
+    assert r.get("need") is not None
+
+    # A truly unrecognised error still hard-fails
+    monkeypatch.setattr(
+        B, "dispatch",
+        lambda action, **kw: (_ for _ in ()).throw(B.BackendError("unexpected internal error xyz")),
+    )
+    r2 = capture(output="/tmp/x.png")
+    assert r2["ok"] is False

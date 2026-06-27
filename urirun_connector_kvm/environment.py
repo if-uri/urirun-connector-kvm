@@ -236,15 +236,43 @@ def _proc_ppid(pid: int) -> int | None:
     return None
 
 
+_CHILD_FLAGS = (b"--type=", b"-contentproc", b"crashpad", b"zygote", b"--extension", b"--no-sandbox")
+_WRAPPER_NAMES = (b"snap-confine", b"snapd", b"bwrap", b"snap.run")
+
+
+def _browser_name_from_binary(binary_b: bytes, binary: str) -> str | None:
+    """Map a process binary path to a browser name, or None if not a known browser."""
+    if b"google-chrome" in binary_b or (binary.endswith("/chrome") and b"google" in binary_b.lower()):
+        return "chrome"
+    if b"chromium" in binary_b:
+        return "chromium"
+    if b"firefox" in binary_b and b"crashhelper" not in binary_b and b"plugincontainer" not in binary_b:
+        return "firefox"
+    if b"brave" in binary_b:
+        return "brave"
+    return None
+
+
+def _parse_browser_args(argv: list[bytes]) -> tuple[int | None, str | None]:
+    """Extract (cdp_port, user_data_dir) from a browser's argv list."""
+    cdp_port: int | None = None
+    user_data_dir: str | None = None
+    for arg in argv[1:]:
+        s = arg.decode(errors="replace")
+        if s.startswith("--remote-debugging-port="):
+            try:
+                cdp_port = int(s.split("=", 1)[1])
+            except ValueError:
+                pass
+        elif s.startswith("--user-data-dir="):
+            user_data_dir = s.split("=", 1)[1]
+    return cdp_port, user_data_dir
+
+
 def _running_browser_processes() -> list[dict]:
     """Return info about running browser MAIN processes by scanning /proc for full cmdlines.
     Only returns ROOT browser processes — child/helper processes (renderers, GPU, snap wrappers)
     are excluded by checking that their parent is not also a browser process."""
-    _CHILD_FLAGS = (b"--type=", b"-contentproc", b"crashpad", b"zygote",
-                    b"--extension", b"--no-sandbox")
-    # Known snap/flatpak wrapper binary suffixes that are not the real browser
-    _WRAPPER_NAMES = (b"snap-confine", b"snapd", b"bwrap", b"snap.run")
-
     try:
         pids = [int(p) for p in os.listdir("/proc") if p.isdigit()]
     except OSError:
@@ -258,21 +286,11 @@ def _running_browser_processes() -> list[dict]:
         if not argv:
             continue
         binary_b = argv[0]
-        binary = binary_b.decode(errors="replace")
-        # Filter obvious non-main processes by flags in argv
         if any(f in b" ".join(argv[1:]) for f in _CHILD_FLAGS):
             continue
         if any(w in binary_b for w in _WRAPPER_NAMES):
             continue
-        browser_name = None
-        if b"google-chrome" in binary_b or (binary.endswith("/chrome") and b"google" in binary_b.lower()):
-            browser_name = "chrome"
-        elif b"chromium" in binary_b:
-            browser_name = "chromium"
-        elif b"firefox" in binary_b and b"crashhelper" not in binary_b and b"plugincontainer" not in binary_b:
-            browser_name = "firefox"
-        elif b"brave" in binary_b:
-            browser_name = "brave"
+        browser_name = _browser_name_from_binary(binary_b, binary_b.decode(errors="replace"))
         if not browser_name:
             continue
         candidates.append((pid, browser_name, argv))
@@ -284,17 +302,7 @@ def _running_browser_processes() -> list[dict]:
         ppid = _proc_ppid(pid)
         if ppid is not None and ppid in browser_pids:
             continue  # child of another browser process
-        cdp_port = None
-        user_data_dir = None
-        for arg in argv[1:]:
-            s = arg.decode(errors="replace")
-            if s.startswith("--remote-debugging-port="):
-                try:
-                    cdp_port = int(s.split("=", 1)[1])
-                except ValueError:
-                    pass
-            elif s.startswith("--user-data-dir="):
-                user_data_dir = s.split("=", 1)[1]
+        cdp_port, user_data_dir = _parse_browser_args(argv)
         browsers.append({
             "pid": str(pid), "browser": browser_name,
             "cdp_port": cdp_port, "user_data_dir": user_data_dir,
