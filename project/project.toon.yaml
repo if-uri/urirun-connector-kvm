@@ -1,8 +1,8 @@
-# urirun-connector-kvm | 447 func | 28f | 9338L | python | 2026-06-27
+# urirun-connector-kvm | 449 func | 30f | 9667L | python | 2026-06-27
 # generated in 0.00s
 
 HEALTH:
-  CC̄=3.8  critical=41 (limit:10)  dup=0  cycles=0
+  CC̄=3.8  critical=42 (limit:10)  dup=0  cycles=0
 
 ALERTS[20]:
   !!! high_fan_out     main = 49 (limit:10)
@@ -16,23 +16,23 @@ ALERTS[20]:
   !!  high_fan_out     _locate_easyocr = 19 (limit:10)
   !!  high_fan_out     conform = 18 (limit:10)
 
-MODULES[47] (top by size):
+MODULES[53] (top by size):
   M[urirun_connector_kvm/backends.py] 1387L C:1 F:80 CC↑14 D:1 (python)
-  M[planfile.yaml] 1059L C:0 F:0 CC↑0 D:0 (yaml)
-  M[urirun_connector_kvm/core.py] 1038L C:0 F:59 CC↑14 D:0 (python)
+  M[planfile.yaml] 1215L C:0 F:0 CC↑0 D:0 (yaml)
+  M[urirun_connector_kvm/core.py] 1044L C:0 F:59 CC↑14 D:0 (python)
   M[xlang/peer.go] 542L C:1 F:17 CC↑27 D:1 (go)
   M[computer-use-preview/agent.py] 512L C:1 F:21 CC↑13 D:0 (python)
-  M[xlang/rust/src/main.rs] 479L C:0 F:17 CC↑30 D:1 (rust)
+  M[xlang/rust/src/main.rs] 479L C:0 F:17 CC↑30 D:2 (rust)
   M[urirun_connector_kvm/connector.manifest.json] 454L C:0 F:0 CC↑0 D:0 (json)
   M[computer-use-preview/computers/playwright/playwright.py] 418L C:1 F:33 CC↑5 D:0 (python)
   M[urirun_connector_kvm/environment.py] 401L C:0 F:12 CC↑17 D:0 (python)
   M[urirun_connector_kvm/launch_backends.py] 284L C:0 F:16 CC↑11 D:0 (python)
-  M[urirun_connector_kvm/cdp.py] 221L C:0 F:9 CC↑7 D:1 (python)
+  M[urirun_connector_kvm/cdp.py] 221L C:0 F:9 CC↑7 D:0 (python)
   M[urirun_connector_kvm/control.py] 212L C:0 F:9 CC↑13 D:0 (python)
   M[urirun_connector_kvm/contracts.py] 207L C:0 F:0 CC↑0 D:0 (python)
   M[computer-use-preview/computers/computer.py] 198L C:2 F:27 CC↑1 D:1 (python)
   M[computer-use-preview/computers/kvm/kvm.py] 190L C:1 F:33 CC↑11 D:0 (python)
-  LANGS: python:29/shell:7/yaml:3/toml:2/rust:1/go:1/javascript:1/other:1/txt:1/json:1
+  LANGS: python:31/shell:8/yaml:3/toml:2/json:2/typescript:2/rust:1/go:1/javascript:1/other:1/txt:1
 
 HOTSPOTS[10]:
   ★ main fan=49  // Orchestrates 49 calls
@@ -46,7 +46,7 @@ REFACTOR[15]:
   [2] H/L Split check (CC=30)
   [3] H/H Split god module xlang/peer.go (542L, 1 classes)
   [4] H/H Split god module urirun_connector_kvm/backends.py (1387L, 1 classes)
-  [5] H/H Split god module urirun_connector_kvm/core.py (1038L, 0 classes)
+  [5] H/H Split god module urirun_connector_kvm/core.py (1044L, 0 classes)
 
 EVOLUTION:
-  2026-06-27 CC̄=3.8 crit=41 9338L // Automated analysis
+  2026-06-27 CC̄=3.8 crit=42 9667L // Automated analysis

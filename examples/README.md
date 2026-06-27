@@ -27,6 +27,18 @@ urirun run 'registry://local/bindings/query/show' --payload '{"uri":"kvm://host/
 urirun errors                                                      # recent runtime errors (error://)
 ```
 
+## Contract scenarios — many URIs, one gate (`urirun-contract-*`)
+Drive every route + every wire across the sibling scenario packages (capture-click, windowpair,
+filepair, kvstore) through the standalone `urirun_contract` gate, then optionally the live
+cross-process/cross-language handoff:
+```bash
+python examples/contract_scenarios.py                 # in-process: conform each URI + each wire + teeth
+bash   examples/contract_scenarios.sh integration     # + real HTTP producer→consumer (py & go)
+```
+Covers 4 scenarios × 2 URIs × 1 wire each (8 routes, 4 edges): each golden payload/envelope is
+checked against the shared `contracts.json`, each wire's handoff is typed (FULL/PARTIAL), and a
+corrupted envelope is rejected. Enforced in CI by `tests/test_contract_scenarios.py`.
+
 ## Generate a client / API surface from the binding
 ```bash
 urirun discover | urirun gen openapi - --out openapi.json   # OpenAPI 3 (one path per route)

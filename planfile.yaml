@@ -1148,19 +1148,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-7daa257b
-    name: Fix smart-return-type issues
-    description: Resolve 1 smart-return-type issues in xlang/emit_jsonschema.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - xlang/emit_jsonschema.py
-    rule_id: smart-return-type
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-bdeddb90
     name: Fix unused-imports issues
     description: Resolve 2 unused-imports issues in xlang/emit_jsonschema.py
@@ -1208,6 +1195,71 @@ sprints:
     estimate: 1d
     files:
     - xlang/jsonschema_proof.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-02a793e6
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in tests/test_contract_scenarios.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_contract_scenarios.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6f97367a
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in tests/test_contract_scenarios.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_contract_scenarios.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8242313e
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in tests/test_contract_scenarios.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_contract_scenarios.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-547fa40b
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in xlang/emit_typescript.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/emit_typescript.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-79f8d57f
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in xlang/emit_typescript.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/emit_typescript.py
     rule_id: ai-boilerplate
     count: 1
     model_hints:

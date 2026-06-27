@@ -3,7 +3,7 @@ project_metadata('urirun-connector-kvm', '0.3.0', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 71, 'less').
-project_file('ci/contract_ci.sh', 69, 'shell').
+project_file('ci/contract_ci.sh', 77, 'shell').
 project_file('ci/contract_codegen.py', 141, 'python').
 project_file('ci/contract_shape_lint.py', 144, 'python').
 project_file('ci/cross_process_roundtrip.py', 84, 'python').
@@ -20,27 +20,31 @@ project_file('computer-use-preview/main.py', 102, 'python').
 project_file('computer-use-preview/test_agent.py', 112, 'python').
 project_file('computer-use-preview/test_main.py', 70, 'python').
 project_file('examples/calibrate_abs.py', 76, 'python').
+project_file('examples/contract_scenarios.py', 159, 'python').
+project_file('examples/contract_scenarios.sh', 32, 'shell').
 project_file('examples/quickstart.sh', 6, 'shell').
 project_file('project.sh', 69, 'shell').
 project_file('tests/test_contract_composition.py', 99, 'python').
 project_file('tests/test_contract_conformance.py', 153, 'python').
+project_file('tests/test_contract_scenarios.py', 41, 'python').
 project_file('tests/test_kvm.py', 608, 'python').
-project_file('tests/test_xlang_polyglot.py', 84, 'python').
+project_file('tests/test_xlang_polyglot.py', 90, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
 project_file('urirun_connector_kvm/backends.py', 1388, 'python').
 project_file('urirun_connector_kvm/cdp.py', 222, 'python').
 project_file('urirun_connector_kvm/contracts.py', 208, 'python').
 project_file('urirun_connector_kvm/control.py', 213, 'python').
-project_file('urirun_connector_kvm/core.py', 1039, 'python').
+project_file('urirun_connector_kvm/core.py', 1045, 'python').
 project_file('urirun_connector_kvm/environment.py', 402, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 285, 'python').
 project_file('urirun_connector_kvm/strategies.py', 133, 'python').
 project_file('urirun_connector_kvm/surface.py', 59, 'python').
 project_file('xlang/conformance_driver.py', 124, 'python').
 project_file('xlang/driver.sh', 27, 'shell').
-project_file('xlang/emit_contracts.py', 63, 'python').
-project_file('xlang/emit_jsonschema.py', 110, 'python').
+project_file('xlang/emit_contracts.py', 30, 'python').
+project_file('xlang/emit_jsonschema.py', 30, 'python').
+project_file('xlang/emit_typescript.py', 28, 'python').
 project_file('xlang/jsonschema_proof.py', 70, 'python').
 project_file('xlang/jsonschema_proof.sh', 20, 'shell').
 project_file('xlang/peer.go', 543, 'go').
@@ -49,6 +53,9 @@ project_file('xlang/run.sh', 99, 'shell').
 project_file('xlang/rust/src/main.rs', 480, 'rust').
 project_file('xlang/transport_swap.py', 104, 'python').
 project_file('xlang/transport_swap.sh', 25, 'shell').
+project_file('xlang/ts/check_bad.ts', 16, 'typescript').
+project_file('xlang/ts/check_ok.ts', 25, 'typescript').
+project_file('xlang/typescript_proof.sh', 38, 'shell').
 
 % ── Python Functions ─────────────────────────────────────
 python_function('ci/contract_codegen.py', '_base', 1, 2, 1).
@@ -77,6 +84,12 @@ python_function('examples/calibrate_abs.py', 'run', 2, 2, 1).
 python_function('examples/calibrate_abs.py', 'cap', 0, 1, 8).
 python_function('examples/calibrate_abs.py', 'magenta_frac', 1, 1, 2).
 python_function('examples/calibrate_abs.py', 'find_box', 1, 2, 4).
+python_function('examples/contract_scenarios.py', '_load', 1, 4, 5).
+python_function('examples/contract_scenarios.py', '_ok_example', 1, 3, 1).
+python_function('examples/contract_scenarios.py', '_required_out_key', 1, 6, 4).
+python_function('examples/contract_scenarios.py', 'run_scenario', 2, 15, 11).
+python_function('examples/contract_scenarios.py', 'discover', 0, 3, 7).
+python_function('examples/contract_scenarios.py', 'main', 0, 15, 7).
 python_function('tests/test_contract_composition.py', '_ids', 1, 2, 0).
 python_function('tests/test_contract_composition.py', 'test_declared_wire_is_statically_valid', 1, 2, 3).
 python_function('tests/test_contract_composition.py', 'test_wire_survives_json_roundtrip', 1, 6, 8).
@@ -92,6 +105,7 @@ python_function('tests/test_contract_conformance.py', 'test_validator_catches_dr
 python_function('tests/test_contract_conformance.py', 'test_error_class_must_be_declared', 0, 3, 1).
 python_function('tests/test_contract_conformance.py', 'test_enforce_guards_a_live_handler', 0, 3, 7).
 python_function('tests/test_contract_conformance.py', 'test_conform_passes_all_declared_contracts', 0, 1, 1).
+python_function('tests/test_contract_scenarios.py', 'test_all_scenarios_many_uris', 0, 5, 1).
 python_function('tests/test_kvm.py', 'test_key_requires_value', 0, 2, 1).
 python_function('tests/test_kvm.py', 'test_type_requires_value', 0, 2, 1).
 python_function('tests/test_kvm.py', 'test_no_backend_reports_install_hint', 1, 2, 2).
@@ -142,6 +156,7 @@ python_function('tests/test_xlang_polyglot.py', 'test_roundtrip_matrix', 0, 1, 2
 python_function('tests/test_xlang_polyglot.py', 'test_external_conformance_driver', 0, 1, 2).
 python_function('tests/test_xlang_polyglot.py', 'test_transport_invariance', 0, 1, 2).
 python_function('tests/test_xlang_polyglot.py', 'test_jsonschema_export', 0, 1, 4).
+python_function('tests/test_xlang_polyglot.py', 'test_typescript_export', 0, 1, 4).
 python_function('urirun_connector_kvm/backends.py', '_runtime_dir', 0, 3, 3).
 python_function('urirun_connector_kvm/backends.py', '_wayland_socket', 0, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_x_display', 0, 6, 4).
@@ -287,7 +302,7 @@ python_function('urirun_connector_kvm/core.py', '_act_ready', 1, 3, 5).
 python_function('urirun_connector_kvm/core.py', 'ui_act', 10, 7, 12).
 python_function('urirun_connector_kvm/core.py', 'cdp_status', 0, 2, 4).
 python_function('urirun_connector_kvm/core.py', 'ui_wait', 6, 4, 12).
-python_function('urirun_connector_kvm/core.py', 'ui_verify', 2, 3, 6).
+python_function('urirun_connector_kvm/core.py', 'ui_verify', 4, 6, 6).
 python_function('urirun_connector_kvm/core.py', '_capture_native', 1, 1, 4).
 python_function('urirun_connector_kvm/core.py', 'ui_locate', 3, 3, 9).
 python_function('urirun_connector_kvm/core.py', 'ui_click_text', 7, 8, 11).
@@ -330,13 +345,9 @@ python_function('urirun_connector_kvm/surface.py', '_active_window', 0, 6, 3).
 python_function('urirun_connector_kvm/surface.py', 'current', 0, 7, 7).
 python_function('xlang/conformance_driver.py', 'drive', 1, 4, 7).
 python_function('xlang/conformance_driver.py', 'main', 0, 15, 7).
-python_function('xlang/emit_contracts.py', '_contract_to_json', 1, 3, 2).
-python_function('xlang/emit_contracts.py', 'build_doc', 0, 3, 2).
 python_function('xlang/emit_contracts.py', 'main', 0, 1, 7).
-python_function('xlang/emit_jsonschema.py', '_const', 1, 3, 1).
-python_function('xlang/emit_jsonschema.py', 'to_schema', 1, 17, 11).
-python_function('xlang/emit_jsonschema.py', 'build_doc', 0, 2, 2).
 python_function('xlang/emit_jsonschema.py', 'main', 0, 1, 7).
+python_function('xlang/emit_typescript.py', 'main', 0, 1, 6).
 python_function('xlang/jsonschema_proof.py', '_valid', 2, 4, 5).
 python_function('xlang/jsonschema_proof.py', 'main', 0, 10, 5).
 python_function('xlang/peer.py', '_find_wire', 2, 4, 1).

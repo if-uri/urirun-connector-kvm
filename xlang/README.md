@@ -5,9 +5,18 @@ Teza: kontrakt trasy (`Contract`/`Wire` w `contracts.py`) jest **predykatem nad 
 walidowalnym wobec implementacji w *dowolnym* języku — a nie zrzutem obiektu Pythona.
 
 ## Warunek konieczny
-Jedno **neutralne źródło**, N cienkich czytników. `contracts.json` jest **generowany** z
-dataclassy (`emit_contracts.py`) — nie ręcznie kopiowany. Ręczna kopia per język to pierwotny
-dryf ×N. Każdy język czyta ten sam wygenerowany plik:
+Jedno **neutralne źródło**, N cienkich czytników. Artefakty (`contracts.json`,
+`contracts.schema.json`, `ts/contracts.d.ts`) są **generowane** z dataclassy — nie ręcznie kopiowane.
+
+Logika tłumaczenia (mini-język → neutralny JSON / JSON Schema / typy TS) NIE żyje w tym connectorze —
+jest w **toolkit** (`urirun_connectors_toolkit.contract_export`), więc wszystkie ~37 connectorów dostają
+tę samą bramę bez powielania. Lokalne `emit_*.py` to cienkie wrappery (~15 linii) wpinające CONTRACTS
+kvm w generyczne funkcje. Dowolny connector emituje cały zestaw jedną komendą:
+```bash
+python -m urirun_connectors_toolkit.contract_export urirun_connector_kvm.contracts xlang
+```
+(Genericzność udowodniona w toolkit: `tests/test_contract_export.py` puszcza eksporter na osobnym,
+syntetycznym zestawie kontraktów.) Każdy język czyta ten sam wygenerowany plik:
 
 | plik              | język | rola                                                                 |
 |-------------------|-------|----------------------------------------------------------------------|

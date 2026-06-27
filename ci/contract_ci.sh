@@ -21,6 +21,16 @@ cd "$(dirname "$0")/.."
 export URIRUN_CONTRACT_CHECK=1
 export PYTHONPATH="${PYTHONPATH:-.}"
 
+# pre-brama: kernel (gate/codegen) NIE może być redefiniowany tu — tylko re-eksport/CLI nad
+# urirun_contract. Skanujemy connector + KANONICZNE źródło pakietu razem, więc każda lokalna
+# kopia daje 2 definicje → FAIL (sam connector dałby 1 i fałszywie przeszedł). (Pomija się bez pakietu.)
+PKG_DIR=$(python -c "import os,urirun_contract; print(os.path.dirname(urirun_contract.__file__))" 2>/dev/null || true)
+if [ -n "$PKG_DIR" ]; then
+  echo "== 0/9 jedno źródło kernela (gate/codegen nie redefiniowane w connectorze) =="
+  python -m urirun_contract.check_single_source . "$PKG_DIR"
+  echo
+fi
+
 echo "== 1/9 self-conformance (each contract individually) =="
 python -m pytest tests/test_contract_conformance.py -q
 

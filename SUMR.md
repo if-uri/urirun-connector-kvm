@@ -116,7 +116,7 @@ urirun-cdp>=0.1.0
 
 ## Call Graph
 
-*256 nodes · 321 edges · 20 modules · CC̄=3.8*
+*255 nodes · 323 edges · 19 modules · CC̄=3.8*
 
 ### Hubs (by degree)
 
@@ -124,17 +124,17 @@ urirun-cdp>=0.1.0
 |----------|----|----|-----|-------|
 | `main` *(in xlang.rust.src.main)* | 13 ⚠ | 0 | 49 | **49** |
 | `backend` *(in urirun_connector_kvm.backends)* | 1 | 40 | 6 | **46** |
-| `_ok` *(in urirun_connector_kvm.core)* | 1 | 41 | 1 | **42** |
+| `_ok` *(in urirun_connector_kvm.core)* | 1 | 40 | 1 | **41** |
 | `task_run` *(in urirun_connector_kvm.core)* | 13 ⚠ | 0 | 41 | **41** |
-| `capture` *(in urirun_connector_kvm.core)* | 14 ⚠ | 0 | 31 | **31** |
+| `_run` *(in urirun_connector_kvm.backends)* | 4 | 27 | 4 | **31** |
 | `main` *(in xlang.peer)* | 21 ⚠ | 0 | 31 | **31** |
-| `_run` *(in urirun_connector_kvm.backends)* | 4 | 25 | 4 | **29** |
+| `capture` *(in urirun_connector_kvm.core)* | 14 ⚠ | 0 | 31 | **31** |
 | `_apply_capture_postprocessing` *(in urirun_connector_kvm.core)* | 10 ⚠ | 1 | 27 | **28** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
-# generated in 0.12s
-# nodes: 256 | edges: 321 | modules: 20
+# generated in 0.14s
+# nodes: 255 | edges: 323 | modules: 19
 # CC̄=3.8
 
 HUBS[20]:
@@ -143,39 +143,39 @@ HUBS[20]:
   urirun_connector_kvm.backends.backend
     CC=1  in:40  out:6  total:46
   urirun_connector_kvm.core._ok
-    CC=1  in:41  out:1  total:42
+    CC=1  in:40  out:1  total:41
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
-  urirun_connector_kvm.core.capture
-    CC=14  in:0  out:31  total:31
+  urirun_connector_kvm.backends._run
+    CC=4  in:27  out:4  total:31
   xlang.peer.main
     CC=21  in:0  out:31  total:31
-  urirun_connector_kvm.backends._run
-    CC=4  in:25  out:4  total:29
+  urirun_connector_kvm.core.capture
+    CC=14  in:0  out:31  total:31
   urirun_connector_kvm.core._apply_capture_postprocessing
     CC=10  in:1  out:27  total:28
   urirun_connector_kvm.core._fail_from
     CC=1  in:25  out:3  total:28
-  urirun_connector_kvm.environment.profile
-    CC=13  in:0  out:26  total:26
   xlang.rust.src.main.consumer_input_check
-    CC=12  in:2  out:24  total:26
+    CC=12  in:3  out:24  total:27
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
-  xlang.emit_jsonschema.to_schema
-    CC=17  in:5  out:20  total:25
+  urirun_connector_kvm.environment.profile
+    CC=13  in:0  out:26  total:26
   urirun_connector_kvm.core.ui_click_text
     CC=8  in:0  out:23  total:23
-  urirun_connector_kvm.environment.browser_sessions
-    CC=17  in:0  out:22  total:22
-  urirun_connector_kvm.core.window_restore
-    CC=5  in:0  out:22  total:22
   urirun_connector_kvm.backends.uinput_abs_click
     CC=9  in:1  out:21  total:22
+  urirun_connector_kvm.core.window_restore
+    CC=5  in:0  out:22  total:22
+  urirun_connector_kvm.environment.browser_sessions
+    CC=17  in:0  out:22  total:22
+  examples.contract_scenarios.run_scenario
+    CC=15  in:1  out:21  total:22
+  examples.contract_scenarios.main
+    CC=15  in:0  out:22  total:22
   xlang.conformance_driver.main
     CC=15  in:0  out:21  total:21
-  urirun_connector_kvm.core.proc_kill
-    CC=12  in:0  out:21  total:21
   urirun_connector_kvm.backends._locate_vql
     CC=11  in:0  out:21  total:21
 
@@ -210,6 +210,12 @@ MODULES:
   examples.calibrate_abs  [2 funcs]
     cap  CC=1  out:9
     run  CC=2  out:1
+  examples.contract_scenarios  [5 funcs]
+    _load  CC=4  out:7
+    _ok_example  CC=3  out:1
+    discover  CC=3  out:8
+    main  CC=15  out:22
+    run_scenario  CC=15  out:21
   urirun_connector_kvm.backends  [73 funcs]
     available  CC=3  out:2
     _a11y_atspi  CC=6  out:11
@@ -281,14 +287,6 @@ MODULES:
   xlang.conformance_driver  [2 funcs]
     drive  CC=4  out:8
     main  CC=15  out:21
-  xlang.emit_contracts  [3 funcs]
-    _contract_to_json  CC=3  out:2
-    build_doc  CC=3  out:2
-    main  CC=1  out:8
-  xlang.emit_jsonschema  [3 funcs]
-    build_doc  CC=2  out:3
-    main  CC=1  out:7
-    to_schema  CC=17  out:20
   xlang.jsonschema_proof  [2 funcs]
     _valid  CC=4  out:5
     main  CC=10  out:16
@@ -331,41 +329,41 @@ EDGES:
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._cdp_wait
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.session_env
   urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.cdp._run
+  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends._run
   urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.cdp._run
+  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends._run
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.launch_backends._desktop_entries
   urirun_connector_kvm.launch_backends._list_macos → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.strategies.CdpStrategy.available → urirun_connector_kvm.strategies.is_browser
   urirun_connector_kvm.surface.current → urirun_connector_kvm.surface._active_window
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._copy_auth
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._find_chrome
-  urirun_connector_kvm.cdp.start_session → computer-use-preview.computers.computer.Computer.navigate
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.start_session
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.await_ready
-  urirun_connector_kvm.cdp.find → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.cdp.act → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._apply_capture_postprocessing
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.type_text → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.type_text → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.key → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.key → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.click → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.click → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.click → urirun_connector_kvm.core._positioned_click
-  urirun_connector_kvm.core.move → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.move → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.wait → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.wait → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.scroll → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.scroll → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._positioned_click
-  urirun_connector_kvm.core.triple_click → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.backends._wayland_socket → urirun_connector_kvm.backends._runtime_dir
+  urirun_connector_kvm.backends.is_wayland → urirun_connector_kvm.backends._wayland_socket
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends._x_display
+  urirun_connector_kvm.backends.platform_tag → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.Backend.available → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends.dispatch → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends._run → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._portal_python
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._mutter_python
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._is_wlroots_compositor → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._is_wlroots_compositor
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_mss → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_pillow → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends._run
 ```
 
 ## Test Contracts
@@ -384,8 +382,8 @@ EDGES:
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
-# generated in 0.12s
-# nodes: 256 | edges: 321 | modules: 20
+# generated in 0.14s
+# nodes: 255 | edges: 323 | modules: 19
 # CC̄=3.8
 
 HUBS[20]:
@@ -394,39 +392,39 @@ HUBS[20]:
   urirun_connector_kvm.backends.backend
     CC=1  in:40  out:6  total:46
   urirun_connector_kvm.core._ok
-    CC=1  in:41  out:1  total:42
+    CC=1  in:40  out:1  total:41
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
-  urirun_connector_kvm.core.capture
-    CC=14  in:0  out:31  total:31
+  urirun_connector_kvm.backends._run
+    CC=4  in:27  out:4  total:31
   xlang.peer.main
     CC=21  in:0  out:31  total:31
-  urirun_connector_kvm.backends._run
-    CC=4  in:25  out:4  total:29
+  urirun_connector_kvm.core.capture
+    CC=14  in:0  out:31  total:31
   urirun_connector_kvm.core._apply_capture_postprocessing
     CC=10  in:1  out:27  total:28
   urirun_connector_kvm.core._fail_from
     CC=1  in:25  out:3  total:28
-  urirun_connector_kvm.environment.profile
-    CC=13  in:0  out:26  total:26
   xlang.rust.src.main.consumer_input_check
-    CC=12  in:2  out:24  total:26
+    CC=12  in:3  out:24  total:27
   urirun_connector_kvm.backends._locate_easyocr
     CC=14  in:0  out:26  total:26
-  xlang.emit_jsonschema.to_schema
-    CC=17  in:5  out:20  total:25
+  urirun_connector_kvm.environment.profile
+    CC=13  in:0  out:26  total:26
   urirun_connector_kvm.core.ui_click_text
     CC=8  in:0  out:23  total:23
-  urirun_connector_kvm.environment.browser_sessions
-    CC=17  in:0  out:22  total:22
-  urirun_connector_kvm.core.window_restore
-    CC=5  in:0  out:22  total:22
   urirun_connector_kvm.backends.uinput_abs_click
     CC=9  in:1  out:21  total:22
+  urirun_connector_kvm.core.window_restore
+    CC=5  in:0  out:22  total:22
+  urirun_connector_kvm.environment.browser_sessions
+    CC=17  in:0  out:22  total:22
+  examples.contract_scenarios.run_scenario
+    CC=15  in:1  out:21  total:22
+  examples.contract_scenarios.main
+    CC=15  in:0  out:22  total:22
   xlang.conformance_driver.main
     CC=15  in:0  out:21  total:21
-  urirun_connector_kvm.core.proc_kill
-    CC=12  in:0  out:21  total:21
   urirun_connector_kvm.backends._locate_vql
     CC=11  in:0  out:21  total:21
 
@@ -461,6 +459,12 @@ MODULES:
   examples.calibrate_abs  [2 funcs]
     cap  CC=1  out:9
     run  CC=2  out:1
+  examples.contract_scenarios  [5 funcs]
+    _load  CC=4  out:7
+    _ok_example  CC=3  out:1
+    discover  CC=3  out:8
+    main  CC=15  out:22
+    run_scenario  CC=15  out:21
   urirun_connector_kvm.backends  [73 funcs]
     available  CC=3  out:2
     _a11y_atspi  CC=6  out:11
@@ -532,14 +536,6 @@ MODULES:
   xlang.conformance_driver  [2 funcs]
     drive  CC=4  out:8
     main  CC=15  out:21
-  xlang.emit_contracts  [3 funcs]
-    _contract_to_json  CC=3  out:2
-    build_doc  CC=3  out:2
-    main  CC=1  out:8
-  xlang.emit_jsonschema  [3 funcs]
-    build_doc  CC=2  out:3
-    main  CC=1  out:7
-    to_schema  CC=17  out:20
   xlang.jsonschema_proof  [2 funcs]
     _valid  CC=4  out:5
     main  CC=10  out:16
@@ -582,69 +578,70 @@ EDGES:
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._cdp_wait
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.session_env
   urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.cdp._run
+  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends._run
   urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.cdp._run
+  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends._run
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.launch_backends._desktop_entries
   urirun_connector_kvm.launch_backends._list_macos → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.strategies.CdpStrategy.available → urirun_connector_kvm.strategies.is_browser
   urirun_connector_kvm.surface.current → urirun_connector_kvm.surface._active_window
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._copy_auth
-  urirun_connector_kvm.cdp.start_session → urirun_connector_kvm.cdp._find_chrome
-  urirun_connector_kvm.cdp.start_session → computer-use-preview.computers.computer.Computer.navigate
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.start_session
-  urirun_connector_kvm.cdp.launch_session → urirun_connector_kvm.cdp.await_ready
-  urirun_connector_kvm.cdp.find → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.cdp.act → urirun_connector_kvm.cdp._run
-  urirun_connector_kvm.core.capture → urirun_connector_kvm.core._apply_capture_postprocessing
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.display_info → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.type_text → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.type_text → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.key → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.key → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.click → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.click → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.click → urirun_connector_kvm.core._positioned_click
-  urirun_connector_kvm.core.move → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.move → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.wait → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.wait → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.scroll → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.scroll → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._ok
-  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._fail_from
-  urirun_connector_kvm.core.double_click → urirun_connector_kvm.core._positioned_click
-  urirun_connector_kvm.core.triple_click → urirun_connector_kvm.core._ok
+  urirun_connector_kvm.backends._wayland_socket → urirun_connector_kvm.backends._runtime_dir
+  urirun_connector_kvm.backends.is_wayland → urirun_connector_kvm.backends._wayland_socket
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.is_x11 → urirun_connector_kvm.backends._x_display
+  urirun_connector_kvm.backends.platform_tag → urirun_connector_kvm.backends.is_wayland
+  urirun_connector_kvm.backends.Backend.available → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends.dispatch → urirun_connector_kvm.backends.platform_tag
+  urirun_connector_kvm.backends._run → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._portal_python
+  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._mutter_python
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._is_wlroots_compositor → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends._is_wlroots_compositor
+  urirun_connector_kvm.backends._cap_grim → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_mss → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_pillow → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.session_env
+  urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends._run
 ```
 
 ### Code Analysis (`project/analysis.toon.yaml`)
 
 ```toon markpact:analysis path=project/analysis.toon.yaml
-# code2llm | 47f 9338L | python:27,shell:7,yaml:3,toml:2,json:1,txt:1,go:1,rust:1 | 2026-06-27
+# code2llm | 53f 9667L | python:29,shell:8,yaml:3,toml:2,json:2,typescript:2,txt:1,go:1,rust:1 | 2026-06-27
 # generated in 0.02s
-# CC̅=3.8 | critical:13/447 | dups:0 | cycles:0
+# CC̅=3.8 | critical:14/449 | dups:0 | cycles:0
 
-HEALTH[13]:
+HEALTH[14]:
   🟡 CC    _running_browser_processes CC=15 (limit:15)
   🟡 CC    browser_sessions CC=17 (limit:15)
+  🟡 CC    check_route CC=17 (limit:15)
   🟡 CC    conform CC=18 (limit:15)
   🟡 CC    handle CC=19 (limit:15)
   🟡 CC    main CC=21 (limit:15)
   🟡 CC    check CC=27 (limit:15)
   🟡 CC    consumerInputCheck CC=19 (limit:15)
   🟡 CC    conform CC=16 (limit:15)
-  🟡 CC    check_route CC=17 (limit:15)
-  🟡 CC    to_schema CC=17 (limit:15)
   🟡 CC    main CC=15 (limit:15)
   🟡 CC    check CC=30 (limit:15)
   🟡 CC    conform CC=16 (limit:15)
+  🟡 CC    run_scenario CC=15 (limit:15)
+  🟡 CC    main CC=15 (limit:15)
 
 REFACTOR[1]:
-  1. split 13 high-CC methods  (CC>15)
+  1. split 14 high-CC methods  (CC>15)
 
-PIPELINES[255]:
+PIPELINES[257]:
   [1] Src [cap]: cap → run
       PURITY: 100% pure
   [2] Src [magenta_frac]: magenta_frac
@@ -689,86 +686,96 @@ PIPELINES[255]:
       PURITY: 100% pure
   [22] Src [current]: current → _active_window
       PURITY: 100% pure
-  [23] Src [_kvm_endpoint]: _kvm_endpoint
+  [23] Src [is_x11]: is_x11 → is_wayland → _wayland_socket → _runtime_dir
       PURITY: 100% pure
-  [24] Src [launch_session]: launch_session → start_session → _copy_auth
+  [24] Src [missing]: missing
       PURITY: 100% pure
-  [25] Src [find]: find → _run
+  [25] Src [available]: available → platform_tag → is_wayland → _wayland_socket → ...(1 more)
       PURITY: 100% pure
-  [26] Src [act]: act → _run
+  [26] Src [registry_report]: registry_report
       PURITY: 100% pure
-  [27] Src [capture]: capture → _apply_capture_postprocessing
+  [27] Src [_cap_portal]: _cap_portal → backend
       PURITY: 100% pure
-  [28] Src [display_info]: display_info → _ok
+  [28] Src [_cap_mutter]: _cap_mutter → backend
       PURITY: 100% pure
-  [29] Src [type_text]: type_text → _ok
+  [29] Src [_cap_grim]: _cap_grim → backend
       PURITY: 100% pure
-  [30] Src [key]: key → _ok
+  [30] Src [_cap_mss]: _cap_mss → backend
       PURITY: 100% pure
-  [31] Src [click]: click → _ok
+  [31] Src [_cap_pillow]: _cap_pillow → backend
       PURITY: 100% pure
-  [32] Src [move]: move → _ok
+  [32] Src [_cap_scrot]: _cap_scrot → backend
       PURITY: 100% pure
-  [33] Src [wait]: wait → _ok
+  [33] Src [_cap_im]: _cap_im → backend
       PURITY: 100% pure
-  [34] Src [scroll]: scroll → _ok
+  [34] Src [_cap_gnome]: _cap_gnome → backend
       PURITY: 100% pure
-  [35] Src [double_click]: double_click → _ok
+  [35] Src [_cap_macos]: _cap_macos → backend
       PURITY: 100% pure
-  [36] Src [triple_click]: triple_click → _ok
+  [36] Src [_type_ydotool]: _type_ydotool → backend
       PURITY: 100% pure
-  [37] Src [right_click]: right_click → _ok
+  [37] Src [_type_wtype]: _type_wtype → backend
       PURITY: 100% pure
-  [38] Src [middle_click]: middle_click → _ok
+  [38] Src [_type_xdotool]: _type_xdotool → backend
       PURITY: 100% pure
-  [39] Src [hover]: hover → _ok
+  [39] Src [_type_pynput]: _type_pynput → backend
       PURITY: 100% pure
-  [40] Src [drag_and_drop]: drag_and_drop → _ok
+  [40] Src [_click_ydotool]: _click_ydotool → backend
       PURITY: 100% pure
-  [41] Src [click_abs]: click_abs → _ok
+  [41] Src [_click_xdotool]: _click_xdotool → backend
       PURITY: 100% pure
-  [42] Src [task_run]: task_run → _ok
+  [42] Src [_click_pynput]: _click_pynput → backend
       PURITY: 100% pure
-  [43] Src [focus]: focus → _ok
+  [43] Src [_move_uinput_abs]: _move_uinput_abs → backend
       PURITY: 100% pure
-  [44] Src [window_list]: window_list → _ok
+  [44] Src [_move_ydotool]: _move_ydotool → backend
       PURITY: 100% pure
-  [45] Src [window_close]: window_close → _cdp_mod
+  [45] Src [_move_xdotool]: _move_xdotool → backend
       PURITY: 100% pure
-  [46] Src [window_restore]: window_restore → _cdp_mod
+  [46] Src [_move_pynput]: _move_pynput → backend
       PURITY: 100% pure
-  [47] Src [proc_kill]: proc_kill → _ok
+  [47] Src [_key_ydotool]: _key_ydotool → backend
       PURITY: 100% pure
-  [48] Src [a11y_act]: a11y_act → _ok
+  [48] Src [_key_xdotool]: _key_xdotool → backend
       PURITY: 100% pure
-  [49] Src [_click_hit]: _click_hit → _positioned_click
+  [49] Src [_key_pynput]: _key_pynput → backend
       PURITY: 100% pure
-  [50] Src [ui_find]: ui_find → _router_return → _ok
+  [50] Src [_scroll_ydotool]: _scroll_ydotool → backend
       PURITY: 100% pure
 
 LAYERS:
-  xlang/                          CC̄=4.6    ←in:0  →out:0
+  examples/                       CC̄=5.2    ←in:0  →out:3
+  │ !! contract_scenarios         158L  0C    6m  CC=15     ←0
+  │ calibrate_abs               75L  0C    4m  CC=2      ←0
+  │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
+  │
+  xlang/                          CC̄=4.5    ←in:1  →out:0
   │ !! peer.go                    542L  1C   17m  CC=27     ←1
-  │ !! main.rs                    479L  0C   17m  CC=30     ←1
+  │ !! main.rs                    479L  0C   17m  CC=30     ←2
   │ !! conformance_driver         123L  1C    5m  CC=15     ←0
-  │ !! emit_jsonschema            109L  0C    4m  CC=17     ←0
   │ run.sh                      98L  0C    1m  CC=0.0    ←0
   │ jsonschema_proof            69L  0C    2m  CC=10     ←0
-  │ emit_contracts              62L  0C    3m  CC=3      ←0
+  │ typescript_proof.sh         37L  0C    0m  CC=0.0    ←0
+  │ emit_contracts              29L  0C    1m  CC=1      ←0
+  │ emit_jsonschema             29L  0C    1m  CC=1      ←0
+  │ emit_typescript             27L  0C    1m  CC=1      ←0
   │ driver.sh                   26L  0C    0m  CC=0.0    ←0
   │ transport_swap.sh           24L  0C    0m  CC=0.0    ←0
+  │ check_ok.ts                 24L  0C    0m  CC=0.0    ←0
   │ Cargo.toml                  19L  0C    0m  CC=0.0    ←0
-  │ !! peer.mjs                     0L  1C   49m  CC=19     ←0
+  │ check_bad.ts                15L  0C    0m  CC=0.0    ←0
+  │ tsconfig.json               11L  0C    0m  CC=0.0    ←0
+  │ !! peer.mjs                     0L  1C   49m  CC=19     ←1
   │ peer                         0L  0C    2m  CC=4      ←0
   │ transport_swap               0L  1C    4m  CC=12     ←0
   │
   urirun_connector_kvm/           CC̄=4.4    ←in:0  →out:1
   │ !! backends                  1387L  1C   80m  CC=14     ←1
-  │ !! core                      1038L  0C   59m  CC=14     ←0
+  │ !! core                      1044L  0C   59m  CC=14     ←0
   │ connector.manifest.json    454L  0C    0m  CC=0.0    ←0
   │ !! environment                401L  0C   12m  CC=17     ←0
   │ launch_backends            284L  0C   16m  CC=11     ←0
-  │ cdp                        221L  0C    9m  CC=7      ←1
+  │ cdp                        221L  0C    9m  CC=7      ←0
   │ control                    212L  0C    9m  CC=13     ←0
   │ contracts                  207L  0C    0m  CC=0.0    ←0
   │ strategies                 132L  3C   14m  CC=4      ←0
@@ -779,7 +786,7 @@ LAYERS:
   │ !! contract_shape_lint        143L  0C    8m  CC=17     ←0
   │ contract_codegen           140L  0C    8m  CC=8      ←0
   │ cross_process_roundtrip     83L  0C    4m  CC=6      ←0
-  │ contract_ci.sh              68L  0C    0m  CC=0.0    ←0
+  │ contract_ci.sh              76L  0C    0m  CC=0.0    ←0
   │
   computer-use-preview/           CC̄=2.1    ←in:0  →out:0
   │ !! agent                      512L  1C   21m  CC=13     ←0
@@ -793,12 +800,8 @@ LAYERS:
   │ __init__                     2L  0C    0m  CC=0.0    ←0
   │ __init__                     0L  0C    0m  CC=0.0    ←0
   │
-  examples/                       CC̄=1.5    ←in:0  →out:0
-  │ calibrate_abs               75L  0C    4m  CC=2      ←0
-  │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
-  │
   ./                              CC̄=0.0    ←in:0  →out:0
-  │ !! planfile.yaml             1059L  0C    0m  CC=0.0    ←0
+  │ !! planfile.yaml             1215L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ project.sh                  69L  0C    0m  CC=0.0    ←0
   │ pyproject.toml              44L  0C    0m  CC=0.0    ←0
@@ -815,12 +818,15 @@ LAYERS:
      xlang/transport_swap.py                   0L
 
 COUPLING:
-                                                              ci                      xlang.rust  computer-use-preview.computers            urirun_connector_kvm
-                              ci                              ──                               3                                                                
-                      xlang.rust                              ←3                              ──                                                                
-  computer-use-preview.computers                                                                                              ──                              ←1
-            urirun_connector_kvm                                                                                               1                              ──
+                                                      xlang.rust                              ci                        examples  computer-use-preview.computers            urirun_connector_kvm                           xlang
+                      xlang.rust                              ──                              ←3                              ←2                                                                                                  hub
+                              ci                               3                              ──                                                                                                                                
+                        examples                               2                                                              ──                                                                                               1
+  computer-use-preview.computers                                                                                                                              ──                              ←1                                
+            urirun_connector_kvm                                                                                                                               1                              ──                                
+                           xlang                                                                                              ←1                                                                                              ──
   CYCLES: none
+  HUB: xlang.rust/ (fan-in=5)
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon
@@ -838,13 +844,13 @@ SUMMARY:
   dup_groups:    0
   dup_fragments: 0
   saved_lines:   0
-  scan_ms:       3
+  scan_ms:       5
 ```
 
 ### Evolution / Churn (`project/evolution.toon.yaml`)
 
 ```toon markpact:analysis path=project/evolution.toon.yaml
-# code2llm/evolution | 443 func | 27f | 2026-06-27
+# code2llm/evolution | 439 func | 28f | 2026-06-27
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
@@ -853,8 +859,8 @@ NEXT[10] (ranked by impact):
       EFFORT: ~4h  IMPACT: 19418
 
   [2] !! SPLIT           urirun_connector_kvm/core.py
-      WHY: 1038L, 0 classes, max CC=14
-      EFFORT: ~4h  IMPACT: 14532
+      WHY: 1044L, 0 classes, max CC=14
+      EFFORT: ~4h  IMPACT: 14616
 
   [3] !! SPLIT-FUNC      check  CC=30  fan=26
       WHY: CC=30 exceeds 15
@@ -880,13 +886,13 @@ NEXT[10] (ranked by impact):
       WHY: CC=15 exceeds 15
       EFFORT: ~1h  IMPACT: 240
 
-  [9] !  SPLIT-FUNC      to_schema  CC=17  fan=13
-      WHY: CC=17 exceeds 15
-      EFFORT: ~1h  IMPACT: 221
-
-  [10] !  SPLIT-FUNC      check_route  CC=17  fan=11
+  [9] !  SPLIT-FUNC      check_route  CC=17  fan=11
       WHY: CC=17 exceeds 15
       EFFORT: ~1h  IMPACT: 187
+
+  [10] !  SPLIT-FUNC      conform  CC=16  fan=10
+      WHY: CC=16 exceeds 15
+      EFFORT: ~1h  IMPACT: 160
 
 
 RISKS[3]:
@@ -898,7 +904,7 @@ METRICS-TARGET:
   CC̄:          3.8 → ≤2.7
   max-CC:      30 → ≤15
   god-modules: 5 → 0
-  high-CC(≥15): 13 → ≤6
+  high-CC(≥15): 12 → ≤6
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -926,7 +932,7 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=3.6 → now CC̄=3.8
+  prev CC̄=3.8 → now CC̄=3.8
 ```
 
 ## Intent

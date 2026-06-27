@@ -5,12 +5,12 @@
 
 - **Project**: /home/tom/github/if-uri/urirun-connector-kvm
 - **Primary Language**: python
-- **Languages**: python: 27, shell: 7, yaml: 3, toml: 2, json: 1
+- **Languages**: python: 29, shell: 8, yaml: 3, toml: 2, json: 2
 - **Analysis Mode**: static
-- **Total Functions**: 447
+- **Total Functions**: 449
 - **Total Classes**: 14
-- **Modules**: 44
-- **Entry Points**: 302
+- **Modules**: 50
+- **Entry Points**: 304
 
 ## Architecture by Module
 
@@ -81,6 +81,10 @@
 - **Functions**: 8
 - **File**: `contract_codegen.py`
 
+### examples.contract_scenarios
+- **Functions**: 6
+- **File**: `contract_scenarios.py`
+
 ### xlang.conformance_driver
 - **Functions**: 5
 - **Classes**: 1
@@ -93,10 +97,6 @@
 ### ci.cross_process_roundtrip
 - **Functions**: 4
 - **File**: `cross_process_roundtrip.py`
-
-### xlang.emit_jsonschema
-- **Functions**: 4
-- **File**: `emit_jsonschema.py`
 
 ### computer-use-preview.computers.browserbase.browserbase
 - **Functions**: 3
@@ -115,33 +115,28 @@ Main execution flows into the system:
 type→submit flow shares the same ydotoold session). ops: focus, move, cl
 - **Calls**: conn.handler, urirun_connector_kvm.core._ok, str, st.get, log.append, time.sleep, time.sleep, log.append
 
+### xlang.peer.main
+- **Calls**: xlang.peer.loadDoc, xlang.peer.len, xlang.peer.Fprintln, xlang.peer.Exit, xlang.peer.Marshal, xlang.peer.okExample, xlang.peer.Write, xlang.peer.ReadAll
+
 ### urirun_connector_kvm.core.capture
 > Capture the live screen via the best available backend. ``max_width`` downscales
 (so coords map 1:1 to a logical screen on HiDPI); ``base64`` returns 
 - **Calls**: conn.handler, os.path.expanduser, os.path.join, urirun.tag, os.environ.get, os.path.isabs, os.makedirs, os.path.join
-
-### xlang.peer.main
-- **Calls**: xlang.peer.loadDoc, xlang.peer.len, xlang.peer.Fprintln, xlang.peer.Exit, xlang.peer.Marshal, xlang.peer.okExample, xlang.peer.Write, xlang.peer.ReadAll
-
-### urirun_connector_kvm.environment.profile
-> Capabilities of the current session, plus a derived ``controlStrategies`` map saying
-which router strategy CAN work here (cdp needs a reachable debug 
-- **Calls**: urirun_connector_kvm.environment._safe, any, urirun_connector_kvm.environment.atspi_ready, urirun_connector_kvm.environment.action_matrix, B.have_mod, urirun_connector_kvm.environment._safe, B._screen_wh, B.platform_tag
 
 ### urirun_connector_kvm.backends._locate_easyocr
 > OCR-locate via EasyOCR (CRAFT detector + CRNN) — stronger than tesseract on UI
 fonts, low contrast, and non-Latin scripts, with no a11y permissions. R
 - **Calls**: urirun_connector_kvm.backends.backend, None.strip, urirun_connector_kvm.backends._easyocr_reader, reader.readtext, q.lower, matches.sort, urirun_connector_kvm.backends._capture_tmp, float
 
+### urirun_connector_kvm.environment.profile
+> Capabilities of the current session, plus a derived ``controlStrategies`` map saying
+which router strategy CAN work here (cdp needs a reachable debug 
+- **Calls**: urirun_connector_kvm.environment._safe, any, urirun_connector_kvm.environment.atspi_ready, urirun_connector_kvm.environment.action_matrix, B.have_mod, urirun_connector_kvm.environment._safe, B._screen_wh, B.platform_tag
+
 ### urirun_connector_kvm.core.ui_click_text
 > Close the perceive→locate→act loop in one call: screenshot, OCR-locate ``text``,
 move+click its center via KVM, then optionally type ``then_type`` and
 - **Calls**: conn.handler, urirun_connector_kvm.core._ok, urirun.fail, urirun_connector_kvm.core._capture_native, B.dispatch, loc.get, urirun.fail, min
-
-### urirun_connector_kvm.core.window_restore
-> Inverse of window/command/close: navigate to the snapshot URL, then rehydrate scroll and
-form values (dispatching input/change so React/contenteditabl
-- **Calls**: conn.handler, None.replace, urirun_connector_kvm.core._cdp_mod, urirun_connector_kvm.core._ok, s.get, urirun.fail, _json.dumps, cdp.navigate
 
 ### urirun_connector_kvm.environment.browser_sessions
 > Scan running browsers and installed browser profiles for active service sessions.
@@ -149,10 +144,13 @@ form values (dispatching input/change so React/contenteditabl
 Returns a list of entries, one per detected browser/profile combina
 - **Calls**: set, urirun_connector_kvm.environment._running_browser_processes, list, proc.get, seen_profiles.add, results.append, os.path.expanduser, _SERVICE_SENTINELS.keys
 
-### urirun_connector_kvm.core.proc_kill
-> Send a signal to a process so process lifecycle is controllable *via a URI*, not a
-side-channel shell — e.g. close a stray CDP/headless browser or res
-- **Calls**: conn.handler, getattr, urirun_connector_kvm.core._ok, signal.startswith, len, urirun.fail, int, urirun.fail
+### examples.contract_scenarios.main
+- **Calls**: examples.contract_scenarios.discover, print, print, print, print, examples.contract_scenarios.run_scenario, sum, sum
+
+### urirun_connector_kvm.core.window_restore
+> Inverse of window/command/close: navigate to the snapshot URL, then rehydrate scroll and
+form values (dispatching input/change so React/contenteditabl
+- **Calls**: conn.handler, None.replace, urirun_connector_kvm.core._cdp_mod, urirun_connector_kvm.core._ok, s.get, urirun.fail, _json.dumps, cdp.navigate
 
 ### urirun_connector_kvm.backends._locate_vql
 - **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._capture_tmp, urirun_connector_kvm.backends._run, _json.loads, None.lower, BackendError, None.get, layer.get
@@ -160,43 +158,53 @@ side-channel shell — e.g. close a stray CDP/headless browser or res
 ### xlang.conformance_driver.main
 - **Calls**: print, xlang.conformance_driver.drive, by_node.items, print, print, print, xlang.conformance_driver.drive, caught.items
 
-### computer-use-preview.agent.BrowserAgent._dispatch_legacy_action
-> Dispatch a legacy action by name.
-- **Calls**: ValueError, bc.click_at, bc.hover_at, bc.type_text_at, bc.scroll_document, self._handle_scroll_at, self._handle_drag_and_drop, bc.navigate
+### urirun_connector_kvm.core.proc_kill
+> Send a signal to a process so process lifecycle is controllable *via a URI*, not a
+side-channel shell — e.g. close a stray CDP/headless browser or res
+- **Calls**: conn.handler, getattr, urirun_connector_kvm.core._ok, signal.startswith, len, urirun.fail, int, urirun.fail
 
 ### ci.contract_codegen.js_stub
 - **Calls**: None.join, None.join, isinstance, isinstance, ci.contract_codegen._base, s.startswith, None.get, set
 
+### computer-use-preview.agent.BrowserAgent._dispatch_legacy_action
+> Dispatch a legacy action by name.
+- **Calls**: ValueError, bc.click_at, bc.hover_at, bc.type_text_at, bc.scroll_document, self._handle_scroll_at, self._handle_drag_and_drop, bc.navigate
+
 ### urirun_connector_kvm.core.ui_wait
 - **Calls**: conn.handler, max, time.monotonic, urirun.fail, min, C.route, last.get, time.sleep
+
+### xlang.transport_swap.main
+- **Calls**: print, BASE.items, print, print, StdioNode, HttpNode, print, print
 
 ### urirun_connector_kvm.core.cdp_ensure
 > Make the CDP control surface AVAILABLE — LAUNCH/PROBE SPLIT so Chrome's cold-start
 can't blow the node handler's exec cap. Reuses a live endpoint, els
 - **Calls**: conn.handler, urirun_connector_kvm.core._cdp_mod, _cdp.start_session, r.get, r.get, _cdp.await_ready, r.get, urirun_connector_kvm.core._ok
 
-### xlang.transport_swap.main
-- **Calls**: print, BASE.items, print, print, StdioNode, HttpNode, print, print
+### computer-use-preview.computers.kvm.kvm.KvmComputer._run
+- **Calls**: None.encode, urllib.request.Request, env.get, urllib.request.urlopen, json.loads, env.get, RuntimeError, isinstance
 
 ### urirun_connector_kvm.core.ui_act
 > ONE high-level URI an LLM planner can target instead of hand-assembling
 wait+find+click+verify (which it gets wrong: dumb sleeps, OCR label guesses, n
 - **Calls**: conn.handler, urirun_connector_kvm.core._act_reject, urirun_connector_kvm.core._resolve_act_app, time.monotonic, urirun_connector_kvm.core._act_ready, urirun_connector_kvm.core._act_retry_loop, urirun.fail, last.get
 
-### computer-use-preview.computers.kvm.kvm.KvmComputer._run
-- **Calls**: None.encode, urllib.request.Request, env.get, urllib.request.urlopen, json.loads, env.get, RuntimeError, isinstance
-
-### computer-use-preview.agent.BrowserAgent._dispatch_action
-> Dispatch a non-legacy action by name.
-- **Calls**: ValueError, self.denormalize_x, self.denormalize_y, self._handle_scroll_at, self._handle_drag_and_drop, bc.type_text, bc.wait, bc.navigate
-
 ### urirun_connector_kvm.backends._locate_tesseract
 > OCR-locate on-screen text. Unlike a saliency detector this GENUINELY matches the
 query against recognised text, so it is preferred (priority 65 > imgl
 - **Calls**: urirun_connector_kvm.backends.backend, None.strip, urirun_connector_kvm.backends._run, q.lower, urirun_connector_kvm.backends._capture_tmp, sorted, urirun_connector_kvm.backends._tesseract_query_matches, len
 
+### computer-use-preview.agent.BrowserAgent._dispatch_action
+> Dispatch a non-legacy action by name.
+- **Calls**: ValueError, self.denormalize_x, self.denormalize_y, self._handle_scroll_at, self._handle_drag_and_drop, bc.type_text, bc.wait, bc.navigate
+
 ### xlang.jsonschema_proof.main
 - **Calls**: print, print, CONTRACTS.items, print, print, print, xlang.jsonschema_proof._valid, print
+
+### urirun_connector_kvm.backends._cap_portal
+> XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
+Wayland. Runs via a system python with dbus+gi; needs a one-time permiss
+- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._portal_python, urirun_connector_kvm.backends._run, Path, src.read_bytes, None.write_bytes, BackendError, len
 
 ### computer-use-preview.agent.BrowserAgent.run_one_iteration
 - **Calls**: self._generate_response, self.get_text, self.extract_function_calls, self._render_turn, self._execute_function_calls, self._contents.append, self._trim_old_screenshots, print
@@ -204,10 +212,8 @@ query against recognised text, so it is preferred (priority 65 > imgl
 ### computer-use-preview.main.main
 - **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument
 
-### urirun_connector_kvm.backends._cap_portal
-> XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
-Wayland. Runs via a system python with dbus+gi; needs a one-time permiss
-- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._portal_python, urirun_connector_kvm.backends._run, Path, src.read_bytes, None.write_bytes, BackendError, len
+### computer-use-preview.agent.BrowserAgent.__init__
+- **Calls**: genai.Client, GenerateContentConfig, Content, types.FunctionDeclaration.from_callable, os.environ.get, os.environ.get, os.environ.get, types.ThinkingConfig
 
 ### urirun_connector_kvm.core.display_info
 > The display geometry callers need without taking a screenshot: full pixel size (the
@@ -219,14 +225,8 @@ space capture and click coordinates live in), per-monitor geometry
 kvm click at the element's centre. Prefers the locate ``center`` (OCR ba
 - **Calls**: hit.get, hit.get, hit.get, B.BackendError, hit.get, urirun_connector_kvm.core._positioned_click, hit.get, B.dispatch
 
-### computer-use-preview.agent.BrowserAgent.__init__
-- **Calls**: genai.Client, GenerateContentConfig, Content, types.FunctionDeclaration.from_callable, os.environ.get, os.environ.get, os.environ.get, types.ThinkingConfig
-
 ### urirun_connector_kvm.launch_backends._launch_xdg
 - **Calls**: urirun_connector_kvm.backends.backend, list, urirun_connector_kvm.launch_backends._resolve_launch_argv, urirun_connector_kvm.launch_backends._inject_chrome_flags, subprocess.Popen, max, min, bool
-
-### ci.cross_process_roundtrip.drive
-- **Calls**: dict, subprocess.run, subprocess.run, print, print, json.loads, print, os.environ.get
 
 ## Process Flows
 
@@ -249,18 +249,18 @@ task_run [urirun_connector_kvm.core]
 capture [urirun_connector_kvm.core]
 ```
 
-### Flow 4: profile
-```
-profile [urirun_connector_kvm.environment]
-  └─> _safe
-  └─> atspi_ready
-```
-
-### Flow 5: _locate_easyocr
+### Flow 4: _locate_easyocr
 ```
 _locate_easyocr [urirun_connector_kvm.backends]
   └─> backend
   └─> _easyocr_reader
+```
+
+### Flow 5: profile
+```
+profile [urirun_connector_kvm.environment]
+  └─> _safe
+  └─> atspi_ready
 ```
 
 ### Flow 6: ui_click_text
@@ -270,14 +270,7 @@ ui_click_text [urirun_connector_kvm.core]
   └─> _capture_native
 ```
 
-### Flow 7: window_restore
-```
-window_restore [urirun_connector_kvm.core]
-  └─> _cdp_mod
-  └─> _ok
-```
-
-### Flow 8: browser_sessions
+### Flow 7: browser_sessions
 ```
 browser_sessions [urirun_connector_kvm.environment]
   └─> _running_browser_processes
@@ -285,18 +278,25 @@ browser_sessions [urirun_connector_kvm.environment]
       └─> _browser_name_from_binary
 ```
 
-### Flow 9: proc_kill
+### Flow 8: window_restore
 ```
-proc_kill [urirun_connector_kvm.core]
+window_restore [urirun_connector_kvm.core]
+  └─> _cdp_mod
   └─> _ok
 ```
 
-### Flow 10: _locate_vql
+### Flow 9: _locate_vql
 ```
 _locate_vql [urirun_connector_kvm.backends]
   └─> backend
   └─> _capture_tmp
       └─> dispatch
+```
+
+### Flow 10: proc_kill
+```
+proc_kill [urirun_connector_kvm.core]
+  └─> _ok
 ```
 
 ## Key Classes
@@ -376,11 +376,6 @@ Key functions that process and transform data:
 ### urirun_connector_kvm.launch_backends._parse_desktop
 - **Output to**: os.path.basename, base.endswith, open, urirun_connector_kvm.launch_backends._parse_desktop_section, len
 
-### urirun_connector_kvm.core._apply_capture_postprocessing
-> Apply PIL post-processing to a captured PNG.
-Returns (full_size, crop_info) — both may be None when 
-- **Output to**: Image.open, list, None.save, max, max
-
 ### urirun_connector_kvm.environment._parse_browser_args
 > Extract (cdp_port, user_data_dir) from a browser's argv list.
 - **Output to**: arg.decode, s.startswith, s.startswith, int, s.split
@@ -389,6 +384,11 @@ Returns (full_size, crop_info) — both may be None when
 > Return info about running browser MAIN processes by scanning /proc for full cmdlines.
 Only returns R
 - **Output to**: set, urirun_connector_kvm.environment._proc_argv, any, any, urirun_connector_kvm.environment._browser_name_from_binary
+
+### urirun_connector_kvm.core._apply_capture_postprocessing
+> Apply PIL post-processing to a captured PNG.
+Returns (full_size, crop_info) — both may be None when 
+- **Output to**: Image.open, list, None.save, max, max
 
 ## Behavioral Patterns
 
@@ -401,11 +401,6 @@ Only returns R
 - **Type**: recursion
 - **Confidence**: 0.90
 - **Functions**: ci.contract_codegen._py_value
-
-### recursion_to_schema
-- **Type**: recursion
-- **Confidence**: 0.90
-- **Functions**: xlang.emit_jsonschema.to_schema
 
 ### state_machine_CdpStrategy
 - **Type**: state_machine
@@ -422,6 +417,11 @@ Only returns R
 - **Confidence**: 0.70
 - **Functions**: urirun_connector_kvm.strategies.VisionStrategy.available, urirun_connector_kvm.strategies.VisionStrategy.locate, urirun_connector_kvm.strategies.VisionStrategy._click_xy, urirun_connector_kvm.strategies.VisionStrategy.click, urirun_connector_kvm.strategies.VisionStrategy.fill
 
+### state_machine_Backend
+- **Type**: state_machine
+- **Confidence**: 0.70
+- **Functions**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
+
 ### state_machine_PlaywrightComputer
 - **Type**: state_machine
 - **Confidence**: 0.70
@@ -437,55 +437,50 @@ Only returns R
 - **Confidence**: 0.70
 - **Functions**: computer-use-preview.computers.kvm.kvm.KvmComputer.__init__, computer-use-preview.computers.kvm.kvm.KvmComputer.__enter__, computer-use-preview.computers.kvm.kvm.KvmComputer.__exit__, computer-use-preview.computers.kvm.kvm.KvmComputer._run, computer-use-preview.computers.kvm.kvm.KvmComputer._state
 
-### state_machine_Backend
-- **Type**: state_machine
-- **Confidence**: 0.70
-- **Functions**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
-
 ## Public API Surface
 
 Functions exposed as public API (no underscore prefix):
 
 - `xlang.rust.src.main.main` - 49 calls
 - `urirun_connector_kvm.core.task_run` - 41 calls
-- `urirun_connector_kvm.core.capture` - 31 calls
 - `xlang.peer.main` - 31 calls
+- `urirun_connector_kvm.core.capture` - 31 calls
 - `urirun_connector_kvm.environment.profile` - 26 calls
 - `xlang.rust.src.main.check` - 26 calls
 - `xlang.rust.src.main.consumer_input_check` - 24 calls
 - `urirun_connector_kvm.core.ui_click_text` - 23 calls
-- `urirun_connector_kvm.core.window_restore` - 22 calls
 - `urirun_connector_kvm.environment.browser_sessions` - 22 calls
-- `urirun_connector_kvm.core.proc_kill` - 21 calls
+- `examples.contract_scenarios.main` - 22 calls
+- `urirun_connector_kvm.core.window_restore` - 22 calls
 - `urirun_connector_kvm.backends.uinput_abs_click` - 21 calls
 - `xlang.conformance_driver.main` - 21 calls
+- `examples.contract_scenarios.run_scenario` - 21 calls
+- `urirun_connector_kvm.core.proc_kill` - 21 calls
 - `ci.contract_codegen.js_stub` - 20 calls
-- `xlang.emit_jsonschema.to_schema` - 20 calls
 - `urirun_connector_kvm.core.ui_wait` - 19 calls
-- `urirun_connector_kvm.core.cdp_ensure` - 18 calls
 - `xlang.transport_swap.main` - 18 calls
 - `xlang.rust.src.main.conform` - 18 calls
-- `urirun_connector_kvm.core.ui_act` - 17 calls
+- `urirun_connector_kvm.core.cdp_ensure` - 18 calls
 - `urirun_connector_kvm.backends.dispatch` - 17 calls
+- `urirun_connector_kvm.core.ui_act` - 17 calls
 - `urirun_connector_kvm.environment.action_matrix` - 16 calls
 - `xlang.jsonschema_proof.main` - 16 calls
 - `computer-use-preview.agent.BrowserAgent.run_one_iteration` - 15 calls
 - `computer-use-preview.main.main` - 15 calls
-- `urirun_connector_kvm.core.display_info` - 14 calls
 - `ci.contract_shape_lint.check_route` - 14 calls
+- `urirun_connector_kvm.core.display_info` - 14 calls
 - `ci.cross_process_roundtrip.drive` - 13 calls
 - `xlang.peer.ContractViolation.consumerInputCheck` - 13 calls
 - `xlang.rust.src.main.load_doc` - 13 calls
 - `urirun_connector_kvm.cdp.start_session` - 12 calls
-- `urirun_connector_kvm.core.cdp_navigate` - 12 calls
 - `urirun_connector_kvm.control.act` - 12 calls
 - `ci.contract_codegen.py_stub` - 12 calls
 - `ci.contract_codegen.go_stub` - 12 calls
-- `urirun_connector_kvm.core.drag_and_drop` - 11 calls
-- `urirun_connector_kvm.core.cdp_session_ready` - 11 calls
+- `urirun_connector_kvm.core.cdp_navigate` - 12 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at` - 11 calls
 - `xlang.peer.check` - 11 calls
-- `urirun_connector_kvm.surface.current` - 10 calls
+- `urirun_connector_kvm.core.drag_and_drop` - 11 calls
+- `urirun_connector_kvm.core.cdp_session_ready` - 11 calls
 
 ## System Interactions
 
@@ -503,26 +498,26 @@ graph TD
     task_run --> str
     task_run --> get
     task_run --> append
-    capture --> handler
-    capture --> expanduser
-    capture --> join
-    capture --> tag
-    capture --> get
     main --> loadDoc
     main --> len
     main --> Fprintln
     main --> Exit
     main --> Marshal
-    profile --> _safe
-    profile --> any
-    profile --> atspi_ready
-    profile --> action_matrix
-    profile --> have_mod
+    capture --> handler
+    capture --> expanduser
+    capture --> join
+    capture --> tag
+    capture --> get
     _locate_easyocr --> backend
     _locate_easyocr --> strip
     _locate_easyocr --> _easyocr_reader
     _locate_easyocr --> readtext
     _locate_easyocr --> lower
+    profile --> _safe
+    profile --> any
+    profile --> atspi_ready
+    profile --> action_matrix
+    profile --> have_mod
 ```
 
 ## Reverse Engineering Guidelines

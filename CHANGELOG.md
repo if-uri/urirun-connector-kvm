@@ -3,6 +3,15 @@
 ## [0.1.10] - 2026-06-27
 
 ### Fixed
+- Fix smart-return-type issues (ticket-02a793e6)
+- Fix string-concat issues (ticket-6f97367a)
+- Fix unused-imports issues (ticket-8242313e)
+- Fix unused-imports issues (ticket-547fa40b)
+- Fix ai-boilerplate issues (ticket-79f8d57f)
+
+## [0.1.10] - 2026-06-27
+
+### Fixed
 - Fix unused-imports issues (ticket-3eac9340)
 - Fix ai-boilerplate issues (ticket-2d9076c5)
 - Fix smart-return-type issues (ticket-b907ff25)
