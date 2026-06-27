@@ -225,6 +225,9 @@ def _portal_python() -> str | None:
     return None
 
 
+_MIN_REAL_PORTAL_BYTES = 20_000  # real screenshots are hundreds of KB; ~3.8 KB = empty/denied placeholder
+
+
 @backend("capture", "portal", priority=95, platforms=("linux-wayland", "linux-x11"))
 def _cap_portal(output: str, **_: Any) -> dict:
     """XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
@@ -239,6 +242,16 @@ def _cap_portal(output: str, **_: Any) -> dict:
     p = _run([py, "-c", _PORTAL_SCRIPT], env=session_env(), timeout=20)
     src = Path(urllib.parse.urlparse(p.stdout.strip()).path)
     data = src.read_bytes()
+    if len(data) < _MIN_REAL_PORTAL_BYTES:
+        # The portal accepted the call but returned a tiny placeholder — this is the
+        # GNOME-Wayland "screenshot permission denied / no active session" failure mode.
+        # Raise BackendError so dispatch() falls through to the mutter-screencast backend.
+        raise BackendError(
+            f"xdg-portal returned a {len(data)}-byte placeholder "
+            "(portal blocked or screenshot permission not granted — "
+            "grant it in GNOME Settings → Privacy → Screen Sharing, "
+            "or install gstreamer pipewiresrc for the mutter-screencast backend)"
+        )
     Path(output).write_bytes(data)
     return {"path": output, "bytes": len(data), "via": "xdg-portal"}
 
