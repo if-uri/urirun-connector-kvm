@@ -5,12 +5,12 @@
 
 - **Project**: /home/tom/github/if-uri/urirun-connector-kvm
 - **Primary Language**: python
-- **Languages**: python: 19, shell: 3, yaml: 3, txt: 1, toml: 1
+- **Languages**: python: 23, shell: 7, yaml: 3, toml: 1, json: 1
 - **Analysis Mode**: static
-- **Total Functions**: 323
-- **Total Classes**: 10
-- **Modules**: 29
-- **Entry Points**: 234
+- **Total Functions**: 408
+- **Total Classes**: 14
+- **Modules**: 38
+- **Entry Points**: 295
 
 ## Architecture by Module
 
@@ -43,6 +43,11 @@
 - **Classes**: 1
 - **File**: `agent.py`
 
+### xlang.peer
+- **Functions**: 17
+- **Classes**: 1
+- **File**: `peer.go`
+
 ### urirun_connector_kvm.launch_backends
 - **Functions**: 16
 - **File**: `launch_backends.py`
@@ -64,14 +69,27 @@
 - **Functions**: 9
 - **File**: `control.py`
 
+### xlang.conformance_driver
+- **Functions**: 5
+- **Classes**: 1
+- **File**: `conformance_driver.py`
+
 ### examples.calibrate_abs
 - **Functions**: 4
 - **File**: `calibrate_abs.py`
+
+### ci.cross_process_roundtrip
+- **Functions**: 4
+- **File**: `cross_process_roundtrip.py`
 
 ### computer-use-preview.computers.browserbase.browserbase
 - **Functions**: 3
 - **Classes**: 1
 - **File**: `browserbase.py`
+
+### xlang.emit_contracts
+- **Functions**: 3
+- **File**: `emit_contracts.py`
 
 ### urirun_connector_kvm.surface
 - **Functions**: 2
@@ -80,6 +98,10 @@
 ### computer-use-preview.main
 - **Functions**: 1
 - **File**: `main.py`
+
+### xlang.run
+- **Functions**: 1
+- **File**: `run.sh`
 
 ## Key Entry Points
 
@@ -94,6 +116,9 @@ type→submit flow shares the same ydotoold session). ops: focus, move, cl
 > Capture the live screen via the best available backend. ``max_width`` downscales
 (so coords map 1:1 to a logical screen on HiDPI); ``base64`` returns 
 - **Calls**: conn.handler, os.path.expanduser, os.path.join, urirun.tag, os.environ.get, os.path.isabs, os.makedirs, os.path.join
+
+### xlang.peer.main
+- **Calls**: xlang.peer.loadDoc, xlang.peer.len, xlang.peer.Fprintln, xlang.peer.Exit, xlang.peer.Marshal, xlang.peer.okExample, xlang.peer.Write, xlang.peer.ReadAll
 
 ### urirun_connector_kvm.backends._locate_easyocr
 > OCR-locate via EasyOCR (CRAFT detector + CRNN) — stronger than tesseract on UI
@@ -110,19 +135,22 @@ which router strategy CAN work here (cdp needs a reachable debug
 move+click its center via KVM, then optionally type ``then_type`` and
 - **Calls**: conn.handler, urirun_connector_kvm.core._ok, urirun.fail, urirun_connector_kvm.core._capture_native, B.dispatch, loc.get, urirun.fail, min
 
-### urirun_connector_kvm.core.window_restore
-> Inverse of window/command/close: navigate to the snapshot URL, then rehydrate scroll and
-form values (dispatching input/change so React/contenteditabl
-- **Calls**: conn.handler, None.replace, urirun_connector_kvm.core._cdp_mod, urirun_connector_kvm.core._ok, s.get, urirun.fail, _json.dumps, cdp.navigate
-
 ### urirun_connector_kvm.environment.browser_sessions
 > Scan running browsers and installed browser profiles for active service sessions.
 
 Returns a list of entries, one per detected browser/profile combina
 - **Calls**: set, urirun_connector_kvm.environment._running_browser_processes, list, proc.get, seen_profiles.add, results.append, os.path.expanduser, _SERVICE_SENTINELS.keys
 
+### urirun_connector_kvm.core.window_restore
+> Inverse of window/command/close: navigate to the snapshot URL, then rehydrate scroll and
+form values (dispatching input/change so React/contenteditabl
+- **Calls**: conn.handler, None.replace, urirun_connector_kvm.core._cdp_mod, urirun_connector_kvm.core._ok, s.get, urirun.fail, _json.dumps, cdp.navigate
+
 ### urirun_connector_kvm.backends._locate_vql
 - **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._capture_tmp, urirun_connector_kvm.backends._run, _json.loads, None.lower, BackendError, None.get, layer.get
+
+### xlang.conformance_driver.main
+- **Calls**: print, xlang.conformance_driver.drive, by_node.items, print, print, print, xlang.conformance_driver.drive, caught.items
 
 ### urirun_connector_kvm.core.proc_kill
 > Send a signal to a process so process lifecycle is controllable *via a URI*, not a
@@ -136,24 +164,35 @@ side-channel shell — e.g. close a stray CDP/headless browser or res
 ### urirun_connector_kvm.core.ui_wait
 - **Calls**: conn.handler, max, time.monotonic, urirun.fail, min, C.route, last.get, time.sleep
 
+### xlang.transport_swap.main
+- **Calls**: print, BASE.items, print, print, StdioNode, HttpNode, print, print
+
 ### urirun_connector_kvm.core.cdp_ensure
 > Make the CDP control surface AVAILABLE — LAUNCH/PROBE SPLIT so Chrome's cold-start
 can't blow the node handler's exec cap. Reuses a live endpoint, els
 - **Calls**: conn.handler, urirun_connector_kvm.core._cdp_mod, _cdp.start_session, r.get, r.get, _cdp.await_ready, r.get, urirun_connector_kvm.core._ok
+
+### computer-use-preview.computers.kvm.kvm.KvmComputer._run
+- **Calls**: None.encode, urllib.request.Request, env.get, urllib.request.urlopen, json.loads, env.get, RuntimeError, isinstance
 
 ### urirun_connector_kvm.core.ui_act
 > ONE high-level URI an LLM planner can target instead of hand-assembling
 wait+find+click+verify (which it gets wrong: dumb sleeps, OCR label guesses, n
 - **Calls**: conn.handler, urirun_connector_kvm.core._act_reject, urirun_connector_kvm.core._resolve_act_app, time.monotonic, urirun_connector_kvm.core._act_ready, urirun_connector_kvm.core._act_retry_loop, urirun.fail, last.get
 
-### computer-use-preview.agent.BrowserAgent._dispatch_action
-> Dispatch a non-legacy action by name.
-- **Calls**: ValueError, self.denormalize_x, self.denormalize_y, self._handle_scroll_at, self._handle_drag_and_drop, bc.type_text, bc.wait, bc.navigate
-
 ### urirun_connector_kvm.backends._locate_tesseract
 > OCR-locate on-screen text. Unlike a saliency detector this GENUINELY matches the
 query against recognised text, so it is preferred (priority 65 > imgl
 - **Calls**: urirun_connector_kvm.backends.backend, None.strip, urirun_connector_kvm.backends._run, q.lower, urirun_connector_kvm.backends._capture_tmp, sorted, urirun_connector_kvm.backends._tesseract_query_matches, len
+
+### computer-use-preview.agent.BrowserAgent._dispatch_action
+> Dispatch a non-legacy action by name.
+- **Calls**: ValueError, self.denormalize_x, self.denormalize_y, self._handle_scroll_at, self._handle_drag_and_drop, bc.type_text, bc.wait, bc.navigate
+
+### urirun_connector_kvm.backends._cap_portal
+> XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
+Wayland. Runs via a system python with dbus+gi; needs a one-time permiss
+- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._portal_python, urirun_connector_kvm.backends._run, Path, src.read_bytes, None.write_bytes, BackendError, len
 
 ### computer-use-preview.agent.BrowserAgent.run_one_iteration
 - **Calls**: self._generate_response, self.get_text, self.extract_function_calls, self._render_turn, self._execute_function_calls, self._contents.append, self._trim_old_screenshots, print
@@ -182,35 +221,16 @@ kvm click at the element's centre. Prefers the locate ``center`` (OCR ba
 on HiDPI the caller should scale image-px → logical coords (see fullS
 - **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._capture_tmp, urirun_connector_kvm.backends._run, _json.loads, BackendError, h.get, h.get, cap.get
 
-### urirun_connector_kvm.backends._cap_portal
-> XDG Desktop Portal screenshot — the only sanctioned live capture on GNOME/KDE
-Wayland. Runs via a system python with dbus+gi; needs a one-time permiss
-- **Calls**: urirun_connector_kvm.backends.backend, urirun_connector_kvm.backends._portal_python, urirun_connector_kvm.backends._run, Path, src.read_bytes, None.write_bytes, BackendError, len
+### ci.cross_process_roundtrip.drive
+- **Calls**: dict, subprocess.run, subprocess.run, print, print, json.loads, print, os.environ.get
 
-### urirun_connector_kvm.core.cdp_navigate
-- **Calls**: conn.handler, urirun_connector_kvm.core._cdp_mod, urirun.fail, cdp.navigate, cdp.page_ready, urirun_connector_kvm.core._ok, cdp.evaluate, isinstance
+### xlang.peer.ContractViolation.consumerInputCheck
+- **Calls**: xlang.peer.Set, xlang.peer.entries, xlang.peer.filter, xlang.peer.startsWith, xlang.peer.map, xlang.peer.keys, xlang.peer.every, xlang.peer.has
 
 ### urirun_connector_kvm.control.act
 > Orchestrated perceive→act→verify→retry over ``route()`` — the closed loop the bare
 router lacks. Runs the op, waits ``settle``, then VERIFIES a post-c
 - **Calls**: None.lower, range, any, urirun_connector_kvm.control.route, time.sleep, urirun_connector_kvm.control._check_post_condition, None.strip, int
-
-### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__enter__
-- **Calls**: print, None.start, self._playwright.chromium.launch, self._browser.new_context, self._context.new_page, self._page.goto, self._context.on, termcolor.cprint
-
-### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at
-- **Calls**: self.highlight_mouse, self._page.mouse.click, self._page.wait_for_load_state, self._page.keyboard.type, self._page.wait_for_load_state, self._page.wait_for_load_state, self.current_state, self.key_combination
-
-### urirun_connector_kvm.core.drag_and_drop
-- **Calls**: conn.handler, B.dispatch, time.sleep, B.dispatch, urirun_connector_kvm.core._ok, urirun_connector_kvm.core._fail_from, int, int
-
-### urirun_connector_kvm.core.cdp_session_ready
-> Readiness half of the launch/probe split: poll the debug endpoint WITHOUT launching
-(distinct from ``cdp/page/query/ready``, which waits on document l
-- **Calls**: conn.handler, None.await_ready, r.get, urirun_connector_kvm.core._ok, urirun.fail, urirun_connector_kvm.core._cdp_mod, min, r.get
-
-### computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop
-- **Calls**: self.highlight_mouse, self._page.mouse.move, self._page.wait_for_load_state, self._page.mouse.down, self._page.wait_for_load_state, self.highlight_mouse, self._page.mouse.move, self._page.wait_for_load_state
 
 ## Process Flows
 
@@ -227,32 +247,31 @@ task_run [urirun_connector_kvm.core]
 capture [urirun_connector_kvm.core]
 ```
 
-### Flow 3: _locate_easyocr
+### Flow 3: main
+```
+main [xlang.peer]
+  └─> loadDoc
+```
+
+### Flow 4: _locate_easyocr
 ```
 _locate_easyocr [urirun_connector_kvm.backends]
   └─> backend
   └─> _easyocr_reader
 ```
 
-### Flow 4: profile
+### Flow 5: profile
 ```
 profile [urirun_connector_kvm.environment]
   └─> _safe
   └─> atspi_ready
 ```
 
-### Flow 5: ui_click_text
+### Flow 6: ui_click_text
 ```
 ui_click_text [urirun_connector_kvm.core]
   └─> _ok
   └─> _capture_native
-```
-
-### Flow 6: window_restore
-```
-window_restore [urirun_connector_kvm.core]
-  └─> _cdp_mod
-  └─> _ok
 ```
 
 ### Flow 7: browser_sessions
@@ -263,7 +282,14 @@ browser_sessions [urirun_connector_kvm.environment]
       └─> _browser_name_from_binary
 ```
 
-### Flow 8: _locate_vql
+### Flow 8: window_restore
+```
+window_restore [urirun_connector_kvm.core]
+  └─> _cdp_mod
+  └─> _ok
+```
+
+### Flow 9: _locate_vql
 ```
 _locate_vql [urirun_connector_kvm.backends]
   └─> backend
@@ -271,18 +297,17 @@ _locate_vql [urirun_connector_kvm.backends]
       └─> dispatch
 ```
 
-### Flow 9: proc_kill
+### Flow 10: proc_kill
 ```
 proc_kill [urirun_connector_kvm.core]
   └─> _ok
 ```
 
-### Flow 10: _dispatch_legacy_action
-```
-_dispatch_legacy_action [computer-use-preview.agent.BrowserAgent]
-```
-
 ## Key Classes
+
+### xlang.peer.ContractViolation
+- **Methods**: 51
+- **Key Methods**: xlang.peer.ContractViolation.constValue, xlang.peer.ContractViolation.lit, xlang.peer.ContractViolation.check, xlang.peer.ContractViolation.optional, xlang.peer.ContractViolation.subT, xlang.peer.ContractViolation.loc, xlang.peer.ContractViolation.check, xlang.peer.ContractViolation.s, xlang.peer.ContractViolation.expected, xlang.peer.ContractViolation.allowed
 
 ### computer-use-preview.computers.playwright.playwright.PlaywrightComputer
 > Connects to a local Playwright instance.
@@ -323,6 +348,16 @@ _dispatch_legacy_action [computer-use-preview.agent.BrowserAgent]
 - **Key Methods**: computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__init__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__enter__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__
 - **Inherits**: PlaywrightComputer
 
+### xlang.transport_swap.HttpNode
+> Ten sam handler za HTTP. Czyta 'READY <port>' z stdout (port efemeryczny — zero kolizji).
+- **Methods**: 3
+- **Key Methods**: xlang.transport_swap.HttpNode.__init__, xlang.transport_swap.HttpNode.call, xlang.transport_swap.HttpNode.close
+
+### xlang.conformance_driver.Node
+> Węzeł osiągalny po transporcie — driver NIE współdzieli z nim obiektu, tylko bajty.
+- **Methods**: 3
+- **Key Methods**: xlang.conformance_driver.Node.__init__, xlang.conformance_driver.Node.call, xlang.conformance_driver.Node.close
+
 ### urirun_connector_kvm.backends.Backend
 - **Methods**: 2
 - **Key Methods**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
@@ -330,6 +365,9 @@ _dispatch_legacy_action [computer-use-preview.agent.BrowserAgent]
 ### computer-use-preview.computers.computer.EnvState
 - **Methods**: 0
 - **Inherits**: pydantic.BaseModel
+
+### xlang.peer.violation
+- **Methods**: 0
 
 ## Data Transformation Functions
 
@@ -342,11 +380,6 @@ Key functions that process and transform data:
 ### urirun_connector_kvm.launch_backends._parse_desktop
 - **Output to**: os.path.basename, base.endswith, open, urirun_connector_kvm.launch_backends._parse_desktop_section, len
 
-### urirun_connector_kvm.core._apply_capture_postprocessing
-> Apply PIL post-processing to a captured PNG.
-Returns (full_size, crop_info) — both may be None when 
-- **Output to**: Image.open, list, None.save, max, max
-
 ### urirun_connector_kvm.environment._parse_browser_args
 > Extract (cdp_port, user_data_dir) from a browser's argv list.
 - **Output to**: arg.decode, s.startswith, s.startswith, int, s.split
@@ -356,22 +389,12 @@ Returns (full_size, crop_info) — both may be None when
 Only returns R
 - **Output to**: set, urirun_connector_kvm.environment._proc_argv, any, any, urirun_connector_kvm.environment._browser_name_from_binary
 
+### urirun_connector_kvm.core._apply_capture_postprocessing
+> Apply PIL post-processing to a captured PNG.
+Returns (full_size, crop_info) — both may be None when 
+- **Output to**: Image.open, list, None.save, max, max
+
 ## Behavioral Patterns
-
-### state_machine_PlaywrightComputer
-- **Type**: state_machine
-- **Confidence**: 0.70
-- **Functions**: computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__init__, computer-use-preview.computers.playwright.playwright.PlaywrightComputer._handle_new_page, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__enter__, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.open_web_browser
-
-### state_machine_BrowserbaseComputer
-- **Type**: state_machine
-- **Confidence**: 0.70
-- **Functions**: computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__init__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__enter__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__
-
-### state_machine_KvmComputer
-- **Type**: state_machine
-- **Confidence**: 0.70
-- **Functions**: computer-use-preview.computers.kvm.kvm.KvmComputer.__init__, computer-use-preview.computers.kvm.kvm.KvmComputer.__enter__, computer-use-preview.computers.kvm.kvm.KvmComputer.__exit__, computer-use-preview.computers.kvm.kvm.KvmComputer._run, computer-use-preview.computers.kvm.kvm.KvmComputer._state
 
 ### state_machine_CdpStrategy
 - **Type**: state_machine
@@ -393,19 +416,37 @@ Only returns R
 - **Confidence**: 0.70
 - **Functions**: urirun_connector_kvm.backends.Backend.missing, urirun_connector_kvm.backends.Backend.available
 
+### state_machine_PlaywrightComputer
+- **Type**: state_machine
+- **Confidence**: 0.70
+- **Functions**: computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__init__, computer-use-preview.computers.playwright.playwright.PlaywrightComputer._handle_new_page, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__enter__, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.__exit__, computer-use-preview.computers.playwright.playwright.PlaywrightComputer.open_web_browser
+
+### state_machine_BrowserbaseComputer
+- **Type**: state_machine
+- **Confidence**: 0.70
+- **Functions**: computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__init__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__enter__, computer-use-preview.computers.browserbase.browserbase.BrowserbaseComputer.__exit__
+
+### state_machine_KvmComputer
+- **Type**: state_machine
+- **Confidence**: 0.70
+- **Functions**: computer-use-preview.computers.kvm.kvm.KvmComputer.__init__, computer-use-preview.computers.kvm.kvm.KvmComputer.__enter__, computer-use-preview.computers.kvm.kvm.KvmComputer.__exit__, computer-use-preview.computers.kvm.kvm.KvmComputer._run, computer-use-preview.computers.kvm.kvm.KvmComputer._state
+
 ## Public API Surface
 
 Functions exposed as public API (no underscore prefix):
 
 - `urirun_connector_kvm.core.task_run` - 41 calls
-- `urirun_connector_kvm.core.capture` - 30 calls
+- `urirun_connector_kvm.core.capture` - 31 calls
+- `xlang.peer.main` - 31 calls
 - `urirun_connector_kvm.environment.profile` - 26 calls
 - `urirun_connector_kvm.core.ui_click_text` - 23 calls
-- `urirun_connector_kvm.core.window_restore` - 22 calls
 - `urirun_connector_kvm.environment.browser_sessions` - 22 calls
+- `urirun_connector_kvm.core.window_restore` - 22 calls
 - `urirun_connector_kvm.backends.uinput_abs_click` - 21 calls
+- `xlang.conformance_driver.main` - 21 calls
 - `urirun_connector_kvm.core.proc_kill` - 21 calls
 - `urirun_connector_kvm.core.ui_wait` - 19 calls
+- `xlang.transport_swap.main` - 18 calls
 - `urirun_connector_kvm.core.cdp_ensure` - 18 calls
 - `urirun_connector_kvm.backends.dispatch` - 17 calls
 - `urirun_connector_kvm.core.ui_act` - 17 calls
@@ -413,30 +454,27 @@ Functions exposed as public API (no underscore prefix):
 - `computer-use-preview.agent.BrowserAgent.run_one_iteration` - 15 calls
 - `computer-use-preview.main.main` - 15 calls
 - `urirun_connector_kvm.core.display_info` - 14 calls
+- `ci.cross_process_roundtrip.drive` - 13 calls
+- `xlang.peer.ContractViolation.consumerInputCheck` - 13 calls
 - `urirun_connector_kvm.cdp.start_session` - 12 calls
-- `urirun_connector_kvm.core.cdp_navigate` - 12 calls
 - `urirun_connector_kvm.control.act` - 12 calls
+- `urirun_connector_kvm.core.cdp_navigate` - 12 calls
 - `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.type_text_at` - 11 calls
 - `urirun_connector_kvm.core.drag_and_drop` - 11 calls
 - `urirun_connector_kvm.core.cdp_session_ready` - 11 calls
-- `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop` - 10 calls
+- `xlang.peer.check` - 11 calls
 - `urirun_connector_kvm.surface.current` - 10 calls
+- `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.drag_and_drop` - 10 calls
 - `urirun_connector_kvm.core.ui_fill` - 10 calls
+- `xlang.peer.conform` - 10 calls
 - `examples.calibrate_abs.cap` - 9 calls
-- `computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at` - 9 calls
 - `urirun_connector_kvm.strategies.AtspiStrategy.click` - 9 calls
+- `computer-use-preview.computers.kvm.kvm.KvmComputer.type_text_at` - 9 calls
 - `urirun_connector_kvm.core.click_abs` - 9 calls
 - `urirun_connector_kvm.core.cdp_ready` - 9 calls
 - `urirun_connector_kvm.core.ui_locate` - 9 calls
-- `computer-use-preview.computers.playwright.playwright.PlaywrightComputer.key_combination` - 8 calls
 - `urirun_connector_kvm.backends.ensure_ydotoold` - 8 calls
 - `urirun_connector_kvm.backends.session_env` - 8 calls
-- `urirun_connector_kvm.cdp.launch_session` - 8 calls
-- `urirun_connector_kvm.core.wait` - 8 calls
-- `urirun_connector_kvm.core.ui_verify` - 8 calls
-- `urirun_connector_kvm.core.launch` - 8 calls
-- `urirun_connector_kvm.control.route` - 8 calls
-- `examples.calibrate_abs.find_box` - 7 calls
 
 ## System Interactions
 
@@ -454,6 +492,11 @@ graph TD
     capture --> join
     capture --> tag
     capture --> get
+    main --> loadDoc
+    main --> len
+    main --> Fprintln
+    main --> Exit
+    main --> Marshal
     _locate_easyocr --> backend
     _locate_easyocr --> strip
     _locate_easyocr --> _easyocr_reader
@@ -469,11 +512,6 @@ graph TD
     ui_click_text --> fail
     ui_click_text --> _capture_native
     ui_click_text --> dispatch
-    window_restore --> handler
-    window_restore --> replace
-    window_restore --> _cdp_mod
-    window_restore --> _ok
-    window_restore --> get
 ```
 
 ## Reverse Engineering Guidelines

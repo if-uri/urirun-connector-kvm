@@ -35,7 +35,7 @@ echo
 echo "== 4/7 shape lint (handler signatures + envelope keys match declared contracts) =="
 python ci/contract_shape_lint.py
 
-echo "== 5/7 polyglot (py · js · go read the SAME contracts.json — 3×3 exchange matrix) =="
+echo "== 5/7 polyglot (py · js · go · rust read the SAME contracts.json — N×N exchange matrix) =="
 URIRUN_TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}" \
   bash xlang/run.sh
 

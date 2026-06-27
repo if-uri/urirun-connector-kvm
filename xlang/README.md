@@ -9,11 +9,16 @@ Jedno **neutralne źródło**, N cienkich czytników. `contracts.json` jest **ge
 dataclassy (`emit_contracts.py`) — nie ręcznie kopiowany. Ręczna kopia per język to pierwotny
 dryf ×N. Każdy język czyta ten sam wygenerowany plik:
 
-| plik          | język | rola                                                                 |
-|---------------|-------|----------------------------------------------------------------------|
-| `peer.py`     | Python| reużywa kernel `contract_gate` (dowód: kernel sterowany kształtem danych) |
-| `peer.mjs`    | JS    | port walidatora ~80 linii + konformans                               |
-| `peer.go`     | Go    | trzeci czytnik; rozbraja zero-values (waliduje mapy) i float64-int   |
+| plik              | język | rola                                                                 |
+|-------------------|-------|----------------------------------------------------------------------|
+| `peer.py`         | Python| reużywa kernel `contract_gate` (dowód: kernel sterowany kształtem danych) |
+| `peer.mjs`        | JS    | port walidatora ~80 linii + konformans                               |
+| `peer.go`         | Go    | trzeci czytnik; rozbraja zero-values (waliduje mapy) i float64-int   |
+| `rust/src/main.rs`| Rust  | OPCJONALNY czwarty czytnik (gdy `cargo` jest); dowód, że N≠3         |
+
+Rust jest dołączany dynamicznie: `run.sh`/`driver.sh`/`transport_swap.sh` budują go gdy `cargo`
+jest dostępny i wpinają węzeł `rs`; bez `cargo` brama py/js/go zostaje zielona. To czyni „N czytników"
+dosłownym — liczba języków nie jest zaszyta w trójkę.
 
 CLI każdego peera jest identyczne, więc spinają się potokiem niezależnie od języka:
 ```
@@ -77,3 +82,12 @@ Gdyby koperta zależała od transportu, „kontrakt" byłby naprawdę szczegół
 | round-trip         | `run.sh`            | konsumpcja wejścia        | producent→JSON→konsument       |
 | driver konformansu | `driver.sh`         | produkcja wyjścia         | strona trzecia→transport→węzeł |
 | swap transportu    | `transport_swap.sh` | niezależność od transportu| węzeł × stdio vs HTTP          |
+
+## Egzekwowane, nie tylko uruchamialne
+Dowód polyglota to **niezmiennik bramy**, nie demo do ręcznego odpalania:
+- `make contract-ci` — pełna brama 6/6 (self-conformance → kompozycja → IPC → polyglot →
+  driver → swap transportu); `ci/contract_ci.sh` woła trzy skrypty wprost dla czytelnych logów.
+- `make xlang` — sam dowód polyglota (trzy skrypty po kolei).
+- `tests/test_xlang_polyglot.py` — parytet pod `URIRUN_CONTRACT_CHECK=1 pytest`: ta sama brama
+  co `test_contract_composition.py`. Pomija się czysto bez `node`/`go` (jak skrypty: sentinel `SKIP:`),
+  więc python-only CI zostaje zielone.

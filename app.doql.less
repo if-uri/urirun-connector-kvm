@@ -46,6 +46,16 @@ workflow[name="test"] {
   step-1: run cmd=pip install -e . && python3 -m pytest -q && $(MAKE) smoke;
 }
 
+workflow[name="contract-ci"] {
+  trigger: manual;
+  step-1: run cmd=bash ci/contract_ci.sh;
+}
+
+workflow[name="xlang"] {
+  trigger: manual;
+  step-1: run cmd=bash xlang/run.sh && bash xlang/driver.sh && bash xlang/transport_swap.sh;
+}
+
 tests {
   import: testql-scenarios/**/*.testql.toon.yaml;
 }

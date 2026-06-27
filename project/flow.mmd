@@ -5,22 +5,22 @@ flowchart TD
     classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
 
     subgraph Core
-        computer_use_preview__agent__BrowserAgent___handle_scroll_at["_handle_scroll_at"]
-        computer_use_preview__agent__BrowserAgent___handle_drag_and_drop["_handle_drag_and_drop"]
-        computer_use_preview__agent__BrowserAgent___dispatch_action["_dispatch_action"]
-        computer_use_preview__agent__BrowserAgent___dispatch_legacy_action["_dispatch_legacy_action"]
-        computer_use_preview__agent__BrowserAgent__handle_action["handle_action"]
-        computer_use_preview__agent__BrowserAgent__handle_legacy_action["handle_legacy_action"]
-        computer_use_preview__agent__BrowserAgent__get_model_response["get_model_response"]
-        computer_use_preview__agent__BrowserAgent__get_text["get_text"]
-        computer_use_preview__agent__BrowserAgent__extract_function_calls["extract_function_calls"]
-        computer_use_preview__agent__BrowserAgent___build_function_response["_build_function_response"]
-        computer_use_preview__agent__BrowserAgent___trim_old_screenshots["_trim_old_screenshots"]
-        computer_use_preview__agent__BrowserAgent___generate_response["_generate_response"]
-        computer_use_preview__agent__BrowserAgent___render_turn["_render_turn"]
-        computer_use_preview__agent__BrowserAgent___execute_function_calls["_execute_function_calls"]
-        computer_use_preview__agent__BrowserAgent__run_one_iteration["run_one_iteration"]
-        ...["+223 more"]
+        urirun_connector_kvm__launch_backends___launch_xdg["_launch_xdg"]
+        urirun_connector_kvm__launch_backends___launch_macos["_launch_macos"]
+        urirun_connector_kvm__launch_backends___launch_windows["_launch_windows"]
+        urirun_connector_kvm__launch_backends___list_xdg["_list_xdg"]
+        urirun_connector_kvm__launch_backends___list_macos["_list_macos"]
+        urirun_connector_kvm__strategies__CdpStrategy__available["available"]
+        urirun_connector_kvm__strategies__CdpStrategy__locate["locate"]
+        urirun_connector_kvm__strategies__CdpStrategy__click["click"]
+        urirun_connector_kvm__strategies__CdpStrategy__fill["fill"]
+        urirun_connector_kvm__strategies__AtspiStrategy__available["available"]
+        urirun_connector_kvm__strategies__AtspiStrategy__locate["locate"]
+        urirun_connector_kvm__strategies__AtspiStrategy__click["click"]
+        urirun_connector_kvm__strategies__AtspiStrategy__fill["fill"]
+        urirun_connector_kvm__strategies__VisionStrategy__available["available"]
+        urirun_connector_kvm__strategies__VisionStrategy__locate["locate"]
+        ...["+286 more"]
     end
 
-    class computer_use_preview__agent__BrowserAgent___handle_scroll_at,computer_use_preview__agent__BrowserAgent___handle_drag_and_drop,computer_use_preview__agent__BrowserAgent___dispatch_action,computer_use_preview__agent__BrowserAgent___dispatch_legacy_action,computer_use_preview__agent__BrowserAgent__handle_action,computer_use_preview__agent__BrowserAgent__handle_legacy_action,computer_use_preview__agent__BrowserAgent__get_model_response,computer_use_preview__agent__BrowserAgent__get_text,computer_use_preview__agent__BrowserAgent__extract_function_calls,computer_use_preview__agent__BrowserAgent___build_function_response entry
+    class urirun_connector_kvm__launch_backends___launch_xdg,urirun_connector_kvm__launch_backends___launch_macos,urirun_connector_kvm__launch_backends___launch_windows,urirun_connector_kvm__launch_backends___list_xdg,urirun_connector_kvm__launch_backends___list_macos,urirun_connector_kvm__strategies__CdpStrategy__available,urirun_connector_kvm__strategies__CdpStrategy__locate,urirun_connector_kvm__strategies__CdpStrategy__click,urirun_connector_kvm__strategies__CdpStrategy__fill,urirun_connector_kvm__strategies__AtspiStrategy__available entry

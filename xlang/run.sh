@@ -2,14 +2,14 @@
 # Author: Tom Sapletta · https://tom.sapletta.com
 # Part of the ifURI solution.
 #
-# Dowód polyglota dla TRZECH języków: producent w jednym języku, konsument w drugim,
-# połączeni TYLKO bajtami JSON na potoku i WSPÓLNYM contracts.json (generowanym z dataclassy).
+# Dowód polyglota dla py/js/go (+ Rust gdy dostępny): producent w jednym języku, konsument
+# w drugim, połączeni TYLKO bajtami JSON na potoku i WSPÓLNYM contracts.json (z dataclassy).
 # Żadnego współdzielonego obiektu, żadnego uprzywilejowanego języka — kontrakt jest jedynym spoiwem.
 #
 #   1. regeneruje contracts.json ze ŹRÓDŁA PRAWDY (contracts.py)
-#   2. konformans w py/js/go na tym samym pliku
-#   3. PEŁNA MACIERZ 3×3 (py,js,go)² dla obu krawędzi: close→restore i capture→click
-#   4. uszkodzona koperta ODRZUCONA symetrycznie przez każdy z trzech walidatorów
+#   2. konformans w każdym języku na tym samym pliku
+#   3. PEŁNA MACIERZ N×N (każdy producent × każdy konsument) dla obu krawędzi
+#   4. uszkodzona koperta ODRZUCONA symetrycznie przez KAŻDY walidator
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -21,20 +21,27 @@ command -v go   >/dev/null 2>&1 || { echo "SKIP: go nieobecny — pomijam dowód
 TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}"
 export PYTHONPATH="..:${TOOLKIT}"
 
-PY=(python peer.py)
-JS=(node peer.mjs)
-GO=(./peer_go)
-declare -A LANG=( [py]="${PY[*]}" [js]="${JS[*]}" [go]="${GO[*]}" )
+declare -A LANG=( [py]="python peer.py" [js]="node peer.mjs" [go]="./peer_go" )
 LANGS=(py js go)
 
 echo "== 0. regeneracja contracts.json ze źródła prawdy (contracts.py) =="
 python emit_contracts.py
 go build -o peer_go peer.go
+# Rust — OPCJONALNY czwarty czytnik: dowód, że liczba czytników nie jest ograniczona do trzech.
+# Dołączany tylko gdy cargo jest i build przejdzie; jego brak nie psuje bramy py/js/go.
+if command -v cargo >/dev/null 2>&1 \
+   && cargo build --release --offline --manifest-path rust/Cargo.toml >/dev/null 2>&1; then
+  cp rust/target/release/peer_rs ./peer_rs
+  LANG[rs]="./peer_rs"; LANGS+=(rs)
+fi
+echo "  języki: ${LANGS[*]}"
 echo
 
-echo "== 1. konformans na WSPÓLNYM contracts.json (trzy niezależne walidatory) =="
-"${GO[@]}" conform
-"${JS[@]}" conform
+echo "== 1. konformans na WSPÓLNYM contracts.json (N niezależnych walidatorów) =="
+for l in "${LANGS[@]}"; do
+  [ "$l" = py ] && continue
+  ${LANG[$l]} conform
+done
 python - <<'PY'
 # parytetowy konformans po stronie py reużywa kernela na neutralnych danych
 import json, os
@@ -67,11 +74,11 @@ run_edge() {  # run_edge <opis> <producer-route> <consumer-route>
   done
 }
 
-echo "== 2. MACIERZ 3×3 — pełny handoff: close (producent) ─▶ restore (konsument) =="
+echo "== 2. MACIERZ N×N — pełny handoff: close (producent) ─▶ restore (konsument) =="
 run_edge "snapshot okna przez granicę języka i procesu:" \
          window/command/close window/command/restore
 echo
-echo "== 3. MACIERZ 3×3 — wkład częściowy: capture (producent) ─▶ click (konsument) =="
+echo "== 3. MACIERZ N×N — wkład częściowy: capture (producent) ─▶ click (konsument) =="
 run_edge "wymiary ekranu ze zrzutu zasilają przestrzeń kliknięcia:" \
          screen/query/capture abs/command/click
 echo
@@ -88,4 +95,4 @@ for c in "${LANGS[@]}"; do
   printf "    [%s] %-2s exit=%s  diagnoza: %s\n" "$badge" "$c" "$code" "$prob"
 done
 echo
-echo "OK: trzy języki, jeden neutralny kontrakt — zgodność w obie strony, drift odrzucany symetrycznie."
+echo "OK: ${#LANGS[@]} języki (${LANGS[*]}), jeden neutralny kontrakt — zgodność w obie strony, drift odrzucany symetrycznie."

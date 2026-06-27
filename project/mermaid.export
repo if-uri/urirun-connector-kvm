@@ -1,5 +1,11 @@
 flowchart TD
 %% generated in 0.00s
+    subgraph ci__cross_process_roundtrip
+        ci__cross_process_roundtrip___ok_example["_ok_example"]
+        ci__cross_process_roundtrip__produce["produce"]
+        ci__cross_process_roundtrip__consume["consume"]
+        ci__cross_process_roundtrip__drive["drive"]
+    end
     subgraph computer_use_preview__agent
         computer_use_preview__agent__multiply_numbers["multiply_numbers"]
         computer_use_preview__agent__BrowserAgent____init__["__init__"]
@@ -291,9 +297,90 @@ flowchart TD
         urirun_connector_kvm__surface___active_window["_active_window"]
         urirun_connector_kvm__surface__current["current"]
     end
+    subgraph xlang__conformance_driver
+        xlang__conformance_driver__Node____init__["__init__"]
+        xlang__conformance_driver__Node__call["call"]
+        xlang__conformance_driver__Node__close["close"]
+        xlang__conformance_driver__drive["drive"]
+        xlang__conformance_driver__main{{main CC=15}}
+    end
+    subgraph xlang__emit_contracts
+        xlang__emit_contracts___contract_to_json["_contract_to_json"]
+        xlang__emit_contracts__build_doc["build_doc"]
+        xlang__emit_contracts__main["main"]
+    end
+    subgraph xlang__peer
+        xlang__peer__HERE["HERE"]
+        xlang__peer__DOC["DOC"]
+        xlang__peer__CONTRACTS["CONTRACTS"]
+        xlang__peer__WIRES["WIRES"]
+        xlang__peer__ContractViolation__constValue["constValue"]
+        xlang__peer__ContractViolation__lit["lit"]
+        xlang__peer__ContractViolation__check["check"]
+        xlang__peer__ContractViolation__optional["optional"]
+        xlang__peer__ContractViolation__subT["subT"]
+        xlang__peer__ContractViolation__loc["loc"]
+        xlang__peer__ContractViolation__s["s"]
+        xlang__peer__ContractViolation__expected["expected"]
+        xlang__peer__ContractViolation__allowed["allowed"]
+        xlang__peer__ContractViolation__test["test"]
+        xlang__peer__ContractViolation__dig["dig"]
+        xlang__peer__ContractViolation__cur["cur"]
+        xlang__peer__ContractViolation__findWire["findWire"]
+        xlang__peer__ContractViolation__w["w"]
+        xlang__peer__ContractViolation__wirePayload["wirePayload"]
+        xlang__peer__ContractViolation__consumerInputCheck("consumerInputCheck CC=8")
+        xlang__peer__ContractViolation__inp["inp"]
+        xlang__peer__ContractViolation__required["required"]
+        xlang__peer__ContractViolation__carried["carried"]
+        xlang__peer__ContractViolation__sub["sub"]
+        xlang__peer__ContractViolation__opt["opt"]
+        xlang__peer__ContractViolation__conform{{conform CC=18}}
+        xlang__peer__ContractViolation__failures["failures"]
+        xlang__peer__ContractViolation__fail["fail"]
+        xlang__peer__ContractViolation__ex["ex"]
+        xlang__peer__ContractViolation__args["args"]
+        xlang__peer__ContractViolation__n["n"]
+        xlang__peer__ContractViolation__okExample["okExample"]
+        xlang__peer__ContractViolation__readStdin["readStdin"]
+        xlang__peer__ContractViolation__handle{{handle CC=19}}
+        xlang__peer__ContractViolation__sw["sw"]
+        xlang__peer__ContractViolation__screen["screen"]
+        xlang__peer__ContractViolation__snap["snap"]
+        xlang__peer__ContractViolation__id["id"]
+        xlang__peer__ContractViolation__url["url"]
+        xlang__peer__ContractViolation__text["text"]
+        xlang__peer__ContractViolation__env["env"]
+        xlang__peer__ContractViolation__wire["wire"]
+        xlang__peer__ContractViolation__payload["payload"]
+        xlang__peer__ContractViolation__lie["lie"]
+        xlang__peer__ContractViolation__rl["rl"]
+        xlang__peer__ContractViolation__req["req"]
+        xlang__peer__ContractViolation__server["server"]
+        xlang__peer__ContractViolation__r["r"]
+        xlang__peer__ContractViolation__out["out"]
+        xlang__peer___find_wire["_find_wire"]
+        xlang__peer___ok_example["_ok_example"]
+        xlang__peer__handle("handle CC=11")
+        xlang__peer__main{{main CC=21}}
+        xlang__peer__Error["Error"]
+        xlang__peer__loadDoc("loadDoc CC=8")
+        xlang__peer__typeOK("typeOK CC=10")
+        xlang__peer__constValue["constValue"]
+        xlang__peer__root["root"]
+        xlang__peer__dotKey["dotKey"]
+        xlang__peer__check{{check CC=27}}
+    end
+    subgraph xlang__run
+        xlang__run__conform["conform"]
+    end
+    subgraph xlang__transport_swap
+        xlang__transport_swap__HttpNode____init__["__init__"]
+        xlang__transport_swap__HttpNode__call["call"]
+        xlang__transport_swap__HttpNode__close["close"]
+        xlang__transport_swap__main("main CC=12")
+    end
     examples__calibrate_abs__cap --> examples__calibrate_abs__run
-    computer_use_preview__agent__BrowserAgent___dispatch_action --> computer_use_preview__agent__multiply_numbers
-    computer_use_preview__agent__BrowserAgent___dispatch_legacy_action --> computer_use_preview__agent__multiply_numbers
     urirun_connector_kvm__launch_backends___parse_desktop --> urirun_connector_kvm__launch_backends___parse_desktop_section
     urirun_connector_kvm__launch_backends___desktop_entries --> urirun_connector_kvm__launch_backends___xdg_app_dirs
     urirun_connector_kvm__launch_backends___desktop_entries --> urirun_connector_kvm__launch_backends___parse_desktop
@@ -308,9 +395,9 @@ flowchart TD
     urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__launch_backends___cdp_wait
     urirun_connector_kvm__launch_backends___launch_xdg --> urirun_connector_kvm__backends__session_env
     urirun_connector_kvm__launch_backends___launch_macos --> urirun_connector_kvm__backends__backend
-    urirun_connector_kvm__launch_backends___launch_macos --> computer_use_preview__computers__kvm__kvm__KvmComputer___run
+    urirun_connector_kvm__launch_backends___launch_macos --> urirun_connector_kvm__backends___run
     urirun_connector_kvm__launch_backends___launch_windows --> urirun_connector_kvm__backends__backend
-    urirun_connector_kvm__launch_backends___launch_windows --> computer_use_preview__computers__kvm__kvm__KvmComputer___run
+    urirun_connector_kvm__launch_backends___launch_windows --> urirun_connector_kvm__backends___run
     urirun_connector_kvm__launch_backends___list_xdg --> urirun_connector_kvm__backends__backend
     urirun_connector_kvm__launch_backends___list_xdg --> urirun_connector_kvm__launch_backends___desktop_entries
     urirun_connector_kvm__launch_backends___list_macos --> urirun_connector_kvm__backends__backend
@@ -442,6 +529,29 @@ flowchart TD
     urirun_connector_kvm__cdp__launch_session --> urirun_connector_kvm__cdp__await_ready
     urirun_connector_kvm__cdp__find --> urirun_connector_kvm__cdp___run
     urirun_connector_kvm__cdp__act --> urirun_connector_kvm__cdp___run
+    urirun_connector_kvm__control___try_act_one --> urirun_connector_kvm__control___verify_value
+    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_locate_one
+    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_act_one
+    urirun_connector_kvm__control___check_post_condition --> urirun_connector_kvm__control__route
+    urirun_connector_kvm__control__act --> urirun_connector_kvm__control__route
+    urirun_connector_kvm__control__act --> urirun_connector_kvm__control___check_post_condition
+    urirun_connector_kvm__control__report --> urirun_connector_kvm__control___safe_avail
+    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment___safe
+    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__atspi_ready
+    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__action_matrix
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_argv
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___browser_name_from_binary
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_ppid
+    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___parse_browser_args
+    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___running_browser_processes
+    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___find_cookie_db
+    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___check_cookies_for_services
+    ci__cross_process_roundtrip__produce --> ci__cross_process_roundtrip___ok_example
+    computer_use_preview__agent__BrowserAgent___dispatch_action --> computer_use_preview__agent__multiply_numbers
+    computer_use_preview__agent__BrowserAgent___dispatch_legacy_action --> computer_use_preview__agent__multiply_numbers
+    xlang__emit_contracts__build_doc --> xlang__emit_contracts___contract_to_json
+    xlang__emit_contracts__main --> xlang__emit_contracts__build_doc
+    xlang__conformance_driver__main --> xlang__conformance_driver__drive
     urirun_connector_kvm__core__capture --> urirun_connector_kvm__core___apply_capture_postprocessing
     urirun_connector_kvm__core__capture --> urirun_connector_kvm__core___ok
     urirun_connector_kvm__core__display_info --> urirun_connector_kvm__core___ok
@@ -536,25 +646,44 @@ flowchart TD
     urirun_connector_kvm__core__launch --> urirun_connector_kvm__core___fail_from
     urirun_connector_kvm__core__list_apps --> urirun_connector_kvm__core___ok
     urirun_connector_kvm__core__list_apps --> urirun_connector_kvm__core___fail_from
-    urirun_connector_kvm__control___try_act_one --> urirun_connector_kvm__control___verify_value
-    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_locate_one
-    urirun_connector_kvm__control__route --> urirun_connector_kvm__control___try_act_one
-    urirun_connector_kvm__control___check_post_condition --> urirun_connector_kvm__control__route
-    urirun_connector_kvm__control__act --> urirun_connector_kvm__control__route
-    urirun_connector_kvm__control__act --> urirun_connector_kvm__control___check_post_condition
-    urirun_connector_kvm__control__report --> urirun_connector_kvm__control___safe_avail
-    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment___safe
-    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__atspi_ready
-    urirun_connector_kvm__environment__profile --> urirun_connector_kvm__environment__action_matrix
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_argv
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___browser_name_from_binary
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___proc_ppid
-    urirun_connector_kvm__environment___running_browser_processes --> urirun_connector_kvm__environment___parse_browser_args
-    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___running_browser_processes
-    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___find_cookie_db
-    urirun_connector_kvm__environment__browser_sessions --> urirun_connector_kvm__environment___check_cookies_for_services
+    xlang__peer__ContractViolation__dig --> xlang__peer__ContractViolation__test
+    xlang__peer__ContractViolation__dig --> xlang__peer__Error
+    xlang__peer__ContractViolation__cur --> xlang__peer__ContractViolation__test
+    xlang__peer__ContractViolation__cur --> xlang__peer__Error
+    xlang__peer__ContractViolation__findWire --> xlang__peer__Error
+    xlang__peer__ContractViolation__w --> xlang__peer__Error
+    xlang__peer__ContractViolation__wirePayload --> xlang__peer__ContractViolation__dig
+    xlang__peer__ContractViolation__consumerInputCheck --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__inp --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__required --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__carried --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__sub --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__opt --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__conform --> xlang__peer__ContractViolation__fail
+    xlang__peer__ContractViolation__conform --> xlang__peer__ContractViolation__check
+    xlang__peer__ContractViolation__ex --> xlang__peer__Error
+    xlang__peer__ContractViolation__okExample --> xlang__peer__Error
+    xlang__peer__ContractViolation__handle --> xlang__peer__Error
+    xlang__peer__ContractViolation__lie --> xlang__peer__ContractViolation__handle
+    xlang__peer__ContractViolation__server --> xlang__peer__ContractViolation__handle
+    xlang__peer__handle --> xlang__peer__numOr
+    xlang__peer__handle --> xlang__peer__strOr
+    xlang__peer__main --> xlang__peer__loadDoc
+    xlang__peer__main --> xlang__peer__okExample
+    xlang__peer__main --> xlang__peer__findWire
+    xlang__peer__main --> xlang__peer__wirePayload
+    xlang__peer__main --> xlang__peer__consumerInputCheck
+    xlang__peer__check --> xlang__peer__root
+    xlang__peer__check --> xlang__peer__dotKey
+    xlang__peer__check --> xlang__peer__constValue
+    xlang__peer__check --> xlang__peer__typeOK
+    xlang__peer__wirePayload --> xlang__peer__dig
+    xlang__peer__consumerInputCheck --> xlang__peer__check
+    xlang__peer__consumerInputCheck --> xlang__peer__Error
+    xlang__peer__conform --> xlang__peer__check
+    xlang__peer__conform --> xlang__peer__Error
 
     classDef highCC fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef medCC fill:#ffd43b,stroke:#f08c00,color:#000
-    class urirun_connector_kvm__environment___running_browser_processes,urirun_connector_kvm__environment__browser_sessions highCC
-    class computer_use_preview__agent__BrowserAgent___dispatch_action,computer_use_preview__agent__BrowserAgent___dispatch_legacy_action,computer_use_preview__agent__BrowserAgent___trim_old_screenshots,computer_use_preview__agent__BrowserAgent__run_one_iteration,computer_use_preview__computers__kvm__kvm__KvmComputer___run,urirun_connector_kvm__launch_backends___xdg_app_dirs,urirun_connector_kvm__launch_backends___parse_desktop_section,urirun_connector_kvm__launch_backends___find_app,urirun_connector_kvm__launch_backends___inject_chrome_flags,urirun_connector_kvm__backends__dispatch,urirun_connector_kvm__backends__session_env,urirun_connector_kvm__backends___tsv_lines,urirun_connector_kvm__backends___line_match,urirun_connector_kvm__backends___locate_tesseract,urirun_connector_kvm__backends___locate_easyocr,urirun_connector_kvm__backends___locate_atspi,urirun_connector_kvm__backends___locate_vql,urirun_connector_kvm__backends___screen_wh,urirun_connector_kvm__backends__uinput_abs_click,urirun_connector_kvm__backends___wayland_present,urirun_connector_kvm__backends___surface_warnings,urirun_connector_kvm__backends___surface_flags,urirun_connector_kvm__core___positioned_click,urirun_connector_kvm__core___apply_capture_postprocessing,urirun_connector_kvm__core__capture,urirun_connector_kvm__core__task_run,urirun_connector_kvm__core__proc_kill,urirun_connector_kvm__core__ui_fill,urirun_connector_kvm__core___act_reject,urirun_connector_kvm__core__ui_click_text medCC
+    class urirun_connector_kvm__environment___running_browser_processes,urirun_connector_kvm__environment__browser_sessions,xlang__conformance_driver__main,xlang__peer__ContractViolation__conform,xlang__peer__ContractViolation__handle,xlang__peer__main,xlang__peer__check,xlang__peer__consumerInputCheck,xlang__peer__conform highCC
+    class urirun_connector_kvm__launch_backends___xdg_app_dirs,urirun_connector_kvm__launch_backends___parse_desktop_section,urirun_connector_kvm__launch_backends___find_app,urirun_connector_kvm__launch_backends___inject_chrome_flags,urirun_connector_kvm__backends__dispatch,urirun_connector_kvm__backends__session_env,urirun_connector_kvm__backends___tsv_lines,urirun_connector_kvm__backends___line_match,urirun_connector_kvm__backends___locate_tesseract,urirun_connector_kvm__backends___locate_easyocr,urirun_connector_kvm__backends___locate_atspi,urirun_connector_kvm__backends___locate_vql,urirun_connector_kvm__backends___screen_wh,urirun_connector_kvm__backends__uinput_abs_click,urirun_connector_kvm__backends___wayland_present,urirun_connector_kvm__backends___surface_warnings,urirun_connector_kvm__backends___surface_flags,urirun_connector_kvm__control___try_act_one,urirun_connector_kvm__control__route,urirun_connector_kvm__control__act,urirun_connector_kvm__environment__profile,urirun_connector_kvm__environment___check_cookies_for_services,urirun_connector_kvm__environment___browser_name_from_binary,computer_use_preview__agent__BrowserAgent___dispatch_action,computer_use_preview__agent__BrowserAgent___dispatch_legacy_action,computer_use_preview__agent__BrowserAgent___trim_old_screenshots,computer_use_preview__agent__BrowserAgent__run_one_iteration,computer_use_preview__computers__kvm__kvm__KvmComputer___run,xlang__transport_swap__main,urirun_connector_kvm__core___positioned_click medCC

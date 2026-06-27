@@ -2,7 +2,11 @@
 project_metadata('urirun-connector-kvm', '0.3.0', 'python').
 
 % ── Project Files ────────────────────────────────────────
-project_file('app.doql.less', 61, 'less').
+project_file('app.doql.less', 71, 'less').
+project_file('ci/contract_ci.sh', 55, 'shell').
+project_file('ci/contract_codegen.py', 141, 'python').
+project_file('ci/contract_shape_lint.py', 135, 'python').
+project_file('ci/cross_process_roundtrip.py', 84, 'python').
 project_file('computer-use-preview/agent.py', 513, 'python').
 project_file('computer-use-preview/computers/__init__.py', 26, 'python').
 project_file('computer-use-preview/computers/browserbase/__init__.py', 1, 'python').
@@ -18,25 +22,72 @@ project_file('computer-use-preview/test_main.py', 70, 'python').
 project_file('examples/calibrate_abs.py', 76, 'python').
 project_file('examples/quickstart.sh', 6, 'shell').
 project_file('project.sh', 69, 'shell').
+project_file('tests/test_contract_composition.py', 99, 'python').
+project_file('tests/test_contract_conformance.py', 153, 'python').
 project_file('tests/test_kvm.py', 608, 'python').
+project_file('tests/test_xlang_polyglot.py', 73, 'python').
 project_file('tree.sh', 5, 'shell').
 project_file('urirun_connector_kvm/__init__.py', 39, 'python').
-project_file('urirun_connector_kvm/backends.py', 1368, 'python').
+project_file('urirun_connector_kvm/backends.py', 1382, 'python').
 project_file('urirun_connector_kvm/cdp.py', 222, 'python').
+project_file('urirun_connector_kvm/contracts.py', 208, 'python').
 project_file('urirun_connector_kvm/control.py', 213, 'python').
-project_file('urirun_connector_kvm/core.py', 1014, 'python').
+project_file('urirun_connector_kvm/core.py', 1039, 'python').
 project_file('urirun_connector_kvm/environment.py', 402, 'python').
 project_file('urirun_connector_kvm/launch_backends.py', 285, 'python').
 project_file('urirun_connector_kvm/strategies.py', 133, 'python').
 project_file('urirun_connector_kvm/surface.py', 59, 'python').
+project_file('xlang/conformance_driver.py', 121, 'python').
+project_file('xlang/driver.sh', 22, 'shell').
+project_file('xlang/emit_contracts.py', 63, 'python').
+project_file('xlang/peer.go', 543, 'go').
+project_file('xlang/peer.py', 143, 'python').
+project_file('xlang/run.sh', 92, 'shell').
+project_file('xlang/transport_swap.py', 101, 'python').
+project_file('xlang/transport_swap.sh', 20, 'shell').
 
 % ── Python Functions ─────────────────────────────────────
+python_function('ci/contract_codegen.py', '_base', 1, 2, 1).
+python_function('ci/contract_codegen.py', '_snake', 1, 1, 2).
+python_function('ci/contract_codegen.py', '_camel', 1, 2, 4).
+python_function('ci/contract_codegen.py', '_const', 1, 3, 1).
+python_function('ci/contract_codegen.py', '_py_value', 1, 8, 12).
+python_function('ci/contract_codegen.py', 'py_stub', 1, 6, 7).
+python_function('ci/contract_codegen.py', 'js_stub', 1, 4, 12).
+python_function('ci/contract_codegen.py', 'go_stub', 1, 2, 7).
+python_function('ci/contract_shape_lint.py', '_required_inp_keys', 1, 4, 3).
+python_function('ci/contract_shape_lint.py', '_out_leaf_keys', 1, 3, 4).
+python_function('ci/contract_shape_lint.py', '_fn_for_route', 1, 7, 5).
+python_function('ci/contract_shape_lint.py', '_fn_params', 1, 2, 2).
+python_function('ci/contract_shape_lint.py', '_fn_source', 1, 2, 1).
+python_function('ci/contract_shape_lint.py', '_is_implemented', 1, 2, 1).
+python_function('ci/contract_shape_lint.py', 'check_route', 2, 12, 8).
+python_function('ci/contract_shape_lint.py', 'main', 0, 5, 4).
+python_function('ci/cross_process_roundtrip.py', '_ok_example', 1, 4, 2).
+python_function('ci/cross_process_roundtrip.py', 'produce', 1, 1, 2).
+python_function('ci/cross_process_roundtrip.py', 'consume', 2, 2, 5).
+python_function('ci/cross_process_roundtrip.py', 'drive', 2, 6, 6).
 python_function('computer-use-preview/agent.py', 'multiply_numbers', 2, 1, 0).
 python_function('computer-use-preview/main.py', 'main', 0, 4, 9).
 python_function('examples/calibrate_abs.py', 'run', 2, 2, 1).
 python_function('examples/calibrate_abs.py', 'cap', 0, 1, 8).
 python_function('examples/calibrate_abs.py', 'magenta_frac', 1, 1, 2).
 python_function('examples/calibrate_abs.py', 'find_box', 1, 2, 4).
+python_function('tests/test_contract_composition.py', '_ids', 1, 2, 0).
+python_function('tests/test_contract_composition.py', 'test_declared_wire_is_statically_valid', 1, 2, 3).
+python_function('tests/test_contract_composition.py', 'test_wire_survives_json_roundtrip', 1, 6, 8).
+python_function('tests/test_contract_composition.py', 'test_full_vs_partial_handoff_is_reported', 0, 8, 5).
+python_function('tests/test_contract_composition.py', 'test_conditional_to_required_is_rejected', 0, 2, 3).
+python_function('tests/test_contract_composition.py', 'test_type_mismatch_is_rejected', 0, 2, 3).
+python_function('tests/test_contract_composition.py', 'test_missing_field_is_rejected', 0, 2, 3).
+python_function('tests/test_contract_conformance.py', 'test_effect_matches_uri_verb', 1, 3, 1).
+python_function('tests/test_contract_conformance.py', 'test_reversible_declares_mutual_inverse', 1, 5, 1).
+python_function('tests/test_contract_conformance.py', 'test_golden_examples_satisfy_in_and_out', 1, 4, 4).
+python_function('tests/test_contract_conformance.py', 'test_inverse_args_satisfy_inverse_input', 1, 5, 4).
+python_function('tests/test_contract_conformance.py', 'test_validator_catches_drifted_output', 0, 6, 3).
+python_function('tests/test_contract_conformance.py', 'test_error_class_must_be_declared', 0, 3, 1).
+python_function('tests/test_contract_conformance.py', 'test_enforce_guards_a_live_handler', 0, 3, 7).
+python_function('tests/test_contract_conformance.py', 'test_conform_passes_all_declared_contracts', 0, 1, 1).
 python_function('tests/test_kvm.py', 'test_key_requires_value', 0, 2, 1).
 python_function('tests/test_kvm.py', 'test_type_requires_value', 0, 2, 1).
 python_function('tests/test_kvm.py', 'test_no_backend_reports_install_hint', 1, 2, 2).
@@ -80,6 +131,12 @@ python_function('tests/test_kvm.py', 'test_grim_allowed_on_sway', 1, 2, 2).
 python_function('tests/test_kvm.py', 'test_grim_backend_raises_on_non_wlroots', 1, 1, 3).
 python_function('tests/test_kvm.py', 'test_capture_portal_denied_returns_degraded', 1, 5, 5).
 python_function('tests/test_kvm.py', 'test_capture_other_backend_error_stays_fail', 1, 7, 5).
+python_function('tests/test_xlang_polyglot.py', '_toolkit_dir', 0, 2, 3).
+python_function('tests/test_xlang_polyglot.py', '_run', 1, 2, 4).
+python_function('tests/test_xlang_polyglot.py', '_assert_ok', 1, 5, 1).
+python_function('tests/test_xlang_polyglot.py', 'test_roundtrip_matrix', 0, 1, 2).
+python_function('tests/test_xlang_polyglot.py', 'test_external_conformance_driver', 0, 1, 2).
+python_function('tests/test_xlang_polyglot.py', 'test_transport_invariance', 0, 1, 2).
 python_function('urirun_connector_kvm/backends.py', '_runtime_dir', 0, 3, 3).
 python_function('urirun_connector_kvm/backends.py', '_wayland_socket', 0, 7, 5).
 python_function('urirun_connector_kvm/backends.py', '_x_display', 0, 6, 4).
@@ -91,7 +148,7 @@ python_function('urirun_connector_kvm/backends.py', 'dispatch', 1, 11, 9).
 python_function('urirun_connector_kvm/backends.py', 'registry_report', 0, 3, 4).
 python_function('urirun_connector_kvm/backends.py', '_run', 1, 4, 4).
 python_function('urirun_connector_kvm/backends.py', '_portal_python', 0, 5, 3).
-python_function('urirun_connector_kvm/backends.py', '_cap_portal', 1, 2, 11).
+python_function('urirun_connector_kvm/backends.py', '_cap_portal', 1, 3, 11).
 python_function('urirun_connector_kvm/backends.py', '_mutter_python', 0, 5, 3).
 python_function('urirun_connector_kvm/backends.py', '_cap_mutter', 1, 2, 8).
 python_function('urirun_connector_kvm/backends.py', '_is_wlroots_compositor', 0, 4, 4).
@@ -181,7 +238,7 @@ python_function('urirun_connector_kvm/core.py', '_fail_from', 2, 1, 3).
 python_function('urirun_connector_kvm/core.py', '_spread', 1, 4, 1).
 python_function('urirun_connector_kvm/core.py', '_positioned_click', 4, 8, 7).
 python_function('urirun_connector_kvm/core.py', '_apply_capture_postprocessing', 7, 10, 9).
-python_function('urirun_connector_kvm/core.py', 'capture', 9, 14, 23).
+python_function('urirun_connector_kvm/core.py', 'capture', 9, 14, 24).
 python_function('urirun_connector_kvm/core.py', 'display_info', 0, 4, 9).
 python_function('urirun_connector_kvm/core.py', 'type_text', 1, 3, 5).
 python_function('urirun_connector_kvm/core.py', 'key', 2, 4, 5).
@@ -266,6 +323,16 @@ python_function('urirun_connector_kvm/launch_backends.py', '_list_macos', 1, 5, 
 python_function('urirun_connector_kvm/strategies.py', 'is_browser', 1, 4, 3).
 python_function('urirun_connector_kvm/surface.py', '_active_window', 0, 6, 3).
 python_function('urirun_connector_kvm/surface.py', 'current', 0, 7, 7).
+python_function('xlang/conformance_driver.py', 'drive', 1, 4, 7).
+python_function('xlang/conformance_driver.py', 'main', 0, 15, 7).
+python_function('xlang/emit_contracts.py', '_contract_to_json', 1, 3, 2).
+python_function('xlang/emit_contracts.py', 'build_doc', 0, 3, 2).
+python_function('xlang/emit_contracts.py', 'main', 0, 1, 7).
+python_function('xlang/peer.py', '_find_wire', 2, 4, 1).
+python_function('xlang/peer.py', '_ok_example', 1, 3, 2).
+python_function('xlang/peer.py', 'handle', 3, 9, 3).
+python_function('xlang/peer.py', 'main', 0, 9, 25).
+python_function('xlang/transport_swap.py', 'main', 0, 12, 8).
 
 % ── Python Classes ───────────────────────────────────────
 python_class('computer-use-preview/agent.py', 'BrowserAgent').
@@ -425,6 +492,14 @@ python_method('VisionStrategy', 'locate', 1, 2, 2).
 python_method('VisionStrategy', '_click_xy', 3, 3, 4).
 python_method('VisionStrategy', 'click', 1, 1, 5).
 python_method('VisionStrategy', 'fill', 1, 1, 5).
+python_class('xlang/conformance_driver.py', 'Node').
+python_method('Node', '__init__', 2, 2, 2).
+python_method('Node', 'call', 2, 2, 6).
+python_method('Node', 'close', 0, 1, 2).
+python_class('xlang/transport_swap.py', 'HttpNode').
+python_method('HttpNode', '__init__', 1, 2, 6).
+python_method('HttpNode', 'call', 2, 1, 6).
+python_method('HttpNode', 'close', 0, 1, 2).
 
 % ── Dependencies ─────────────────────────────────────────
 
@@ -434,6 +509,8 @@ makefile_target('manifest', '').
 makefile_target('bindings', '').
 makefile_target('smoke', '').
 makefile_target('test', '').
+makefile_target('contract-ci', '').
+makefile_target('xlang', '').
 
 % ── Taskfile Tasks ───────────────────────────────────────
 
@@ -458,4 +535,8 @@ sumd_workflow('smoke', 'manual').
 sumd_workflow_step('smoke', 1, 'urirun-kvm bindings | urirun connectors smoke - \').
 sumd_workflow('test', 'manual').
 sumd_workflow_step('test', 1, 'pip install -e . && python3 -m pytest -q && $(MAKE) smoke').
+sumd_workflow('contract-ci', 'manual').
+sumd_workflow_step('contract-ci', 1, 'bash ci/contract_ci.sh').
+sumd_workflow('xlang', 'manual').
+sumd_workflow_step('xlang', 1, 'bash xlang/run.sh && bash xlang/driver.sh && bash xlang/transport_swap.sh').
 

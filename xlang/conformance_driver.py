@@ -39,6 +39,9 @@ NODES = {
     "js": ["node", os.path.join(HERE, "peer.mjs"), "serve"],
     "go": [os.path.join(HERE, "peer_go"), "serve"],
 }
+# Rust — OPCJONALNY czwarty węzeł: dołączany tylko gdy zbudowany peer_rs istnieje.
+if os.path.exists(os.path.join(HERE, "peer_rs")):
+    NODES["rs"] = [os.path.join(HERE, "peer_rs"), "serve"]
 
 
 class Node:

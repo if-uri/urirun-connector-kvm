@@ -719,3 +719,341 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-58e98626
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in ci/cross_process_roundtrip.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - ci/cross_process_roundtrip.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-33b1b8b7
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in ci/cross_process_roundtrip.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - ci/cross_process_roundtrip.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-620c26e3
+    name: Fix smart-return-type issues
+    description: Resolve 6 smart-return-type issues in tests/test_contract_composition.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - tests/test_contract_composition.py
+    rule_id: smart-return-type
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-50f692b7
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in tests/test_contract_composition.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_contract_composition.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0560acc9
+    name: Fix smart-return-type issues
+    description: Resolve 13 smart-return-type issues in tests/test_contract_conformance.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - tests/test_contract_conformance.py
+    rule_id: smart-return-type
+    count: 13
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1cbb1fd4
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in tests/test_contract_conformance.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_contract_conformance.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7059c58a
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in urirun_connector_kvm/contracts.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - urirun_connector_kvm/contracts.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a374d6e8
+    name: Fix magic-numbers issues
+    description: Resolve 13 magic-numbers issues in urirun_connector_kvm/contracts.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - urirun_connector_kvm/contracts.py
+    rule_id: magic-numbers
+    count: 13
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b9533f24
+    name: Fix smart-return-type issues
+    description: Resolve 2 smart-return-type issues in xlang/conformance_driver.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/conformance_driver.py
+    rule_id: smart-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-39de1bb8
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in xlang/conformance_driver.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/conformance_driver.py
+    rule_id: string-concat
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f332dfc9
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in xlang/conformance_driver.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/conformance_driver.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-623c99ee
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in xlang/conformance_driver.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/conformance_driver.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-939e418f
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in xlang/emit_contracts.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/emit_contracts.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d11acb01
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in xlang/emit_contracts.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/emit_contracts.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a49cbfc0
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in xlang/transport_swap.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/transport_swap.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8e4ca202
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in xlang/transport_swap.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/transport_swap.py
+    rule_id: string-concat
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f22266bf
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in xlang/transport_swap.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/transport_swap.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5f324007
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in xlang/transport_swap.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/transport_swap.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-779d35b3
+    name: Fix smart-return-type issues
+    description: Resolve 2 smart-return-type issues in xlang/peer.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/peer.py
+    rule_id: smart-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1bba0473
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in xlang/peer.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/peer.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-305289b5
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in xlang/peer.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/peer.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b15d0b3c
+    name: Fix magic-numbers issues
+    description: Resolve 7 magic-numbers issues in xlang/peer.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - xlang/peer.py
+    rule_id: magic-numbers
+    count: 7
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2ad4eebd
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in xlang/peer.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - xlang/peer.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4811535e
+    name: Fix smart-return-type issues
+    description: Resolve 3 smart-return-type issues in tests/test_xlang_polyglot.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_xlang_polyglot.py
+    rule_id: smart-return-type
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7c4a0cab
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in tests/test_xlang_polyglot.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_xlang_polyglot.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f14e993b
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in tests/test_xlang_polyglot.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_xlang_polyglot.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced

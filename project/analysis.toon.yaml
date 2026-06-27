@@ -1,134 +1,157 @@
-# code2llm | 29f 6772L | python:19,shell:3,yaml:3,txt:1,toml:1,json:1 | 2026-06-27
+# code2llm | 41f 8300L | python:23,shell:7,yaml:3,toml:1,json:1,txt:1,go:1 | 2026-06-27
 # generated in 0.01s
-# CC̅=3.5 | critical:2/323 | dups:0 | cycles:0
+# CC̅=3.6 | critical:9/408 | dups:0 | cycles:0
 
-HEALTH[2]:
+HEALTH[9]:
   🟡 CC    _running_browser_processes CC=15 (limit:15)
   🟡 CC    browser_sessions CC=17 (limit:15)
+  🟡 CC    main CC=15 (limit:15)
+  🟡 CC    conform CC=18 (limit:15)
+  🟡 CC    handle CC=19 (limit:15)
+  🟡 CC    main CC=21 (limit:15)
+  🟡 CC    check CC=27 (limit:15)
+  🟡 CC    consumerInputCheck CC=19 (limit:15)
+  🟡 CC    conform CC=16 (limit:15)
 
 REFACTOR[1]:
-  1. split 2 high-CC methods  (CC>15)
+  1. split 9 high-CC methods  (CC>15)
 
-PIPELINES[202]:
+PIPELINES[248]:
   [1] Src [cap]: cap → run
       PURITY: 100% pure
   [2] Src [magenta_frac]: magenta_frac
       PURITY: 100% pure
   [3] Src [find_box]: find_box
       PURITY: 100% pure
-  [4] Src [__init__]: __init__
+  [4] Src [_launch_xdg]: _launch_xdg → backend
       PURITY: 100% pure
-  [5] Src [_handle_scroll_at]: _handle_scroll_at
+  [5] Src [_launch_macos]: _launch_macos → backend
       PURITY: 100% pure
-  [6] Src [_handle_drag_and_drop]: _handle_drag_and_drop
+  [6] Src [_launch_windows]: _launch_windows → backend
       PURITY: 100% pure
-  [7] Src [_dispatch_action]: _dispatch_action → multiply_numbers
+  [7] Src [_list_xdg]: _list_xdg → backend
       PURITY: 100% pure
-  [8] Src [_dispatch_legacy_action]: _dispatch_legacy_action → multiply_numbers
+  [8] Src [_list_macos]: _list_macos → backend
       PURITY: 100% pure
-  [9] Src [handle_action]: handle_action
+  [9] Src [available]: available → is_browser
       PURITY: 100% pure
-  [10] Src [handle_legacy_action]: handle_legacy_action
+  [10] Src [locate]: locate
       PURITY: 100% pure
-  [11] Src [get_model_response]: get_model_response
+  [11] Src [click]: click
       PURITY: 100% pure
-  [12] Src [get_text]: get_text
+  [12] Src [fill]: fill
       PURITY: 100% pure
-  [13] Src [extract_function_calls]: extract_function_calls
+  [13] Src [available]: available
       PURITY: 100% pure
-  [14] Src [_build_function_response]: _build_function_response
+  [14] Src [locate]: locate
       PURITY: 100% pure
-  [15] Src [_trim_old_screenshots]: _trim_old_screenshots
+  [15] Src [click]: click
       PURITY: 100% pure
-  [16] Src [_generate_response]: _generate_response
+  [16] Src [fill]: fill
       PURITY: 100% pure
-  [17] Src [_render_turn]: _render_turn
+  [17] Src [available]: available
       PURITY: 100% pure
-  [18] Src [_execute_function_calls]: _execute_function_calls
+  [18] Src [locate]: locate
       PURITY: 100% pure
-  [19] Src [run_one_iteration]: run_one_iteration
+  [19] Src [_click_xy]: _click_xy
       PURITY: 100% pure
-  [20] Src [_get_safety_confirmation]: _get_safety_confirmation
+  [20] Src [click]: click
       PURITY: 100% pure
-  [21] Src [agent_loop]: agent_loop
+  [21] Src [fill]: fill
       PURITY: 100% pure
-  [22] Src [denormalize_x]: denormalize_x
+  [22] Src [current]: current → _active_window
       PURITY: 100% pure
-  [23] Src [denormalize_y]: denormalize_y
+  [23] Src [is_x11]: is_x11 → is_wayland → _wayland_socket → _runtime_dir
       PURITY: 100% pure
-  [24] Src [main]: main
+  [24] Src [missing]: missing
       PURITY: 100% pure
-  [25] Src [_handle_new_page]: _handle_new_page
+  [25] Src [available]: available → platform_tag → is_wayland → _wayland_socket → ...(1 more)
       PURITY: 100% pure
-  [26] Src [__enter__]: __enter__
+  [26] Src [registry_report]: registry_report
       PURITY: 100% pure
-  [27] Src [__exit__]: __exit__
+  [27] Src [_cap_portal]: _cap_portal → backend
       PURITY: 100% pure
-  [28] Src [open_web_browser]: open_web_browser
+  [28] Src [_cap_mutter]: _cap_mutter → backend
       PURITY: 100% pure
-  [29] Src [click_at]: click_at
+  [29] Src [_cap_grim]: _cap_grim → backend
       PURITY: 100% pure
-  [30] Src [double_click_at]: double_click_at
+  [30] Src [_cap_mss]: _cap_mss → backend
       PURITY: 100% pure
-  [31] Src [triple_click_at]: triple_click_at
+  [31] Src [_cap_pillow]: _cap_pillow → backend
       PURITY: 100% pure
-  [32] Src [middle_click_at]: middle_click_at
+  [32] Src [_cap_scrot]: _cap_scrot → backend
       PURITY: 100% pure
-  [33] Src [right_click_at]: right_click_at
+  [33] Src [_cap_im]: _cap_im → backend
       PURITY: 100% pure
-  [34] Src [mouse_down]: mouse_down
+  [34] Src [_cap_gnome]: _cap_gnome → backend
       PURITY: 100% pure
-  [35] Src [mouse_up]: mouse_up
+  [35] Src [_cap_macos]: _cap_macos → backend
       PURITY: 100% pure
-  [36] Src [type_text]: type_text
+  [36] Src [_type_ydotool]: _type_ydotool → backend
       PURITY: 100% pure
-  [37] Src [wait]: wait
+  [37] Src [_type_wtype]: _type_wtype → backend
       PURITY: 100% pure
-  [38] Src [hover_at]: hover_at
+  [38] Src [_type_xdotool]: _type_xdotool → backend
       PURITY: 100% pure
-  [39] Src [type_text_at]: type_text_at
+  [39] Src [_type_pynput]: _type_pynput → backend
       PURITY: 100% pure
-  [40] Src [_horizontal_document_scroll]: _horizontal_document_scroll
+  [40] Src [_click_ydotool]: _click_ydotool → backend
       PURITY: 100% pure
-  [41] Src [scroll_document]: scroll_document
+  [41] Src [_click_xdotool]: _click_xdotool → backend
       PURITY: 100% pure
-  [42] Src [scroll_at]: scroll_at
+  [42] Src [_click_pynput]: _click_pynput → backend
       PURITY: 100% pure
-  [43] Src [wait_5_seconds]: wait_5_seconds
+  [43] Src [_move_uinput_abs]: _move_uinput_abs → backend
       PURITY: 100% pure
-  [44] Src [go_back]: go_back
+  [44] Src [_move_ydotool]: _move_ydotool → backend
       PURITY: 100% pure
-  [45] Src [go_forward]: go_forward
+  [45] Src [_move_xdotool]: _move_xdotool → backend
       PURITY: 100% pure
-  [46] Src [search]: search
+  [46] Src [_move_pynput]: _move_pynput → backend
       PURITY: 100% pure
-  [47] Src [navigate]: navigate
+  [47] Src [_key_ydotool]: _key_ydotool → backend
       PURITY: 100% pure
-  [48] Src [key_combination]: key_combination
+  [48] Src [_key_xdotool]: _key_xdotool → backend
       PURITY: 100% pure
-  [49] Src [press_key]: press_key
+  [49] Src [_key_pynput]: _key_pynput → backend
       PURITY: 100% pure
-  [50] Src [key_down]: key_down
+  [50] Src [_scroll_ydotool]: _scroll_ydotool → backend
       PURITY: 100% pure
 
 LAYERS:
-  urirun_connector_kvm/           CC̄=4.4    ←in:0  →out:3
-  │ !! backends                  1367L  1C   80m  CC=14     ←1
-  │ !! core                      1013L  0C   59m  CC=14     ←0
+  urirun_connector_kvm/           CC̄=4.4    ←in:0  →out:1
+  │ !! backends                  1381L  1C   80m  CC=14     ←1
+  │ !! core                      1038L  0C   59m  CC=14     ←0
   │ connector.manifest.json    454L  0C    0m  CC=0.0    ←0
   │ !! environment                401L  0C   12m  CC=17     ←0
   │ launch_backends            284L  0C   16m  CC=11     ←0
   │ cdp                        221L  0C    9m  CC=7      ←0
   │ control                    212L  0C    9m  CC=13     ←0
+  │ contracts                  207L  0C    0m  CC=0.0    ←0
   │ strategies                 132L  3C   14m  CC=4      ←0
   │ surface                     58L  0C    2m  CC=7      ←0
   │ __init__                    38L  0C    0m  CC=0.0    ←0
+  │
+  xlang/                          CC̄=4.2    ←in:0  →out:0
+  │ !! peer.go                    542L  1C   17m  CC=27     ←1
+  │ !! conformance_driver         120L  1C    5m  CC=15     ←0
+  │ run.sh                      91L  0C    1m  CC=0.0    ←0
+  │ emit_contracts              62L  0C    3m  CC=3      ←0
+  │ driver.sh                   21L  0C    0m  CC=0.0    ←0
+  │ transport_swap.sh           19L  0C    0m  CC=0.0    ←0
+  │ transport_swap               0L  1C    4m  CC=12     ←0
+  │ !! peer.mjs                     0L  1C   49m  CC=19     ←0
+  │ peer                         0L  0C    2m  CC=4      ←0
+  │
+  ci/                             CC̄=3.2    ←in:0  →out:0
+  │ cross_process_roundtrip     83L  0C    4m  CC=6      ←0
+  │ contract_ci.sh              54L  0C    0m  CC=0.0    ←0
   │
   computer-use-preview/           CC̄=2.1    ←in:0  →out:0
   │ !! agent                      512L  1C   21m  CC=13     ←0
   │ playwright                 418L  1C   33m  CC=5      ←0
   │ computer                   198L  2C   27m  CC=1      ←1
-  │ kvm                        190L  1C   33m  CC=11     ←1
+  │ kvm                        190L  1C   33m  CC=11     ←0
   │ main                       101L  0C    1m  CC=4      ←0
   │ browserbase                 80L  1C    3m  CC=3      ←0
   │ __init__                    25L  0C    0m  CC=0.0    ←0
@@ -141,11 +164,11 @@ LAYERS:
   │ quickstart.sh                5L  0C    0m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
-  │ !! planfile.yaml              734L  0C    0m  CC=0.0    ←0
+  │ !! planfile.yaml             1020L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ project.sh                  69L  0C    0m  CC=0.0    ←0
   │ pyproject.toml              44L  0C    0m  CC=0.0    ←0
-  │ Makefile                    13L  0C    0m  CC=0.0    ←0
+  │ Makefile                    17L  0C    0m  CC=0.0    ←0
   │ tree.sh                      4L  0C    0m  CC=0.0    ←0
   │
   testql-scenarios/               CC̄=0.0    ←in:0  →out:0
@@ -153,11 +176,14 @@ LAYERS:
   │
   ── zero ──
      computer-use-preview/computers/playwright/__init__.py  0L
+     xlang/peer.mjs                            0L
+     xlang/peer.py                             0L
+     xlang/transport_swap.py                   0L
 
 COUPLING:
                                   computer-use-preview.computers            urirun_connector_kvm
-  computer-use-preview.computers                              ──                              ←3
-            urirun_connector_kvm                               3                              ──
+  computer-use-preview.computers                              ──                              ←1
+            urirun_connector_kvm                               1                              ──
   CYCLES: none
 
 EXTERNAL:

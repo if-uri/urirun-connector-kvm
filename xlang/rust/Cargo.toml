@@ -1,0 +1,19 @@
+# Author: Tom Sapletta · https://tom.sapletta.com
+# Part of the ifURI solution.
+# Czwarty czytnik tego samego neutralnego contracts.json. Jedyna zależność: serde_json —
+# którego Number ROZRÓŻNIA is_i64()/is_f64(), więc token `int` jest tu czystszy niż w JS/Go.
+# HTTP po std::net (bez hyper/reqwest), żeby utrzymać „cienki czytnik".
+[package]
+name = "peer_rs"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "peer_rs"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+opt-level = 1

@@ -1,7 +1,7 @@
 # code2llm call graph | /home/tom/github/if-uri/urirun-connector-kvm
-# generated in 0.08s
-# nodes: 183 | edges: 254 | modules: 12
-# CC̄=3.5
+# generated in 0.10s
+# nodes: 225 | edges: 290 | modules: 15
+# CC̄=3.6
 
 HUBS[20]:
   urirun_connector_kvm.backends.backend
@@ -10,10 +10,12 @@ HUBS[20]:
     CC=1  in:41  out:1  total:42
   urirun_connector_kvm.core.task_run
     CC=13  in:0  out:41  total:41
-  urirun_connector_kvm.core.capture
-    CC=14  in:0  out:30  total:30
   urirun_connector_kvm.backends._run
-    CC=4  in:25  out:4  total:29
+    CC=4  in:27  out:4  total:31
+  xlang.peer.main
+    CC=21  in:0  out:31  total:31
+  urirun_connector_kvm.core.capture
+    CC=14  in:0  out:31  total:31
   urirun_connector_kvm.core._fail_from
     CC=1  in:25  out:3  total:28
   urirun_connector_kvm.core._apply_capture_postprocessing
@@ -26,34 +28,33 @@ HUBS[20]:
     CC=8  in:0  out:23  total:23
   urirun_connector_kvm.backends.uinput_abs_click
     CC=9  in:1  out:21  total:22
-  urirun_connector_kvm.core.window_restore
-    CC=5  in:0  out:22  total:22
   urirun_connector_kvm.environment.browser_sessions
     CC=17  in:0  out:22  total:22
-  urirun_connector_kvm.backends._locate_vql
-    CC=11  in:0  out:21  total:21
+  urirun_connector_kvm.core.window_restore
+    CC=5  in:0  out:22  total:22
   urirun_connector_kvm.core.proc_kill
     CC=12  in:0  out:21  total:21
+  urirun_connector_kvm.backends._locate_vql
+    CC=11  in:0  out:21  total:21
+  xlang.conformance_driver.main
+    CC=15  in:0  out:21  total:21
   computer-use-preview.agent.BrowserAgent._dispatch_legacy_action
     CC=11  in:0  out:20  total:20
   urirun_connector_kvm.backends.dispatch
     CC=11  in:2  out:17  total:19
-  computer-use-preview.computers.kvm.kvm.KvmComputer._run
-    CC=11  in:2  out:17  total:19
   urirun_connector_kvm.environment._running_browser_processes
     CC=15  in:1  out:17  total:18
-  urirun_connector_kvm.core.cdp_ensure
-    CC=6  in:0  out:18  total:18
 
 MODULES:
+  ci.cross_process_roundtrip  [2 funcs]
+    _ok_example  CC=4  out:3
+    produce  CC=1  out:2
   computer-use-preview.agent  [3 funcs]
     _dispatch_action  CC=11  out:16
     _dispatch_legacy_action  CC=11  out:20
     multiply_numbers  CC=1  out:0
   computer-use-preview.computers.computer  [1 funcs]
     navigate  CC=1  out:0
-  computer-use-preview.computers.kvm.kvm  [1 funcs]
-    _run  CC=11  out:17
   examples.calibrate_abs  [2 funcs]
     cap  CC=1  out:9
     run  CC=2  out:1
@@ -125,11 +126,27 @@ MODULES:
   urirun_connector_kvm.surface  [2 funcs]
     _active_window  CC=6  out:4
     current  CC=7  out:10
+  xlang.conformance_driver  [2 funcs]
+    drive  CC=4  out:8
+    main  CC=15  out:21
+  xlang.emit_contracts  [3 funcs]
+    _contract_to_json  CC=3  out:2
+    build_doc  CC=3  out:2
+    main  CC=1  out:8
+  xlang.peer  [36 funcs]
+    carried  CC=4  out:4
+    check  CC=2  out:1
+    conform  CC=18  out:8
+    cur  CC=7  out:5
+    dig  CC=7  out:5
+    ex  CC=2  out:1
+    fail  CC=1  out:1
+    findWire  CC=3  out:2
+    handle  CC=19  out:4
+    inp  CC=4  out:4
 
 EDGES:
   examples.calibrate_abs.cap → examples.calibrate_abs.run
-  computer-use-preview.agent.BrowserAgent._dispatch_action → computer-use-preview.agent.multiply_numbers
-  computer-use-preview.agent.BrowserAgent._dispatch_legacy_action → computer-use-preview.agent.multiply_numbers
   urirun_connector_kvm.launch_backends._parse_desktop → urirun_connector_kvm.launch_backends._parse_desktop_section
   urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._xdg_app_dirs
   urirun_connector_kvm.launch_backends._desktop_entries → urirun_connector_kvm.launch_backends._parse_desktop
@@ -144,9 +161,9 @@ EDGES:
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.launch_backends._cdp_wait
   urirun_connector_kvm.launch_backends._launch_xdg → urirun_connector_kvm.backends.session_env
   urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_macos → computer-use-preview.computers.kvm.kvm.KvmComputer._run
+  urirun_connector_kvm.launch_backends._launch_macos → urirun_connector_kvm.backends._run
   urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends.backend
-  urirun_connector_kvm.launch_backends._launch_windows → computer-use-preview.computers.kvm.kvm.KvmComputer._run
+  urirun_connector_kvm.launch_backends._launch_windows → urirun_connector_kvm.backends._run
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.launch_backends._list_xdg → urirun_connector_kvm.launch_backends._desktop_entries
   urirun_connector_kvm.launch_backends._list_macos → urirun_connector_kvm.backends.backend
@@ -163,7 +180,6 @@ EDGES:
   urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._portal_python
   urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends._run
-  urirun_connector_kvm.backends._cap_portal → urirun_connector_kvm.backends.session_env
   urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._mutter_python
   urirun_connector_kvm.backends._cap_mutter → urirun_connector_kvm.backends._run
@@ -177,3 +193,6 @@ EDGES:
   urirun_connector_kvm.backends._cap_pillow → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends.backend
   urirun_connector_kvm.backends._cap_scrot → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends.backend
+  urirun_connector_kvm.backends._cap_im → urirun_connector_kvm.backends._run
+  urirun_connector_kvm.backends._cap_gnome → urirun_connector_kvm.backends.backend

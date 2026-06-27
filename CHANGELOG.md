@@ -3,6 +3,40 @@
 ## [0.1.10] - 2026-06-27
 
 ### Fixed
+- Fix smart-return-type issues (ticket-4811535e)
+- Fix string-concat issues (ticket-7c4a0cab)
+- Fix unused-imports issues (ticket-f14e993b)
+
+## [0.1.10] - 2026-06-27
+
+### Fixed
+- Fix unused-imports issues (ticket-58e98626)
+- Fix ai-boilerplate issues (ticket-33b1b8b7)
+- Fix smart-return-type issues (ticket-620c26e3)
+- Fix unused-imports issues (ticket-50f692b7)
+- Fix smart-return-type issues (ticket-0560acc9)
+- Fix unused-imports issues (ticket-1cbb1fd4)
+- Fix unused-imports issues (ticket-7059c58a)
+- Fix magic-numbers issues (ticket-a374d6e8)
+- Fix smart-return-type issues (ticket-b9533f24)
+- Fix string-concat issues (ticket-39de1bb8)
+- Fix unused-imports issues (ticket-f332dfc9)
+- Fix ai-boilerplate issues (ticket-623c99ee)
+- Fix unused-imports issues (ticket-939e418f)
+- Fix ai-boilerplate issues (ticket-d11acb01)
+- Fix smart-return-type issues (ticket-a49cbfc0)
+- Fix string-concat issues (ticket-8e4ca202)
+- Fix unused-imports issues (ticket-f22266bf)
+- Fix ai-boilerplate issues (ticket-5f324007)
+- Fix smart-return-type issues (ticket-779d35b3)
+- Fix string-concat issues (ticket-1bba0473)
+- Fix unused-imports issues (ticket-305289b5)
+- Fix magic-numbers issues (ticket-b15d0b3c)
+- Fix ai-boilerplate issues (ticket-2ad4eebd)
+
+## [0.1.10] - 2026-06-27
+
+### Fixed
 - Fix llm-generated-code issues (ticket-1ee4a357)
 - Fix unused-imports issues (ticket-95db4a94)
 

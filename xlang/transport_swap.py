@@ -33,6 +33,9 @@ BASE = {
     "js": ["node", os.path.join(HERE, "peer.mjs")],
     "go": [os.path.join(HERE, "peer_go")],
 }
+# Rust — OPCJONALNY czwarty węzeł: dołączany tylko gdy zbudowany peer_rs istnieje.
+if os.path.exists(os.path.join(HERE, "peer_rs")):
+    BASE["rs"] = [os.path.join(HERE, "peer_rs")]
 
 
 class HttpNode:

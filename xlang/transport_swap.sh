@@ -15,5 +15,10 @@ export PYTHONPATH="..:${TOOLKIT}"
 
 python emit_contracts.py
 go build -o peer_go peer.go
+# Rust opcjonalnie — driver dołącza węzeł rs tylko gdy peer_rs istnieje (patrz transport_swap.py).
+if command -v cargo >/dev/null 2>&1 \
+   && cargo build --release --offline --manifest-path rust/Cargo.toml >/dev/null 2>&1; then
+  cp rust/target/release/peer_rs ./peer_rs
+fi
 echo
 python transport_swap.py
