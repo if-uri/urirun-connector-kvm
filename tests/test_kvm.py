@@ -158,6 +158,7 @@ def test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatc
     """A tiny xdg-portal capture (~3.8 KB) is the empty/blocked-portal placeholder, not a real
     screenshot. It must come back degraded — never a false ok — so the flow's degraded handling keeps
     it out of known-good and the twin shows 'not a real capture' instead of logging a fake success."""
+    monkeypatch.setattr(core, "_cdp", None)  # no CDP fallback here — exercise the degraded guard itself
     monkeypatch.setattr(
         B, "dispatch",
         lambda action, **kw: {"backend": "portal", "via": "xdg-portal", "path": kw.get("output")},
@@ -178,6 +179,33 @@ def test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatc
     monkeypatch.setattr(core.os.path, "getsize", lambda _p: 5000)
     r3 = capture(output="/tmp/x.png")
     assert r3["ok"] is True and not r3.get("degraded")
+
+
+def test_capture_falls_back_to_cdp_when_portal_blocked(monkeypatch) -> None:
+    """On a GNOME-Wayland node the OS portal returns an empty placeholder, but a real Chrome is
+    reachable on the debug port. capture() must then return the BROWSER page via CDP (real pixels,
+    via='cdp') instead of a degraded placeholder — the meaningful content for web automation."""
+    from types import SimpleNamespace
+    import base64 as _b64
+    import os
+    import tempfile
+    real_png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 80_000  # >= _MIN_REAL_SHOT_BYTES
+    fake_cdp = SimpleNamespace(
+        reachable=lambda: True,
+        command=lambda method, params=None: {"data": _b64.b64encode(real_png).decode()},
+    )
+    monkeypatch.setattr(core, "_cdp", fake_cdp)
+    # OS capture yields the empty-portal placeholder
+    monkeypatch.setattr(
+        B, "dispatch",
+        lambda action, **kw: {"backend": "portal", "via": "xdg-portal", "path": kw.get("output")},
+    )
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 3848)
+    out = os.path.join(tempfile.mkdtemp(), "shot.png")
+    r = capture(output=out)
+    assert r["ok"] is True and not r.get("degraded")
+    assert r["via"] == "cdp" and r["scope"] == "browser-page"
+    assert r["bytes"] >= core._MIN_REAL_SHOT_BYTES
 
 
 def test_manifest_prose_plus_derived_routes() -> None:
@@ -596,6 +624,7 @@ def test_grim_backend_raises_on_non_wlroots(monkeypatch) -> None:
 
 def test_capture_portal_denied_returns_degraded(monkeypatch) -> None:
     """When portal denies permission, capture() returns ok=True, degraded=True — not a hard fail."""
+    monkeypatch.setattr(core, "_cdp", None)  # no CDP fallback here — exercise the degraded path itself
     monkeypatch.setattr(
         B, "dispatch",
         lambda action, **kw: (_ for _ in ()).throw(
@@ -614,6 +643,7 @@ def test_capture_other_backend_error_stays_fail(monkeypatch) -> None:
     or a human grant. A bare "no available backend ... options: none" with nothing to install or grant
     stays an honest hard fail (ok=False), not a need the user cannot act on.
     NOTE: this diverges from a prior agent edit that made EVERY "no available backend" degraded+need."""
+    monkeypatch.setattr(core, "_cdp", None)  # no CDP fallback here — exercise the degraded/fail contract
     # actionable: the real backends message carries an install hint -> degraded acquire-need
     monkeypatch.setattr(
         B, "dispatch",

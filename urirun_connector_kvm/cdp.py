@@ -40,6 +40,7 @@ reachable = _surface.reachable
 navigate = _surface.navigate
 page_ready = _surface.page_ready
 evaluate = _surface.evaluate          # raw JS eval (snapshot/restore/navigate-inverse capture)
+command = _surface.command            # raw CDP method call (e.g. Page.captureScreenshot)
 CdpError = _surface.CdpError          # raised by evaluate when no page / JS throws
 
 # --------------------------------------------------------------------------- #

@@ -25,6 +25,7 @@ registry-portable through ``python -m urirun.exec``):
 
 Backend chains (auto, highest-priority available wins):
   capture: portal(Wayland) → grim → mss → pillow → scrot → imagemagick → gnome-screenshot → screencapture(macOS)
+           → CDP page (browser-page fallback when the OS portal is blocked but a debug Chrome is reachable)
   input:   ydotool(Wayland) → wtype/xdotool(X11) → pynput(any)
 Helpful optional libraries (install for more platforms): ``mss``, ``pynput``,
 ``Pillow``, ``pytesseract`` + system tools ``ydotool``/``ydotoold``, ``wmctrl``,
@@ -61,6 +62,17 @@ except ImportError as _e:  # flat-module deploy (push control.py + cdp.py too)
     if _missing and not _missing.startswith("urirun_connector_kvm"):
         raise
     import control as C  # type: ignore
+
+try:  # CDP surface — used as a capture fallback when OS-level capture is blocked
+    from urirun_connector_kvm import cdp as _cdp
+except ImportError as _e:  # flat-module deploy
+    _missing = getattr(_e, "name", None) or ""
+    if _missing and not _missing.startswith("urirun_connector_kvm"):
+        raise
+    try:
+        import cdp as _cdp  # type: ignore
+    except ImportError:
+        _cdp = None  # type: ignore
 
 CONNECTOR_ID = "kvm"
 conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
@@ -155,6 +167,43 @@ def _apply_capture_postprocessing(out: str, cx: int, cy: int, zoom: int,
 # --------------------------------------------------------------------------- #
 # screen capture
 # --------------------------------------------------------------------------- #
+def _cdp_capture(out: str) -> "dict[str, Any] | None":
+    """Fallback capture via the active CDP page (``Page.captureScreenshot``) when OS-level
+    capture is blocked — e.g. a GNOME-Wayland portal that returns an empty placeholder while
+    a real Chrome is reachable on the debug port. Captures the browser viewport (the meaningful
+    content for web automation), NOT the whole desktop. Returns a payload dict with ``via='cdp'``
+    on success, or ``None`` when CDP is unreachable / fails so the caller keeps its degraded path."""
+    if _cdp is None:
+        return None
+    try:
+        if not _cdp.reachable():
+            return None
+        res = _cdp.command("Page.captureScreenshot", {"format": "png"})
+        data = _b64.b64decode(res.get("data") or "")
+    except Exception:  # noqa: BLE001 — any CDP failure just means no fallback is available
+        return None
+    if len(data) < _MIN_REAL_SHOT_BYTES:  # a real page frame is hundreds of KB; tiny = not useful
+        return None
+    try:
+        with open(out, "wb") as fh:
+            fh.write(data)
+    except OSError:
+        return None
+    return {"kind": "screenshot", "path": out, "via": "cdp", "backend": "cdp-page",
+            "bytes": len(data), "scope": "browser-page"}
+
+
+def _cdp_fallback_or(out: str, base64: bool, degraded: dict[str, Any]) -> dict[str, Any]:
+    """Return a real CDP page capture if one is available, else the degraded envelope."""
+    shot = _cdp_capture(out)
+    if shot is None:
+        return degraded
+    if base64:
+        with open(out, "rb") as fh:
+            shot["pngBase64"] = _b64.b64encode(fh.read()).decode()
+    return urirun.tag(_ok(**shot), "screenshot")
+
+
 @conn.handler("screen/query/capture", isolated=True, meta={"label": "Capture the screen (auto backend)"})
 def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
             cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0) -> dict[str, Any]:
@@ -181,9 +230,10 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
             "portal denied", "portal cancelled", "portal blocked", "placeholder",
         ))
         if _portal_blocked or _need:
-            return urirun.ok(connector=CONNECTOR_ID, action="capture",
-                             degraded=True, degradedReason=msg, platform=B.platform_tag(),
-                             **({"need": _need} if _need else {}))
+            return _cdp_fallback_or(out, base64, urirun.ok(
+                connector=CONNECTOR_ID, action="capture",
+                degraded=True, degradedReason=msg, platform=B.platform_tag(),
+                **({"need": _need} if _need else {})))
         return _fail_from("capture", exc)
     full = crop = None
     try:
@@ -200,12 +250,12 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     # DEGRADED (mirrors the portal-denied path above) so the twin shows "not a real capture" and the
     # flow's degraded handling keeps it out of known-good.
     if payload["bytes"] < _MIN_REAL_SHOT_BYTES and res.get("via") == "xdg-portal":
-        return urirun.ok(
+        return _cdp_fallback_or(out, base64, urirun.ok(
             connector=CONNECTOR_ID, action="capture", degraded=True, kind="screenshot",
             degradedReason=(f"xdg-portal returned a {payload['bytes']}-byte placeholder (empty/blocked "
                             f"portal) — not a real screenshot; needs a GUI session or the grim/mutter backend"),
             via="xdg-portal", backend=res.get("backend"), bytes=payload["bytes"], path=out,
-            platform=B.platform_tag())
+            platform=B.platform_tag()))
     if base64:
         with open(out, "rb") as fh:
             payload["pngBase64"] = _b64.b64encode(fh.read()).decode()
