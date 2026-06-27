@@ -91,19 +91,33 @@ jest **ZŁAPANE** (`screen/0: '2560' is not of type 'integer'`). Niuans tłumacz
 znaczy „pasuje do CO NAJMNIEJ jednego" (walidator zwraca przy pierwszym trafieniu) → mapuje się na
 `anyOf` z draftu, NIE na `oneOf` (które jest XOR).
 
-## Cztery komplementarne warstwy dowodu
-| warstwa            | skrypt                | sprawdza                       | granica                        |
-|--------------------|-----------------------|--------------------------------|--------------------------------|
-| round-trip         | `run.sh`              | konsumpcja wejścia             | producent→JSON→konsument       |
-| driver konformansu | `driver.sh`           | produkcja wyjścia              | strona trzecia→transport→węzeł |
-| swap transportu    | `transport_swap.sh`   | niezależność od transportu     | węzeł × stdio vs HTTP          |
-| standardowy schemat| `jsonschema_proof.sh` | konsument niepisany ręcznie    | off-the-shelf walidator schematu|
+## Egzekucja w CZASIE KOMPILACJI (`emit_typescript.py` / `typescript_proof.sh`)
+Warstwy wyżej egzekwują kontrakt w RUNTIME. Ostatnia przenosi egzekucję do CZASU KOMPILACJI:
+`emit_typescript.py` generuje typy TS (`ts/contracts.d.ts`) z tego samego źródła, a `tsc` sprawdza
+konsumenta ZANIM program się uruchomi. `ts/check_ok.ts` (screen to liczby) MUSI się skompilować;
+`ts/check_bad.ts` (to samo kłamstwo: screen jako stringi) MUSI nie — `tsc` zwraca
+`error TS2322: Type 'string' is not assignable to type 'number'`. Udana kompilacja `check_bad.ts`
+= brak zębów = porażka bramy.
+
+```bash
+bash xlang/typescript_proof.sh
+```
+To inny RODZAJ zębów niż reszta: błąd łapany przed uruchomieniem, nie podczas walidacji w locie.
+
+## Pięć komplementarnych warstw dowodu
+| warstwa            | skrypt                | sprawdza                       | granica                          |
+|--------------------|-----------------------|--------------------------------|----------------------------------|
+| round-trip         | `run.sh`              | konsumpcja wejścia             | producent→JSON→konsument         |
+| driver konformansu | `driver.sh`           | produkcja wyjścia              | strona trzecia→transport→węzeł   |
+| swap transportu    | `transport_swap.sh`   | niezależność od transportu     | węzeł × stdio vs HTTP            |
+| standardowy schemat| `jsonschema_proof.sh` | konsument niepisany ręcznie    | off-the-shelf walidator schematu |
+| czas kompilacji    | `typescript_proof.sh` | egzekucja przed uruchomieniem  | `tsc` na generowanych typach     |
 
 ## Egzekwowane, nie tylko uruchamialne
 Dowód to **niezmiennik bramy**, nie demo do ręcznego odpalania:
-- `make contract-ci` — pełna brama 8/8 (self-conformance → kompozycja → IPC → shape-lint →
-  polyglot → driver → swap transportu → standardowy schemat); `ci/contract_ci.sh` woła skrypty
-  wprost dla czytelnych logów.
+- `make contract-ci` — pełna brama 9/9 (self-conformance → kompozycja → IPC → shape-lint →
+  polyglot → driver → swap transportu → standardowy schemat → czas kompilacji); `ci/contract_ci.sh`
+  woła skrypty wprost dla czytelnych logów.
 - `make xlang` — sam dowód polyglota (trzy skrypty po kolei).
 - `tests/test_xlang_polyglot.py` — parytet pod `URIRUN_CONTRACT_CHECK=1 pytest`: ta sama brama
   co `test_contract_composition.py`. Testy polyglota pomijają się bez `node`/`go`; dowód JSON Schema
