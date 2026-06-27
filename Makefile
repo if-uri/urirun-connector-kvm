@@ -1,4 +1,4 @@
-.PHONY: help manifest bindings smoke test
+.PHONY: help manifest bindings smoke test contract-ci
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-10s %s\n",$$1,$$2}'
 manifest: ## Print the connector manifest
@@ -11,3 +11,5 @@ smoke: ## bindings -> urirun connectors smoke (dry-run, headless)
 	  --allow 'kvm://*' --name kvm
 test: ## Install editable + smoke
 	pip install -e . && python3 -m pytest -q && $(MAKE) smoke
+contract-ci: ## Self-conformance + composition + IPC round-trip (URIRUN_CONTRACT_CHECK=1)
+	@bash ci/contract_ci.sh
