@@ -197,7 +197,7 @@ function handle(route, payload, lie) {
     }
     case "cdp/page/command/navigate": {
       const url = payload.url ?? "https://example.test/a";
-      return { ok: true, connector: "kvm", action: "cdp-navigate", url, ready: true,
+      return { ok: true, connector: "kvm", action: "cdp-navigate", url, ready: { ok: true, readyState: "complete" },
         inverse: { path: "cdp/page/command/navigate", args: { url: "https://example.test/prev" } } };
     }
     case "ui/command/fill": {

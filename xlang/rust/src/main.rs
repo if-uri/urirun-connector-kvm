@@ -361,7 +361,7 @@ fn handle(route: &str, payload: &Value, lie: bool) -> Value {
         }
         "cdp/page/command/navigate" => {
             let url = payload.get("url").and_then(Value::as_str).unwrap_or("https://example.test/a");
-            json!({"ok": true, "connector": "kvm", "action": "cdp-navigate", "url": url, "ready": true,
+            json!({"ok": true, "connector": "kvm", "action": "cdp-navigate", "url": url, "ready": {"ok": true, "readyState": "complete"},
                    "inverse": {"path": "cdp/page/command/navigate", "args": {"url": "https://example.test/prev"}}})
         }
         "ui/command/fill" => {

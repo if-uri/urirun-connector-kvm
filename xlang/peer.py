@@ -75,7 +75,7 @@ def handle(route: str, payload: dict, lie: bool = False) -> dict:
     if route == "cdp/page/command/navigate":
         url = payload.get("url", "https://example.test/a")
         return {"ok": True, "connector": "kvm", "action": "cdp-navigate",
-                "url": url, "ready": True,
+                "url": url, "ready": {"ok": True, "readyState": "complete"},
                 "inverse": {"path": "cdp/page/command/navigate",
                             "args": {"url": "https://example.test/prev"}}}
     if route == "ui/command/fill":

@@ -143,7 +143,8 @@ CONTRACTS: dict[str, Contract] = {
         out={
             "action": "const:cdp-navigate",
             "url": "str",
-            "ready": "bool",
+            # `ready` to KOPERTA cdp.page_ready() — {ok, readyState, (waited)}, nie bool
+            "ready": {"ok": "bool", "readyState": "str"},
             "inverse": "?obj",   # optional: absent when no prior page was loaded
         },
         errors=("unreachable",),
@@ -152,12 +153,14 @@ CONTRACTS: dict[str, Contract] = {
             {"payload": {"url": "https://example.test/a"},
              "result": {
                  "ok": True, "connector": "kvm", "action": "cdp-navigate",
-                 "url": "https://example.test/a", "ready": True}},
+                 "url": "https://example.test/a",
+                 "ready": {"ok": True, "readyState": "complete"}}},
             # prior page captured — inverse present (self-referential undo)
             {"payload": {"url": "https://example.test/b"},
              "result": {
                  "ok": True, "connector": "kvm", "action": "cdp-navigate",
-                 "url": "https://example.test/b", "ready": True,
+                 "url": "https://example.test/b",
+                 "ready": {"ok": True, "readyState": "complete"},
                  "inverse": {"path": "cdp/page/command/navigate",
                              "args": {"url": "https://example.test/a"}}}},
         ),

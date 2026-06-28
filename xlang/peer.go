@@ -432,7 +432,7 @@ func handle(route string, payload map[string]interface{}, lie bool) map[string]i
 	case "cdp/page/command/navigate":
 		url := strOr(payload, "url", "https://example.test/a")
 		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "cdp-navigate",
-			"url": url, "ready": true,
+			"url": url, "ready": map[string]interface{}{"ok": true, "readyState": "complete"},
 			"inverse": map[string]interface{}{"path": "cdp/page/command/navigate",
 				"args": map[string]interface{}{"url": "https://example.test/prev"}}}
 	case "ui/command/fill":
