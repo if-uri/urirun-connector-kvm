@@ -41,6 +41,10 @@ CONTRACTS: dict[str, Contract] = {
             # Degraded (portal-denied / placeholder) — BRAK path/fullSize; nie da się łańcuchować
             {"kind": "const:screenshot", "degraded": "const:true",
              "degradedReason": "str", "bytes": "int"},
+            # Fallback CDP — realny zrzut STRONY przeglądarki (portal OS zablokowany, CDP osiągalny);
+            # viewport, nie cały pulpit, więc bez fullSize — `scope` to oznacza
+            {"kind": "const:screenshot", "path": "str", "bytes": "int",
+             "via": "const:cdp", "scope": "const:browser-page"},
         ]},
         errors=("precondition-unmet", "degraded-backend"),
         examples=(
@@ -52,6 +56,10 @@ CONTRACTS: dict[str, Contract] = {
              "result": {"ok": True, "connector": "kvm", "action": "capture",
                         "kind": "screenshot", "degraded": True, "bytes": 3811,
                         "degradedReason": "xdg-portal returned a 3811-byte placeholder"}},
+            {"payload": {},
+             "result": {"ok": True, "connector": "kvm", "kind": "screenshot",
+                        "path": "/home/u/.urirun/artifacts/screenshots/shot.png", "bytes": 66573,
+                        "via": "cdp", "backend": "cdp-page", "scope": "browser-page"}},
         ),
     ),
 
