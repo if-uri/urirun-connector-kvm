@@ -745,10 +745,20 @@ def _focus_pgw(title: str, **_: Any) -> dict:
 
 
 @backend("window_list", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
-def _winlist_wmctrl(**_: Any) -> dict:
+def _winlist_wmctrl(app: str = "", title: str = "", **_: Any) -> dict:
     p = _run(["wmctrl", "-l"])
     wins = [" ".join(line.split()[3:]) for line in p.stdout.splitlines() if line.strip()]
-    return {"via": "wmctrl", "windows": wins}
+    app_q = str(app or "").strip().lower()
+    title_q = str(title or "").strip().lower()
+    if app_q or title_q:
+        wins = [
+            title
+            for title in wins
+            if (not app_q or app_q in title.lower())
+            and (not title_q or title_q in title.lower())
+        ]
+    selected = {"title": wins[0]} if wins else None
+    return {"via": "wmctrl", "windows": wins, "selected": selected}
 
 
 # APP LAUNCH / LIST backends moved to launch_backends.py (own domain; app:// is logically
@@ -807,6 +817,110 @@ for i in range(desktop.get_child_count()):
         break
 print(json.dumps(hit or {}))
 """
+
+
+_ATSPI_WINDOW_LIST_SCRIPT = r"""
+import sys, json
+import gi
+gi.require_version("Atspi", "2.0")
+from gi.repository import Atspi
+selector = json.loads(sys.argv[1] if len(sys.argv) > 1 else "{}")
+app_q = str(selector.get("app") or "").lower()
+title_q = str(selector.get("title") or "").lower()
+Atspi.init()
+desktop = Atspi.get_desktop(0)
+windows = []
+
+def bbox_for(node):
+    try:
+        comp = node.get_component_iface()
+        if comp is None:
+            return None
+        ext = comp.get_extents(Atspi.CoordType.SCREEN)
+        return [int(ext.x), int(ext.y), int(ext.width), int(ext.height)]
+    except Exception:
+        return None
+
+for i in range(desktop.get_child_count()):
+    app = desktop.get_child_at_index(i)
+    if app is None:
+        continue
+    try:
+        app_name = app.get_name() or ""
+    except Exception:
+        app_name = ""
+    for j in range(app.get_child_count()):
+        frame = app.get_child_at_index(j)
+        if frame is None:
+            continue
+        try:
+            title = frame.get_name() or ""
+            role = frame.get_role_name() or ""
+        except Exception:
+            continue
+        hay_app = app_name.lower()
+        hay_title = title.lower()
+        if app_q and app_q not in hay_app and app_q not in hay_title:
+            continue
+        if title_q and title_q not in hay_title:
+            continue
+        windows.append({
+            "app": app_name,
+            "title": title,
+            "role": role,
+            "bbox": bbox_for(frame),
+        })
+print(json.dumps({"windows": windows}))
+"""
+
+
+def _monitor_for_bbox(bbox: list | None, monitors: list[dict]) -> dict | None:
+    if not bbox or len(bbox) < 4:
+        return None
+    x, y, w, h = [int(v) for v in bbox[:4]]
+    cx, cy = x + max(0, w) / 2, y + max(0, h) / 2
+    best: tuple[int, dict] | None = None
+    for mon in monitors or []:
+        mx = int(mon.get("x") or 0)
+        my = int(mon.get("y") or 0)
+        mw = int(mon.get("logicalWidth") or mon.get("width") or 0)
+        mh = int(mon.get("logicalHeight") or mon.get("height") or 0)
+        if mw <= 0 or mh <= 0:
+            continue
+        if mx <= cx < mx + mw and my <= cy < my + mh:
+            return mon
+        overlap_w = max(0, min(x + w, mx + mw) - max(x, mx))
+        overlap_h = max(0, min(y + h, my + mh) - max(y, my))
+        area = overlap_w * overlap_h
+        if area and (best is None or area > best[0]):
+            best = (area, mon)
+    return best[1] if best else None
+
+
+@backend("window_list", "atspi", priority=85, platforms=("linux-wayland", "linux-x11"))
+def _winlist_atspi(app: str = "", title: str = "", **_: Any) -> dict:
+    py = _atspi_python()
+    if not py:
+        raise BackendError("AT-SPI window list needs python3 with gi + Atspi (install python3-gobject + gnome a11y)")
+    payload = json.dumps({"app": app, "title": title})
+    p = _run([py, "-c", _ATSPI_WINDOW_LIST_SCRIPT, payload], env=session_env(), timeout=12)
+    data = json.loads((p.stdout or "{}").strip() or "{}")
+    windows = data.get("windows") if isinstance(data, dict) else []
+    if not isinstance(windows, list):
+        windows = []
+    monitors = _gnome_monitors()
+    enriched = []
+    for win in windows:
+        if not isinstance(win, dict):
+            continue
+        mon = _monitor_for_bbox(win.get("bbox"), monitors)
+        item = dict(win)
+        if mon:
+            item["monitor"] = mon.get("index")
+            item["monitorConnector"] = mon.get("connector")
+        enriched.append(item)
+    selected = enriched[0] if enriched else None
+    return {"via": "atspi", "windows": enriched, "selected": selected, "monitors": monitors}
 
 
 @backend("focus", "atspi", priority=85, platforms=("linux-wayland", "linux-x11"))

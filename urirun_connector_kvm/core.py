@@ -506,9 +506,9 @@ def focus(title: str = "") -> dict[str, Any]:
 
 
 @conn.handler("window/query/list", isolated=True, meta={"label": "List open windows"})
-def window_list() -> dict[str, Any]:
+def window_list(app: str = "", title: str = "") -> dict[str, Any]:
     try:
-        return _ok(**B.dispatch("window_list"))
+        return _ok(**B.dispatch("window_list", app=app, title=title))
     except B.BackendError as exc:
         return _fail_from("window_list", exc)
 

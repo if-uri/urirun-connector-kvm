@@ -202,6 +202,38 @@ def test_capture_single_monitor_connector_does_not_collide_with_connector_id(mon
     assert r["monitor"] == 3
 
 
+def test_window_list_passes_app_title_selector(monkeypatch) -> None:
+    seen = {}
+
+    def _dispatch(action, **kw):
+        seen["action"] = action
+        seen.update(kw)
+        return {"backend": "stub", "via": "stub",
+                "windows": [{"app": "Google Chrome", "title": "LinkedIn", "monitor": 2}],
+                "selected": {"app": "Google Chrome", "title": "LinkedIn", "monitor": 2}}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.window_list(app="chrome", title="linkedin")
+
+    assert r["ok"] is True
+    assert seen["action"] == "window_list"
+    assert seen["app"] == "chrome"
+    assert seen["title"] == "linkedin"
+    assert r["selected"]["monitor"] == 2
+
+
+def test_monitor_for_bbox_uses_logical_monitor_geometry() -> None:
+    monitors = [
+        {"index": 1, "connector": "HDMI-1", "x": 0, "y": 1609, "logicalWidth": 2048, "logicalHeight": 1280},
+        {"index": 2, "connector": "DP-2", "x": 2048, "y": 0, "logicalWidth": 3840, "logicalHeight": 2160},
+        {"index": 3, "connector": "DP-1", "x": 0, "y": 329, "logicalWidth": 2048, "logicalHeight": 1280},
+    ]
+
+    assert B._monitor_for_bbox([2600, 100, 1200, 900], monitors)["index"] == 2
+    assert B._monitor_for_bbox([200, 500, 1000, 800], monitors)["index"] == 3
+
+
 def test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatch) -> None:
     """A tiny xdg-portal capture (~3.8 KB) is the empty/blocked-portal placeholder, not a real
     screenshot. It must come back degraded — never a false ok — so the flow's degraded handling keeps
