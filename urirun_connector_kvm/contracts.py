@@ -26,6 +26,40 @@ from urirun_connectors_toolkit.contract_gate import Contract, Wire
 #   {"oneOf": [A, B]}            — unia: wartość pasuje do CO NAJMNIEJ jednego wariantu
 # Klucze nadmiarowe w obiektach SĄ dozwolone: koperta zawsze niesie też ok/connector/action.
 
+
+def _result(action: str, **extra) -> dict:
+    return {"ok": True, "connector": "kvm", "action": action, **extra}
+
+
+def _command(
+    action: str,
+    inp: dict,
+    *,
+    out: dict | None = None,
+    payload: dict | None = None,
+    result: dict | None = None,
+    errors: tuple[str, ...] = ("degraded-backend", "precondition-unmet"),
+) -> Contract:
+    """Compact declaration for primitive KVM commands.
+
+    The concrete backends add platform-specific fields; contracts pin the stable envelope only.
+    """
+    declared = {"action": f"const:{action}", **(out or {})}
+    return Contract(
+        version="v1",
+        effect="command",
+        inp=inp,
+        out=declared,
+        errors=errors,
+        examples=(
+            {
+                "payload": payload or {},
+                "result": result or _result(action, via="ydotool"),
+            },
+        ),
+    )
+
+
 CONTRACTS: dict[str, Contract] = {
 
     # ── query z UNIĄ w wyjściu: kontrakt ZMUSZA nazwać messy capture() jako Sukces | Degraded
@@ -76,6 +110,139 @@ CONTRACTS: dict[str, Contract] = {
             {"payload": {"x": 840, "y": 612, "sw": 2560, "sh": 1440},
              "result": {"ok": True, "connector": "kvm", "action": "click-abs",
                         "screen": [2560, 1440], "did": "click@(840,612)"}},
+        ),
+    ),
+
+    # ── input primitives: intentionally explicit, because abs/ui click are different semantics
+    "input/command/type": _command(
+        "type",
+        inp={"text": "str"},
+        payload={"text": "hello"},
+        result=_result("type", via="ydotool"),
+    ),
+
+    "input/command/key": _command(
+        "key",
+        inp={"key": "?str", "keys": "?str"},
+        payload={"keys": "ctrl+l"},
+        result=_result("key", via="ydotool"),
+    ),
+
+    "input/command/click": _command(
+        "click",
+        inp={"button": "?str", "x": "?int", "y": "?int"},
+        payload={"button": "left", "x": 200, "y": 160},
+        result=_result("click", via="ydotool", at=[200, 160]),
+    ),
+
+    "input/command/move": _command(
+        "move",
+        inp={"x": "int", "y": "int"},
+        payload={"x": 200, "y": 160},
+        result=_result("move", via="ydotool"),
+    ),
+
+    "input/command/wait": _command(
+        "wait",
+        inp={"seconds": "?num", "ms": "?int"},
+        out={"seconds": "num"},
+        payload={"seconds": 0.2},
+        result=_result("wait", seconds=0.2),
+    ),
+
+    "input/command/scroll": _command(
+        "scroll",
+        inp={"dy": "?int"},
+        payload={"dy": -3},
+        result=_result("scroll", via="ydotool"),
+    ),
+
+    "input/command/double-click": _command(
+        "double-click",
+        inp={"x": "?int", "y": "?int"},
+        payload={"x": 200, "y": 160},
+        result=_result("double-click", via="ydotool", at=[200, 160]),
+    ),
+
+    "input/command/triple-click": _command(
+        "triple-click",
+        inp={"x": "?int", "y": "?int"},
+        payload={"x": 200, "y": 160},
+        result=_result("triple-click", via="ydotool", at=[200, 160]),
+    ),
+
+    "input/command/right-click": _command(
+        "right-click",
+        inp={"x": "?int", "y": "?int"},
+        payload={"x": 200, "y": 160},
+        result=_result("right-click", via="ydotool", at=[200, 160]),
+    ),
+
+    "input/command/middle-click": _command(
+        "middle-click",
+        inp={"x": "?int", "y": "?int"},
+        payload={"x": 200, "y": 160},
+        result=_result("middle-click", via="ydotool", at=[200, 160]),
+    ),
+
+    "input/command/hover": _command(
+        "hover",
+        inp={"x": "int", "y": "int"},
+        payload={"x": 200, "y": 160},
+        result=_result("hover", via="ydotool"),
+    ),
+
+    "input/command/drag-and-drop": _command(
+        "drag-and-drop",
+        inp={"x": "int", "y": "int", "destination_x": "int", "destination_y": "int"},
+        payload={"x": 200, "y": 160, "destination_x": 400, "destination_y": 320},
+        result=_result("drag-and-drop", via="ydotool"),
+    ),
+
+    "task/command/run": Contract(
+        version="v1",
+        effect="command",
+        inp={"steps": ["obj"]},
+        out={"action": "const:task", "steps": ["obj"]},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"steps": [{"op": "type", "text": "hello"}]},
+             "result": _result("task", steps=[{"op": "type", "via": "ydotool", "ok": True}])},
+        ),
+    ),
+
+    "window/command/focus": _command(
+        "focus",
+        inp={"title": "str"},
+        payload={"title": "Chrome"},
+        result=_result("focus", via="wmctrl"),
+        errors=("unreachable", "degraded-backend", "precondition-unmet"),
+    ),
+
+    "proc/command/kill": Contract(
+        version="v1",
+        effect="command",
+        inp={"pid": "?int", "name": "?str", "signal": "?str"},
+        out={"action": "const:kill", "signal": "str", "matched": "int",
+             "killed": ["int"], "denied": ["int"]},
+        errors=("unreachable", "precondition-unmet"),
+        examples=(
+            {"payload": {"pid": 4242, "signal": "TERM"},
+             "result": _result("kill", signal="SIGTERM", matched=1, killed=[4242], denied=[])},
+        ),
+    ),
+
+    "a11y/command/act": Contract(
+        version="v1",
+        effect="command",
+        inp={"app": "?str", "role": "?str", "name": "?str", "action": "?str",
+             "text": "?str", "nth": "?int"},
+        out={"action": "const:a11y", "request": "obj"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"role": "button", "name": "Sign in", "action": "focus"},
+             "result": _result("a11y", request={"app": "", "role": "button",
+                                                "name": "Sign in", "op": "focus"})},
         ),
     ),
 
@@ -166,6 +333,33 @@ CONTRACTS: dict[str, Contract] = {
         ),
     ),
 
+    "cdp/session/command/ensure": Contract(
+        version="v1",
+        effect="command",
+        inp={"url": "?str", "user_data_dir": "?str", "copy_from": "?str", "wait": "?num"},
+        out={"action": "const:cdp-ensure", "launching": "?bool", "pending": "?bool",
+             "endpoint": "?str", "readyError": "?str"},
+        errors=("unreachable", "precondition-unmet", "degraded-backend"),
+        examples=(
+            {"payload": {"url": "https://example.test", "wait": 0},
+             "result": _result("cdp-ensure", launching=True,
+                                endpoint="http://127.0.0.1:9222")},
+        ),
+    ),
+
+    "ui/command/click": Contract(
+        version="v1",
+        effect="command",
+        inp={"text": "?str", "role": "?str", "app": "?str", "name": "?str"},
+        out={"action": "const:ui-click", "attempts": "?list", "strategy": "?str",
+             "how": "?str", "at": "?list"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"text": "Sign in"},
+             "result": _result("ui-click", strategy="cdp", attempts=[{"strategy": "cdp", "ok": True}])},
+        ),
+    ),
+
     # ── self-inverse fill: UNDO = refill the same field with the old value ────────
     # inverse is CONDITIONAL (absent if locate didn't capture the prior value, or if
     # the value was already correct). Declared reversible for the same reason as navigate.
@@ -192,6 +386,55 @@ CONTRACTS: dict[str, Contract] = {
             {"payload": {"text": "Search", "value": "hello"},
              "result": {
                  "ok": True, "connector": "kvm", "action": "ui-fill"}},
+        ),
+    ),
+
+    "ui/command/act": Contract(
+        version="v1",
+        effect="command",
+        inp={"do": "enum:click|fill|find|wait", "text": "?str", "role": "?str",
+             "name": "?str", "value": "?str", "app": "?str", "retries": "?int",
+             "settle": "?num", "ready_timeout": "?num", "safe": "?bool"},
+        out={"action": "const:act", "do": "str", "app": "?str", "surface": "?obj",
+             "ready": "?obj", "tries": ["obj"], "strategyAttempts": "?list"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"do": "click", "text": "Sign in"},
+             "result": _result("act", do="click", app="", surface=None, ready=None,
+                                tries=[{"attempt": 1, "ok": True, "strategy": "cdp"}],
+                                strategyAttempts=[{"strategy": "cdp", "ok": True}])},
+        ),
+    ),
+
+    "ui/command/click-text": Contract(
+        version="v1",
+        effect="command",
+        inp={"text": "str", "button": "?str", "nth": "?int", "min_conf": "?int",
+             "then_type": "?str", "then_key": "?str", "monitor": "?int"},
+        out={"action": "const:click-text", "text": "str", "clicked": "obj",
+             "screenshot": "str", "matchCount": "int", "via": "?str",
+             "typed": "?int", "submitted": "?str"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"text": "Post"},
+             "result": _result("click-text", text="Post",
+                                clicked={"center": [840, 612], "text": "Post"},
+                                screenshot="/tmp/urirun-kvm-ui.png",
+                                matchCount=1, via="ydotool")},
+        ),
+    ),
+
+    "app://host/desktop/command/launch": Contract(
+        version="v1",
+        effect="command",
+        inp={"app": "str", "compose": "?str", "args": "?list", "settle": "?num"},
+        out={"action": "const:launch", "pid": "?int", "inverse": "?obj"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"app": "firefox", "args": [], "settle": 0},
+             "result": _result("launch", pid=4242,
+                                inverse={"uri": "kvm://host/proc/command/kill",
+                                         "args": {"pid": 4242}})},
         ),
     ),
 }

@@ -668,3 +668,16 @@ def test_capture_other_backend_error_stays_fail(monkeypatch) -> None:
     )
     r2 = capture(output="/tmp/x.png")
     assert r2["ok"] is False
+
+
+def test_capture_zero_byte_any_backend_is_degraded_not_false_success(monkeypatch) -> None:
+    """A 0-byte file from ANY backend (e.g. gnome-screenshot exiting 0 but writing nothing on a
+    blocked session) is a false success — must come back degraded, not ok with bytes:0."""
+    monkeypatch.setattr(core, "_cdp", None)            # no CDP fallback — exercise the degraded guard
+    monkeypatch.setattr(B, "dispatch",
+                        lambda action, **kw: {"backend": "gnome-screenshot", "via": "gnome-screenshot",
+                                              "path": kw.get("output")})
+    monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 0)
+    r = capture(output="/tmp/x.png")
+    assert r.get("degraded") is True and "gnome-screenshot" in (r.get("degradedReason") or "")

@@ -41,6 +41,11 @@ function constValue(token) {
 }
 
 function check(schema, value, where = "") {
+  if (typeof schema === "string" && schema.startsWith("?")) {
+    if (value === null || value === undefined) return;
+    check(schema.slice(1), value, where);
+    return;
+  }
   if (schema && typeof schema === "object" && !Array.isArray(schema)
       && Object.keys(schema).length === 1 && "oneOf" in schema) {
     const errs = [];
@@ -55,13 +60,12 @@ function check(schema, value, where = "") {
       throw new ContractViolation(`${where || "<root>"}: oczekiwano obiektu`);
     for (const [key, sub] of Object.entries(schema)) {
       const optional = typeof sub === "string" && sub.startsWith("?");
-      const subT = optional ? sub.slice(1) : sub;
       const loc = where ? `${where}.${key}` : key;
       if (!(key in value)) {
         if (optional) continue;
         throw new ContractViolation(`${loc}: brak wymaganego klucza`);
       }
-      check(subT, value[key], loc);
+      check(sub, value[key], loc);
     }
     return;
   }
@@ -70,7 +74,7 @@ function check(schema, value, where = "") {
     if (schema.length) value.forEach((it, i) => check(schema[0], it, `${where}[${i}]`));
     return;
   }
-  const s = typeof schema === "string" && schema.startsWith("?") ? schema.slice(1) : schema;
+  const s = schema;
   if (s.startsWith("const:")) {
     const expected = constValue(s);
     if (value !== expected) throw new ContractViolation(`${where}: oczekiwano literału ${JSON.stringify(expected)}, jest ${JSON.stringify(value)}`);
@@ -125,8 +129,7 @@ function consumerInputCheck(consumer, payload, wire) {
   }
   for (const field of [...carried].filter((k) => k in payload).sort()) {
     const sub = inp[field];
-    const opt = typeof sub === "string" && sub.startsWith("?");
-    try { check(opt ? sub.slice(1) : sub, payload[field], `consumer.inp.${field}`); }
+    try { check(sub, payload[field], `consumer.inp.${field}`); }
     catch (e) { problems.push(e.message); }
   }
   return ["partial", problems];
@@ -163,6 +166,10 @@ function okExample(route) {
   const ex = CONTRACTS[route].examples.find((e) => e.result.ok);
   if (!ex) throw new Error(`${route}: brak złotej koperty ok`);
   return ex.result;
+}
+
+function cloneOkExample(route) {
+  return JSON.parse(JSON.stringify(okExample(route)));
 }
 
 async function readStdin() {
@@ -206,6 +213,7 @@ function handle(route, payload, lie) {
         inverse: { path: "ui/command/fill", args: { text, value: "prev-value" } } };
     }
   }
+  if (route in CONTRACTS) return cloneOkExample(route);
   throw new Error(`nieznana trasa ${route}`);
 }
 

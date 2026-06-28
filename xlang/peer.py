@@ -48,6 +48,10 @@ def _ok_example(route: str) -> dict:
     raise SystemExit(f"{route}: brak złotej koperty ok")
 
 
+def _clone_ok_example(route: str) -> dict:
+    return json.loads(json.dumps(_ok_example(route)))
+
+
 def handle(route: str, payload: dict, lie: bool = False) -> dict:
     """Prawdziwy handler trasy (stub) — LICZY kopertę z payloadu, nie zwraca złotego przykładu
     (inaczej dowód byłby cyrkularny). To jest „node" odpytywany przez zewnętrzny driver."""
@@ -84,6 +88,8 @@ def handle(route: str, payload: dict, lie: bool = False) -> dict:
         return {"ok": True, "connector": "kvm", "action": "ui-fill",
                 "inverse": {"path": "ui/command/fill",
                             "args": {"text": text, "value": "prev-value"}}}
+    if route in CONTRACTS:
+        return _clone_ok_example(route)
     raise KeyError(route)
 
 

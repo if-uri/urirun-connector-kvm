@@ -155,11 +155,7 @@ func check(schema interface{}, value interface{}, where string) error {
 				}
 				return violation{fmt.Sprintf("%s: brak wymaganego klucza", loc)}
 			}
-			subT := sub
-			if optional {
-				subT = subStr[1:]
-			}
-			if err := check(subT, vv, loc); err != nil {
+			if err := check(sub, vv, loc); err != nil {
 				return err
 			}
 		}
@@ -180,7 +176,10 @@ func check(schema interface{}, value interface{}, where string) error {
 	case string:
 		tok := s
 		if strings.HasPrefix(tok, "?") {
-			tok = tok[1:]
+			if value == nil {
+				return nil
+			}
+			return check(tok[1:], value, where)
 		}
 		if strings.HasPrefix(tok, "const:") {
 			expected := constValue(tok)
@@ -302,12 +301,7 @@ func consumerInputCheck(consumer string, payload map[string]interface{}, wire ma
 	sort.Strings(arrived)
 	for _, field := range arrived {
 		sub := inp[field]
-		subStr, isStr := sub.(string)
-		subT := sub
-		if isStr && strings.HasPrefix(subStr, "?") {
-			subT = subStr[1:]
-		}
-		if err := check(subT, payload[field], "consumer.inp."+field); err != nil {
+		if err := check(sub, payload[field], "consumer.inp."+field); err != nil {
 			problems = append(problems, err.Error())
 		}
 	}
@@ -381,6 +375,13 @@ func okExample(route string) map[string]interface{} {
 	return nil
 }
 
+func cloneOkExample(route string) map[string]interface{} {
+	raw, _ := json.Marshal(okExample(route))
+	var out map[string]interface{}
+	json.Unmarshal(raw, &out)
+	return out
+}
+
 // ── prawdziwy handler trasy (stub) — node odpytywany przez zewnętrzny driver ──
 func numOr(m map[string]interface{}, k string, d int) int {
 	if v, ok := m[k].(float64); ok {
@@ -440,6 +441,9 @@ func handle(route string, payload map[string]interface{}, lie bool) map[string]i
 		return map[string]interface{}{"ok": true, "connector": "kvm", "action": "ui-fill",
 			"inverse": map[string]interface{}{"path": "ui/command/fill",
 				"args": map[string]interface{}{"text": text, "value": "prev-value"}}}
+	}
+	if _, ok := contracts[route]; ok {
+		return cloneOkExample(route)
 	}
 	return nil
 }

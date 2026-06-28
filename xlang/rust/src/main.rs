@@ -132,13 +132,7 @@ fn check(schema: &Value, value: &Value, wh: &str) -> Result<(), String> {
                     return Err(format!("{}: brak wymaganego klucza", loc));
                 }
                 Some(vv) => {
-                    if optional {
-                        if let Value::String(s) = sub {
-                            check(&Value::String(s[1..].to_string()), vv, &loc)?;
-                        }
-                    } else {
-                        check(sub, vv, &loc)?;
-                    }
+                    check(sub, vv, &loc)?;
                 }
             }
         }
@@ -157,7 +151,13 @@ fn check(schema: &Value, value: &Value, wh: &str) -> Result<(), String> {
         return Ok(());
     }
     if let Value::String(s0) = schema {
-        let tok = s0.strip_prefix('?').unwrap_or(s0);
+        if let Some(tok) = s0.strip_prefix('?') {
+            if value.is_null() {
+                return Ok(());
+            }
+            return check(&Value::String(tok.to_string()), value, wh);
+        }
+        let tok = s0;
         if let Some(lit) = tok.strip_prefix("const:") {
             let expected = const_value(lit);
             if value != &expected {
@@ -262,11 +262,7 @@ fn consumer_input_check(consumer: &str, payload: &Map<String, Value>, wire: &Val
     arrived.sort();
     for field in arrived {
         let sub = &inp[field];
-        let sub_t = match sub {
-            Value::String(s) if s.starts_with('?') => Value::String(s[1..].to_string()),
-            other => other.clone(),
-        };
-        if let Err(e) = check(&sub_t, &payload[field], &format!("consumer.inp.{}", field)) {
+        if let Err(e) = check(sub, &payload[field], &format!("consumer.inp.{}", field)) {
             problems.push(e);
         }
     }
@@ -369,6 +365,7 @@ fn handle(route: &str, payload: &Value, lie: bool) -> Value {
             json!({"ok": true, "connector": "kvm", "action": "ui-fill",
                    "inverse": {"path": "ui/command/fill", "args": {"text": text, "value": "prev-value"}}})
         }
+        _ if contracts().contains_key(route) => ok_example(route),
         _ => Value::Null,
     }
 }

@@ -244,17 +244,19 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
                                "via": res.get("via"), "backend": res.get("backend"),
                                "fullSize": full, "crop": crop,
                                "bytes": os.path.getsize(out) if os.path.exists(out) else 0}
-    # False-success guard: a Wayland xdg-portal capture that yields a tiny file (~3.8 KB) is the
-    # empty/blocked-portal PLACEHOLDER, not a real screenshot (a healthy mutter/grim frame is hundreds
-    # of KB). Returning ok here lets the flow trust — and irreversibly log — an empty frame. Report it
-    # DEGRADED (mirrors the portal-denied path above) so the twin shows "not a real capture" and the
-    # flow's degraded handling keeps it out of known-good.
-    if payload["bytes"] < _MIN_REAL_SHOT_BYTES and res.get("via") == "xdg-portal":
+    # False-success guard (ANY backend): a tiny/empty file is not a real screenshot — a Wayland
+    # xdg-portal PLACEHOLDER (~3.8 KB), but ALSO a 0-byte gnome-screenshot/scrot that exits 0 yet
+    # writes nothing on a blocked session. A healthy mutter/grim/gnome frame is hundreds of KB.
+    # Returning ok here lets the flow trust — and irreversibly log — an empty frame. Report it
+    # DEGRADED (mirrors the portal-denied path) and try the CDP fallback so the twin never records a
+    # false-success capture, regardless of which backend produced the empty file.
+    if payload["bytes"] == 0 or (payload["bytes"] < _MIN_REAL_SHOT_BYTES and res.get("via") == "xdg-portal"):
+        _via = res.get("via") or "unknown"
         return _cdp_fallback_or(out, base64, urirun.ok(
             connector=CONNECTOR_ID, action="capture", degraded=True, kind="screenshot",
-            degradedReason=(f"xdg-portal returned a {payload['bytes']}-byte placeholder (empty/blocked "
-                            f"portal) — not a real screenshot; needs a GUI session or the grim/mutter backend"),
-            via="xdg-portal", backend=res.get("backend"), bytes=payload["bytes"], path=out,
+            degradedReason=(f"{_via} returned a {payload['bytes']}-byte placeholder (empty/blocked) — not "
+                            f"a real screenshot; needs a GUI session or the grim/mutter/CDP backend"),
+            via=_via, backend=res.get("backend"), bytes=payload["bytes"], path=out,
             platform=B.platform_tag()))
     if base64:
         with open(out, "rb") as fh:
