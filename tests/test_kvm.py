@@ -681,3 +681,18 @@ def test_capture_zero_byte_any_backend_is_degraded_not_false_success(monkeypatch
     monkeypatch.setattr(core.os.path, "getsize", lambda _p: 0)
     r = capture(output="/tmp/x.png")
     assert r.get("degraded") is True and "gnome-screenshot" in (r.get("degradedReason") or "")
+
+
+def test_capture_backend_zero_byte_raises_so_dispatch_cascades(monkeypatch) -> None:
+    """A file-producing backend that exits 0 but writes an empty file must raise BackendError (not
+    return a 0-byte success), so dispatch() cascades to the next capture backend instead of letting an
+    empty frame win the cascade. This is the backend-level analog of core.py's false-success guard."""
+    import pytest
+    from urirun_connector_kvm import backends as B
+    monkeypatch.setattr(B, "_run", lambda *a, **k: None)        # tool "succeeds" (exit 0)
+    monkeypatch.setattr(B.os.path, "exists", lambda _p: True)
+    monkeypatch.setattr(B.os.path, "getsize", lambda _p: 0)     # ...but wrote nothing
+    for cap in (B._cap_gnome, B._cap_scrot):
+        monkeypatch.setattr(B, "session_env", lambda: {"DISPLAY": ":0"})  # let scrot pass its env guard
+        with pytest.raises(B.BackendError):
+            cap("/tmp/x.png")

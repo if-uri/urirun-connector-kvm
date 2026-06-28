@@ -341,6 +341,18 @@ def _is_wlroots_compositor() -> bool:
     return True
 
 
+def _require_nonempty(output: str, via: str) -> int:
+    """Validate a file-producing capture. A tool that exits 0 but writes an empty/missing file did NOT
+    capture (gnome-screenshot/scrot/grim on a blocked or permission-denied session). Return the byte
+    count, or raise BackendError so dispatch() cascades to the next backend instead of yielding a
+    0-byte false success the higher layers must later detect and undo."""
+    n = os.path.getsize(output) if os.path.exists(output) else 0
+    if n == 0:
+        raise BackendError(f"{via} exited 0 but produced an empty file — no capture "
+                           f"(blocked session or missing screen-capture permission)")
+    return n
+
+
 @backend("capture", "grim", priority=85, platforms=("linux-wayland",), needs_bin=("grim",))
 def _cap_grim(output: str, **_: Any) -> dict:
     if not _is_wlroots_compositor():
@@ -350,7 +362,7 @@ def _cap_grim(output: str, **_: Any) -> dict:
             f"detected {desktop!r} — use portal backend instead"
         )
     _run(["grim", output])
-    return {"path": output, "via": "grim"}
+    return {"path": output, "via": "grim", "bytes": _require_nonempty(output, "grim")}
 
 
 @backend("capture", "mss", priority=70, platforms=("linux-x11", "windows", "macos"), needs_mod=("mss",))
@@ -381,26 +393,26 @@ def _cap_scrot(output: str, **_: Any) -> dict:
     if not env.get("DISPLAY"):
         raise BackendError("scrot requires an X11 DISPLAY; not available on pure Wayland")
     _run(["scrot", "-o", output], env=env)
-    return {"path": output, "via": "scrot"}
+    return {"path": output, "via": "scrot", "bytes": _require_nonempty(output, "scrot")}
 
 
 @backend("capture", "imagemagick", priority=40, platforms=("linux-x11",), needs_bin=("import",))
 def _cap_im(output: str, **_: Any) -> dict:
     _run(["import", "-window", "root", output])
-    return {"path": output, "via": "imagemagick"}
+    return {"path": output, "via": "imagemagick", "bytes": _require_nonempty(output, "imagemagick")}
 
 
 @backend("capture", "gnome-screenshot", priority=35,
          platforms=("linux-x11", "linux-wayland"), needs_bin=("gnome-screenshot",))
 def _cap_gnome(output: str, **_: Any) -> dict:
     _run(["gnome-screenshot", "-f", output], timeout=20)
-    return {"path": output, "via": "gnome-screenshot"}
+    return {"path": output, "via": "gnome-screenshot", "bytes": _require_nonempty(output, "gnome-screenshot")}
 
 
 @backend("capture", "screencapture", priority=80, platforms=("macos",), needs_bin=("screencapture",))
 def _cap_macos(output: str, **_: Any) -> dict:
     _run(["screencapture", "-x", output])
-    return {"path": output, "via": "screencapture"}
+    return {"path": output, "via": "screencapture", "bytes": _require_nonempty(output, "screencapture")}
 
 
 # --------------------------------------------------------------------------- #
