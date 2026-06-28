@@ -208,6 +208,30 @@ def _browser_capture_requested(scope: str = "") -> bool:
     return str(scope or "").strip().lower() in {"browser", "browser-page", "page", "tab", "viewport", "cdp"}
 
 
+def _single_monitor_bbox(payload: dict[str, Any]) -> list | None:
+    """The captured monitor's ``[x, y, w, h]`` logical rect when a single monitor was captured.
+
+    Backends emit the full virtual-desktop union ``bbox`` even for a single-monitor capture, so a
+    ``scope: monitor`` result claimed the whole desktop while the image was just one monitor.
+    Narrow it to the selected monitor (matched by index or output connector) so ``bbox`` matches
+    the frame actually produced. Logical geometry, consistent with the desktop bbox union and
+    ``_monitor_for_bbox``. Returns None (leave bbox untouched) when geometry is unavailable."""
+    if str(payload.get("scope") or "").strip().lower() != "monitor":
+        return None
+    monitors = payload.get("monitors")
+    if not isinstance(monitors, list):
+        return None
+    idx, conn = payload.get("monitor"), payload.get("outputConnector")
+    for m in monitors:
+        if not isinstance(m, dict):
+            continue
+        if (idx is not None and m.get("index") == idx) or (conn and m.get("connector") == conn):
+            w, h = m.get("logicalWidth"), m.get("logicalHeight")
+            if w and h:
+                return [int(m.get("x") or 0), int(m.get("y") or 0), int(w), int(h)]
+    return None
+
+
 @conn.handler("screen/query/capture", isolated=True, meta={"label": "Capture the screen (auto backend)"})
 def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
             cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0,
@@ -267,6 +291,11 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     # values for keyword argument 'connector' whenever a specific monitor was captured.
     if res.get("connector"):
         payload["outputConnector"] = res["connector"]
+    # Narrow the union desktop bbox to the captured monitor's region for a single-monitor scope,
+    # so bbox describes the frame actually produced rather than the whole virtual desktop.
+    _mon_bbox = _single_monitor_bbox(payload)
+    if _mon_bbox is not None:
+        payload["bbox"] = _mon_bbox
     # False-success guard (ANY backend): a tiny/empty file is not a real screenshot — a Wayland
     # xdg-portal PLACEHOLDER (~3.8 KB), but ALSO a 0-byte gnome-screenshot/scrot that exits 0 yet
     # writes nothing on a blocked session. A healthy mutter/grim/gnome frame is hundreds of KB.

@@ -202,6 +202,30 @@ def test_capture_single_monitor_connector_does_not_collide_with_connector_id(mon
     assert r["monitor"] == 3
 
 
+def test_capture_single_monitor_narrows_bbox_to_that_monitor(monkeypatch) -> None:
+    # A single-monitor capture must report THAT monitor's logical rect as bbox, not the full
+    # virtual-desktop union the backend emits regardless of scope.
+    monitors = [
+        {"index": 1, "connector": "HDMI-1", "x": 0, "y": 1609, "logicalWidth": 2048, "logicalHeight": 1280},
+        {"index": 3, "connector": "DP-1", "x": 0, "y": 329, "logicalWidth": 2048, "logicalHeight": 1280},
+    ]
+
+    def _dispatch(action, **kw):
+        return {"backend": "mutter", "via": "mutter-screencast", "path": kw.get("output"),
+                "scope": "monitor", "connector": "DP-1", "monitor": 3, "monitors": monitors,
+                "bbox": [0, 0, 5888, 2889], "width": 2560, "height": 1600}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 204931)
+    monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
+
+    r = capture(output="/tmp/m3.png", monitor=3)
+
+    assert r["ok"] is True
+    assert r["scope"] == "monitor" and r["monitor"] == 3
+    assert r["bbox"] == [0, 329, 2048, 1280]       # DP-1's region, not [0, 0, 5888, 2889]
+
+
 def test_window_list_passes_app_title_selector(monkeypatch) -> None:
     seen = {}
 
