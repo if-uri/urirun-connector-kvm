@@ -23,11 +23,11 @@ Pipeline jest w pełni end-to-end:
 | Warstwa | Komponent | Plik źródłowy |
 |---------|-----------|---------------|
 | **NL Input** | Chat prompt (tekst) | Dashboard UI / API |
-| **Planning** | `llm_flow()` / `heuristic_flow()` | [flow.py](file:///home/tom/github/if-uri/urirun/adapters/python/urirun/node/flow.py#L343-L416) |
-| **Normalization** | `normalize_flow()` | [flow.py](file:///home/tom/github/if-uri/urirun/adapters/python/urirun/node/flow.py#L301-L340) |
-| **Execution** | `execute_flow()` | [flow.py](file:///home/tom/github/if-uri/urirun/adapters/python/urirun/node/flow.py#L531-L571) |
-| **Control Router** | `route()` cdp→atspi→vision | [control.py](file:///home/tom/github/if-uri/urirun-connector-kvm/urirun_connector_kvm/control.py#L159-L200) |
-| **Input Backend** | ydotool / uinput-absolute | [backends.py](file:///home/tom/github/if-uri/urirun-connector-kvm/urirun_connector_kvm/backends.py) |
+| **Planning** | `llm_flow()` / `heuristic_flow()` | [flow.py](../urirun/adapters/python/urirun/node/flow.py#L343-L416) |
+| **Normalization** | `normalize_flow()` | [flow.py](../urirun/adapters/python/urirun/node/flow.py#L301-L340) |
+| **Execution** | `execute_flow()` | [flow.py](../urirun/adapters/python/urirun/node/flow.py#L531-L571) |
+| **Control Router** | `route()` cdp→atspi→vision | [control.py](../urirun-connector-kvm/urirun_connector_kvm/control.py#L159-L200) |
+| **Input Backend** | ydotool / uinput-absolute | [backends.py](../urirun-connector-kvm/urirun_connector_kvm/backends.py) |
 
 ---
 
@@ -40,7 +40,7 @@ NL prompt → /api/chat/ask → discover_mesh → make_flow → execute_flow →
 ```
 
 - **Endpoint**: `POST http://127.0.0.1:8194/api/chat/ask`
-- **Plik**: [host_dashboard.py:_chat_ask_general](file:///home/tom/github/if-uri/urirun/adapters/python/urirun/host/host_dashboard.py#L10240-L10342)
+- **Plik**: [host_dashboard.py:_chat_ask_general](../urirun/adapters/python/urirun/host/host_dashboard.py#L10240-L10342)
 - **Status**: ✅ Działa — właśnie opublikowaliśmy post na LinkedIn tą drogą
 
 ```json
@@ -61,7 +61,7 @@ NL prompt → /api/chat/ask → discover_mesh → make_flow → execute_flow →
 NL → dedykowany system prompt z ACTION SPACE → LLM plan → sekwencyjne URI calls
 ```
 
-- **Plik**: [run.py](file:///home/tom/github/if-uri/examples/47-nl-desktop-control/run.py)
+- **Plik**: [run.py](../examples/47-nl-desktop-control/run.py)
 - **Status**: ✅ Działa
 - **Zaleta**: Dedykowany system prompt (`perceive→act→verify`) + screenshot po każdym kroku
 
@@ -77,7 +77,7 @@ python run.py "open the LinkedIn composer and draft a post" \
 screenshot → VLM grounding model → normalized action → execute → screenshot → repeat
 ```
 
-- **Plik**: [computer_use.py](file:///home/tom/github/if-uri/examples/47-nl-desktop-control/computer_use.py)
+- **Plik**: [computer_use.py](../examples/47-nl-desktop-control/computer_use.py)
 - **Status**: ✅ Działa (z kalibracją)
 - **Model**: Wymaga VLM z computer-use capability (Gemini 3.5 Flash / Claude Computer Use)
 - **Cechy**: Closed-loop (obserwuje rezultat każdej akcji), human-in-the-loop na irreversible actions
