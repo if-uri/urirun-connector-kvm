@@ -56,6 +56,8 @@ locate:  AT-SPI(a11y tree, exact) → EasyOCR → tesseract → imgl/vql(vision)
 `screen/query/capture` also takes a focus crop (`cx`/`cy`/`zoom` or `crop_w`/`crop_h`)
 to return only a zoomed tile around a point — so a remote caller ships a small region
 where the action is, not the whole screen.
+For browser flows that already use CDP, pass `scope=browser` to capture the active page
+viewport first; this avoids grabbing the wrong OS monitor on multi-monitor Wayland sessions.
 
 Run `kvm://host/doctor/query/report` to see what is available and what to install.
 

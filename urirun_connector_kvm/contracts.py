@@ -67,7 +67,18 @@ CONTRACTS: dict[str, Contract] = {
         version="v1",
         effect="query",
         inp={"monitor": "?int", "max_width": "?int", "base64": "?bool",
-             "cx": "?int", "cy": "?int"},
+             "cx": "?int", "cy": "?int", "scope": "?str"},
+        domains={
+            "monitor": {
+                "type": "enum",
+                "domain": "env:monitors.id",
+                "optional": True,
+                "allValue": -1,
+                "emptyValues": [0, ""],
+                "preference": "screen.capture.default",
+                "skipWhen": {"scope": ["all", "all-monitors", "desktop"]},
+            },
+        },
         out={"oneOf": [
             # Sukces — niesie path + fullSize do dalszego łańcucha
             {"kind": "const:screenshot", "path": "str", "bytes": "int",
@@ -91,7 +102,7 @@ CONTRACTS: dict[str, Contract] = {
              "result": {"ok": True, "connector": "kvm", "action": "capture",
                         "kind": "screenshot", "degraded": True, "bytes": 3811,
                         "degradedReason": "xdg-portal returned a 3811-byte placeholder"}},
-            {"payload": {},
+            {"payload": {"scope": "browser"},
              "result": {"ok": True, "connector": "kvm", "kind": "screenshot",
                         "path": "/home/u/.urirun/artifacts/screenshots/shot.png", "bytes": 66573,
                         "via": "cdp", "backend": "cdp-page", "scope": "browser-page"}},

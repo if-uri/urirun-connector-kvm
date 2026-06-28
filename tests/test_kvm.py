@@ -113,6 +113,8 @@ def test_bindings_are_isolated_handlers() -> None:
     assert binding["python"]["module"] == "urirun_connector_kvm.core"
     assert binding["python"]["export"] == "capture"
     assert "argv" not in binding
+    domains = (binding.get("meta") or {}).get("contract", {}).get("domains") or {}
+    assert domains["monitor"]["domain"] == "env:monitors.id"
     json.dumps(urirun_bindings())  # serializable: no live ref leaks
 
 
@@ -152,6 +154,52 @@ def test_capture_tags_screenshot_as_frozen_artifact(monkeypatch) -> None:
     monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
     r = capture(output="/tmp/x.png")
     assert r["ok"] is True and r["kind"] == "screenshot" and r["live"] is False
+
+
+def test_capture_all_scope_reaches_backend_and_result(monkeypatch) -> None:
+    seen = {}
+
+    def _dispatch(action, **kw):
+        seen.update(kw)
+        return {"backend": "stub", "via": "stub", "path": kw.get("output"),
+                "scope": "all-monitors", "monitors": [{"index": 1}, {"index": 2}],
+                "bbox": [0, 0, 200, 100], "width": 200, "height": 100}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 123)
+    monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
+
+    r = capture(output="/tmp/x.png", monitor=-1, scope="all")
+
+    assert seen["scope"] == "all" and seen["monitor"] == -1
+    assert r["ok"] is True
+    assert r["scope"] == "all-monitors"
+    assert r["monitors"] == [{"index": 1}, {"index": 2}]
+    assert r["bbox"] == [0, 0, 200, 100]
+    assert r["width"] == 200 and r["height"] == 100
+
+
+def test_capture_single_monitor_connector_does_not_collide_with_connector_id(monkeypatch) -> None:
+    # Regression: capturing a specific monitor made the backend return connector="DP-1"
+    # (the monitor OUTPUT name); copying it under "connector" collided with the urirun
+    # connector id that _ok() injects -> "urirun.ok() got multiple values for keyword
+    # argument 'connector'". The output name must land under outputConnector; connector
+    # stays "kvm" per the capture contract's golden examples.
+    def _dispatch(action, **kw):
+        return {"backend": "grim", "via": "grim", "path": kw.get("output"),
+                "scope": "monitor", "connector": "DP-1", "monitor": 3,
+                "monitors": [{"index": 3, "connector": "DP-1"}]}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 204931)
+    monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
+
+    r = capture(output="/tmp/m3.png", monitor=3)
+
+    assert r["ok"] is True                         # no TypeError
+    assert r["connector"] == "kvm"                 # contract: urirun connector id
+    assert r["outputConnector"] == "DP-1"          # the captured monitor's output name preserved
+    assert r["monitor"] == 3
 
 
 def test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatch) -> None:
@@ -206,6 +254,53 @@ def test_capture_falls_back_to_cdp_when_portal_blocked(monkeypatch) -> None:
     assert r["ok"] is True and not r.get("degraded")
     assert r["via"] == "cdp" and r["scope"] == "browser-page"
     assert r["bytes"] >= core._MIN_REAL_SHOT_BYTES
+
+
+def test_capture_browser_scope_prefers_cdp_before_monitor_backend(monkeypatch) -> None:
+    """Browser-scoped screenshots should capture the active CDP page before trying an OS
+    monitor. On multi-monitor Wayland the OS monitor can be a valid screenshot of the wrong screen."""
+    from types import SimpleNamespace
+    import base64 as _b64
+    import os
+    import tempfile
+
+    real_png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 80_000
+    fake_cdp = SimpleNamespace(
+        reachable=lambda: True,
+        command=lambda method, params=None: {"data": _b64.b64encode(real_png).decode()},
+    )
+    monkeypatch.setattr(core, "_cdp", fake_cdp)
+
+    def _unexpected_os_capture(*_args, **_kwargs):
+        raise AssertionError("browser-scoped capture should not call the OS monitor backend first")
+
+    monkeypatch.setattr(B, "dispatch", _unexpected_os_capture)
+    out = os.path.join(tempfile.mkdtemp(), "shot.png")
+    r = capture(output=out, scope="browser", base64=True)
+
+    assert r["ok"] is True
+    assert r["via"] == "cdp"
+    assert r["scope"] == "browser-page"
+    assert r["pngBase64"]
+
+
+def test_capture_browser_scope_falls_back_to_os_when_cdp_unreachable(monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    fake_cdp = SimpleNamespace(reachable=lambda: False)
+    monkeypatch.setattr(core, "_cdp", fake_cdp)
+    monkeypatch.setattr(
+        B, "dispatch",
+        lambda action, **kw: {"backend": "stub", "via": "stub", "path": kw.get("output")},
+    )
+    monkeypatch.setattr(core.os.path, "getsize", lambda _p: 123_456)
+    monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
+
+    r = capture(output="/tmp/x.png", scope="browser")
+
+    assert r["ok"] is True
+    assert r["via"] == "stub"
+    assert r.get("scope") is None
 
 
 def test_manifest_prose_plus_derived_routes() -> None:

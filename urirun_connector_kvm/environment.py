@@ -139,7 +139,7 @@ def profile() -> dict:
     try:
         sr = B.surface_report()
         prof["osLevelReliable"] = bool(sr.get("osLevelReliable"))
-        prof["recommendedSurfaces"] = list(sr.get("recommended") or [])
+        prof["recommendedSurfaces"] = list(sr.get("recommendedSurfaces") or sr.get("recommended") or [])
         prof["monitors"] = list(sr.get("monitors") or [])
     except Exception:  # noqa: BLE001
         prof["osLevelReliable"] = None

@@ -12,6 +12,7 @@ the connector changes. ``needs_bin``/``needs_mod`` gate availability and double 
 install hints surfaced by the ``doctor`` route.
 """
 
+import json
 import os
 import shutil
 import subprocess
@@ -257,30 +258,77 @@ def _cap_portal(output: str, **_: Any) -> dict:
 
 
 _MUTTER_SCRIPT = r"""
-import sys, dbus, dbus.mainloop.glib, gi
+import sys, json, dbus, dbus.mainloop.glib, gi
 gi.require_version("Gst", "1.0")
 from gi.repository import GLib, Gst
 out = sys.argv[1]
+selector = sys.argv[2] if len(sys.argv) > 2 else "0"
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
-def _primary():
+def _logical_monitors():
     dc = dbus.Interface(bus.get_object("org.gnome.Mutter.DisplayConfig", "/org/gnome/Mutter/DisplayConfig"),
                         "org.gnome.Mutter.DisplayConfig")
-    _s, _m, logical, _p = dc.GetCurrentState()
+    _s, physical, logical, _p = dc.GetCurrentState()
+    modes = {}
+    names = {}
+    for mon in physical:
+        spec, mode_list, props = mon
+        conn = str(spec[0])
+        names[conn] = str(props.get("display-name") or "")
+        for mode in mode_list:
+            mprops = mode[6]
+            if bool(mprops.get("is-current")):
+                modes[conn] = (int(mode[1]), int(mode[2]))
+                break
+    out = []
     fb = None
-    for lm in logical:
+    primary_conn = None
+    for idx, lm in enumerate(logical):
+        x, y, scale = int(lm[0]), int(lm[1]), float(lm[2])
         primary, mons = lm[4], lm[5]
         if mons:
             conn = str(mons[0][0]); fb = fb or conn
-            if primary: return conn
-    return fb
-conn = _primary()
-if not conn: print("no active monitor", file=sys.stderr); sys.exit(4)
+            width, height = modes.get(conn, (0, 0))
+            logical_width = int(round(width / scale)) if scale and width else 0
+            logical_height = int(round(height / scale)) if scale and height else 0
+            if primary: primary_conn = conn
+            out.append({"index": idx + 1, "connector": conn, "primary": bool(primary),
+                        "x": x, "y": y, "scale": scale,
+                        "width": width, "height": height,
+                        "logicalWidth": logical_width, "logicalHeight": logical_height,
+                        "displayName": names.get(conn, "")})
+    bbox = None
+    rects = [(m["x"], m["y"], m.get("logicalWidth") or 0, m.get("logicalHeight") or 0)
+             for m in out if (m.get("logicalWidth") or 0) > 0 and (m.get("logicalHeight") or 0) > 0]
+    if rects:
+        minx = min(r[0] for r in rects); miny = min(r[1] for r in rects)
+        maxx = max(r[0] + r[2] for r in rects); maxy = max(r[1] + r[3] for r in rects)
+        bbox = [int(minx), int(miny), int(maxx - minx), int(maxy - miny)]
+    return out, primary_conn or fb, bbox
+monitors, primary, bbox = _logical_monitors()
+record_all = selector in ("all", "-1")
+conn = None
+if not record_all:
+    try:
+        num = int(selector)
+    except Exception:
+        num = 0
+    if num > 0 and num <= len(monitors):
+        conn = monitors[num - 1]["connector"]
+    else:
+        conn = primary
+    if not conn: print("no active monitor", file=sys.stderr); sys.exit(4)
 sc = dbus.Interface(bus.get_object("org.gnome.Mutter.ScreenCast", "/org/gnome/Mutter/ScreenCast"),
                     "org.gnome.Mutter.ScreenCast")
 session = dbus.Interface(bus.get_object("org.gnome.Mutter.ScreenCast", sc.CreateSession({})),
                          "org.gnome.Mutter.ScreenCast.Session")
-stream = session.RecordMonitor(conn, {"cursor-mode": dbus.UInt32(1)})
+if record_all:
+    if bbox:
+        stream = session.RecordArea(bbox[0], bbox[1], bbox[2], bbox[3], {"cursor-mode": dbus.UInt32(1)})
+    else:
+        stream = session.RecordVirtual({"cursor-mode": dbus.UInt32(1)})
+else:
+    stream = session.RecordMonitor(conn, {"cursor-mode": dbus.UInt32(1)})
 state = {}; loop = GLib.MainLoop()
 bus.add_signal_receiver(lambda n: (state.__setitem__("node", int(n)), loop.quit()),
                         dbus_interface="org.gnome.Mutter.ScreenCast.Stream",
@@ -297,7 +345,9 @@ msg = pipe.get_bus().timed_pop_filtered(10 * Gst.SECOND, Gst.MessageType.EOS | G
 pipe.set_state(Gst.State.NULL); session.Stop()
 if msg and msg.type == Gst.MessageType.ERROR:
     e, _d = msg.parse_error(); print("gstreamer: %s" % e, file=sys.stderr); sys.exit(6)
-print(out)
+print(json.dumps({"path": out, "scope": "all-monitors" if record_all else "monitor",
+                  "connector": conn or "", "monitor": -1 if record_all else int(selector or "0"),
+                  "monitors": monitors, "bbox": bbox or []}))
 """
 
 
@@ -311,12 +361,23 @@ def _mutter_python() -> "str | None":
             if subprocess.run([c, "-c", chk], capture_output=True, timeout=5).returncode == 0:
                 return c
         except Exception:  # noqa: BLE001
-            continue
+                continue
+    return None
+
+
+def _png_dimensions(path: str) -> tuple[int, int] | None:
+    try:
+        with open(path, "rb") as f:
+            head = f.read(24)
+    except OSError:
+        return None
+    if len(head) >= 24 and head.startswith(b"\x89PNG\r\n\x1a\n") and head[12:16] == b"IHDR":
+        return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
     return None
 
 
 @backend("capture", "mutter", priority=98, platforms=("linux-wayland",))
-def _cap_mutter(output: str, **_: Any) -> dict:
+def _cap_mutter(output: str, monitor: int = 0, scope: str = "", **_: Any) -> dict:
     """GNOME Mutter ScreenCast -> PipeWire capture. Headless and consent-free (the path
     gnome-remote-desktop uses), so it works where the screenshot portal denies non-interactive
     use on GNOME-Wayland. Falls through (BackendError) on non-GNOME (no Mutter bus). Runs via a
@@ -326,9 +387,19 @@ def _cap_mutter(output: str, **_: Any) -> dict:
         raise BackendError("mutter screencast needs python3 with dbus+gi+gstreamer "
                            "(install python3-gobject python3-dbus gstreamer1.0-plugins-* incl. pipewiresrc)")
     from pathlib import Path
-    _run([py, "-c", _MUTTER_SCRIPT, output], env=session_env(), timeout=30)
+    selector = "all" if str(scope or "").strip().lower() in {"all", "all-monitors", "desktop"} or monitor < 0 else str(monitor)
+    proc = _run([py, "-c", _MUTTER_SCRIPT, output, selector], env=session_env(), timeout=30)
     data = Path(output).read_bytes()
-    return {"path": output, "bytes": len(data), "via": "mutter-screencast"}
+    dims = _png_dimensions(output)
+    if selector == "all" and dims == (1, 1):
+        raise BackendError("mutter RecordVirtual returned a 1x1 placeholder for all monitors")
+    try:
+        meta = json.loads(proc.stdout.strip() or "{}")
+    except Exception:
+        meta = {}
+    return {"path": output, "bytes": len(data), "via": "mutter-screencast",
+            **({"width": dims[0], "height": dims[1]} if dims else {}),
+            **{k: v for k, v in meta.items() if k not in {"path"}}}
 
 
 
@@ -1280,6 +1351,51 @@ def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
 # --------------------------------------------------------------------------- #
 def _gnome_monitors() -> list[dict]:
     """Best-effort logical-monitor geometry via Mutter DisplayConfig (gdbus); [] if absent."""
+    py = _portal_python()
+    if py:
+        script = r"""
+import json, dbus
+bus = dbus.SessionBus()
+dc = dbus.Interface(bus.get_object("org.gnome.Mutter.DisplayConfig", "/org/gnome/Mutter/DisplayConfig"),
+                    "org.gnome.Mutter.DisplayConfig")
+_serial, physical, logical, _props = dc.GetCurrentState()
+phys = {}
+for item in physical:
+    spec, modes, props = item[0], item[1], item[2]
+    conn = str(spec[0])
+    cur = None
+    for mode in modes:
+        mprops = mode[6] if len(mode) > 6 else {}
+        if bool(mprops.get("is-current")):
+            cur = mode
+            break
+    cur = cur or (modes[0] if modes else None)
+    if cur:
+        phys[conn] = {"width": int(cur[1]), "height": int(cur[2]), "refresh": float(cur[3]),
+                      "displayName": str(props.get("display-name", ""))}
+out = []
+for idx, lm in enumerate(logical):
+    x, y, scale, primary, mons = int(lm[0]), int(lm[1]), float(lm[2]), bool(lm[4]), lm[5]
+    conn = str(mons[0][0]) if mons else ""
+    p = phys.get(conn, {})
+    width, height = int(p.get("width") or 0), int(p.get("height") or 0)
+    out.append({"index": idx + 1, "connector": conn, "x": x, "y": y,
+                "scale": round(scale, 3), "primary": primary,
+                "width": width, "height": height,
+                "logicalWidth": round(width / scale) if width and scale else 0,
+                "logicalHeight": round(height / scale) if height and scale else 0,
+                "displayName": p.get("displayName") or conn})
+print(json.dumps(out))
+"""
+        try:
+            proc = subprocess.run([py, "-c", script], capture_output=True, text=True,
+                                  timeout=8, env=session_env())
+            if proc.returncode == 0:
+                data = json.loads(proc.stdout or "[]")
+                if isinstance(data, list):
+                    return data
+        except Exception:
+            pass
     if not have_bin("gdbus"):
         return []
     env = os.environ.copy()   # a node process often lacks the session-bus env; point gdbus at it

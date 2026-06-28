@@ -313,7 +313,8 @@
         "cy": -1,
         "zoom": 0,
         "crop_w": 0,
-        "crop_h": 0
+        "crop_h": 0,
+        "scope": ""
       }
     },
     {

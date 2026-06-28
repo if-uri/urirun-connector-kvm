@@ -204,15 +204,22 @@ def _cdp_fallback_or(out: str, base64: bool, degraded: dict[str, Any]) -> dict[s
     return urirun.tag(_ok(**shot), "screenshot")
 
 
+def _browser_capture_requested(scope: str = "") -> bool:
+    return str(scope or "").strip().lower() in {"browser", "browser-page", "page", "tab", "viewport", "cdp"}
+
+
 @conn.handler("screen/query/capture", isolated=True, meta={"label": "Capture the screen (auto backend)"})
 def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
-            cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0) -> dict[str, Any]:
+            cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0,
+            scope: str = "") -> dict[str, Any]:
     """Capture the live screen via the best available backend. ``max_width`` downscales
     (so coords map 1:1 to a logical screen on HiDPI); ``base64`` returns the PNG inline.
     Focus crop: pass ``cx``/``cy`` (+ ``zoom`` N -> a full/N window, or explicit
     ``crop_w``/``crop_h``) to return ONLY a zoomed tile around that point — so a
     remote caller transfers a small region where the action is, not the whole screen.
-    ``crop`` in the result gives the tile's origin/size for mapping coords back."""
+    ``crop`` in the result gives the tile's origin/size for mapping coords back.
+    ``scope='browser'`` means a prior CDP browser step owns the visual surface, so prefer
+    a viewport screenshot over an arbitrary OS monitor on multi-monitor sessions."""
     _art_root = os.path.expanduser(os.environ.get("URIRUN_ARTIFACT_DIR", "~/.urirun/artifacts"))
     _shot_dir = os.path.join(_art_root, "screenshots")
     if output and os.path.isabs(output):
@@ -221,8 +228,15 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
         os.makedirs(_shot_dir, exist_ok=True)
         name = os.path.basename(output) if output else f"urirun-kvm-shot-{os.getpid()}.png"
         out = os.path.join(_shot_dir, name)
+    if _browser_capture_requested(scope):
+        shot = _cdp_capture(out)
+        if shot is not None:
+            if base64:
+                with open(out, "rb") as fh:
+                    shot["pngBase64"] = _b64.b64encode(fh.read()).decode()
+            return urirun.tag(_ok(**shot), "screenshot")
     try:
-        res = B.dispatch("capture", output=out, monitor=monitor)
+        res = B.dispatch("capture", output=out, monitor=monitor, scope=scope)
     except B.BackendError as exc:
         msg = str(exc)
         _need = _backend_need(msg)
@@ -244,13 +258,24 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
                                "via": res.get("via"), "backend": res.get("backend"),
                                "fullSize": full, "crop": crop,
                                "bytes": os.path.getsize(out) if os.path.exists(out) else 0}
+    for key in ("scope", "monitors", "bbox", "width", "height"):
+        if res.get(key) not in (None, "", []):
+            payload[key] = res.get(key)
+    # The backend's "connector" is the captured monitor's OUTPUT name (e.g. "DP-1"), NOT the
+    # urirun connector id. Carry it under a distinct key so it does not shadow connector="kvm"
+    # that _ok() injects — copying it as "connector" raised TypeError: urirun.ok() got multiple
+    # values for keyword argument 'connector' whenever a specific monitor was captured.
+    if res.get("connector"):
+        payload["outputConnector"] = res["connector"]
     # False-success guard (ANY backend): a tiny/empty file is not a real screenshot — a Wayland
     # xdg-portal PLACEHOLDER (~3.8 KB), but ALSO a 0-byte gnome-screenshot/scrot that exits 0 yet
     # writes nothing on a blocked session. A healthy mutter/grim/gnome frame is hundreds of KB.
     # Returning ok here lets the flow trust — and irreversibly log — an empty frame. Report it
     # DEGRADED (mirrors the portal-denied path) and try the CDP fallback so the twin never records a
     # false-success capture, regardless of which backend produced the empty file.
-    if payload["bytes"] == 0 or (payload["bytes"] < _MIN_REAL_SHOT_BYTES and res.get("via") == "xdg-portal"):
+    if payload["bytes"] == 0 or (
+        payload["bytes"] < _MIN_REAL_SHOT_BYTES and res.get("via") in {"xdg-portal", "mutter-screencast"}
+    ):
         _via = res.get("via") or "unknown"
         return _cdp_fallback_or(out, base64, urirun.ok(
             connector=CONNECTOR_ID, action="capture", degraded=True, kind="screenshot",
