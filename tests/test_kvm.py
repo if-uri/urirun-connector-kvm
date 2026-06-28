@@ -696,3 +696,25 @@ def test_capture_backend_zero_byte_raises_so_dispatch_cascades(monkeypatch) -> N
         monkeypatch.setattr(B, "session_env", lambda: {"DISPLAY": ":0"})  # let scrot pass its env guard
         with pytest.raises(B.BackendError):
             cap("/tmp/x.png")
+
+
+def test_cdp_impl_vendor_matches_urirun_cdp() -> None:
+    """The kvm-bundled _cdp_impl.py (node CDP fallback when urirun-cdp is absent) must stay
+    byte-identical to the canonical urirun_cdp/cdp.py minus its 4-line vendor header — else the
+    node's CDP client silently drifts from the host's."""
+    import inspect
+    try:
+        import urirun_cdp.cdp as canonical
+    except ImportError:
+        import pytest
+        pytest.skip("urirun_cdp not installed")
+    from urirun_connector_kvm import _cdp_impl
+    vendor_body = "\n".join(inspect.getsource(_cdp_impl).splitlines()[4:])  # drop vendor header
+    assert vendor_body.strip() == inspect.getsource(canonical).strip(), \
+        "vendored _cdp_impl drifted from urirun_cdp/cdp.py — re-vendor it"
+
+
+def test_cdp_shim_uses_real_surface_when_urirun_cdp_present() -> None:
+    """With urirun_cdp installed (host), the shim must resolve the canonical surface, not the stub."""
+    from urirun_connector_kvm import cdp
+    assert cdp.reachable is not None and cdp.navigate is not None

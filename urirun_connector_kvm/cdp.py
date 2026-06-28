@@ -16,7 +16,18 @@ try:
 except ImportError:  # pragma: no cover - flat deploy
     from backends import BackendError  # type: ignore
 
-from urirun.connectors.surfaces import cdp as _surface
+# Resolve the CDP surface. Prefer the installed `urirun_cdp` (the extracted package). If it is
+# ABSENT — e.g. on a node provisioned without it — `urirun.connectors.surfaces.cdp` silently
+# degrades to a stub whose reachable() returns False even when Chrome IS listening, breaking every
+# CDP flow. So fall back to the kvm-bundled vendored copy (_cdp_impl) instead, keeping the connector
+# CDP-self-sufficient on any node. (Host with urirun_cdp installed gets the canonical module.)
+try:
+    from urirun_cdp import cdp as _surface  # canonical, when installed
+except ImportError:
+    try:
+        from urirun_connector_kvm import _cdp_impl as _surface  # bundled fallback (node lacks urirun-cdp)
+    except ImportError:  # pragma: no cover - flat deploy
+        import _cdp_impl as _surface  # type: ignore
 
 # wire kvm-specific endpoint resolver (reads URIRUN_KVM_CDP_URL / URIRUN_KVM_CDP_PORT)
 # and session env (display-aware env for the Chrome subprocess)
@@ -167,13 +178,52 @@ def start_session(url: str = "", user_data_dir: str = "", copy_from: str = "") -
     os.makedirs(ddir, exist_ok=True)
     copied = _copy_auth(copy_from, ddir) if copy_from else []
     argv = [_find_chrome(), f"--remote-debugging-port={port}", f"--user-data-dir={ddir}",
+            "--remote-allow-origins=*",  # modern Chrome (>=111) rejects CDP WS without this
             "--no-first-run", "--no-default-browser-check", "--force-renderer-accessibility"]
-    if url:
-        argv.append(url)
-    proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    # Always open a real page tab. Without a URL arg, Chrome (with a fresh dedicated profile) can come
+    # up showing only its browser UI — `/json` then lists a `browser_ui` target and NO `page`, so
+    # reachable()/navigate (which need a `page` target) fail even though the debugger is up. `about:blank`
+    # guarantees a page tab; the subsequent navigate step drives it to the real URL.
+    argv.append(url or "about:blank")
+    # Capture Chrome's stderr to a log in the profile dir instead of DEVNULL: when the debug port
+    # never binds ("debugger not reachable"), the reason (display unavailable, profile lock, crash,
+    # port in use) is in here — await_ready surfaces its tail so the failure is diagnosable.
+    log_path = os.path.join(ddir, "chrome-stderr.log")
+    try:
+        _logf = open(log_path, "wb")
+    except OSError:
+        _logf = subprocess.DEVNULL
+    proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=_logf,
                             start_new_session=True, env=_session_env())
     return {"ok": True, "reused": False, "launching": True, "endpoint": base, "pid": proc.pid,
-            "userDataDir": ddir, "authCopied": copied}
+            "userDataDir": ddir, "authCopied": copied, "stderrLog": log_path}
+
+
+def _chrome_stderr_tail(port: str, limit: int = 700) -> str:
+    """Tail of the launched Chrome's stderr log (deterministic default profile dir), for diagnosing a
+    debug port that never binds. Empty when the log is absent (e.g. a custom user_data_dir)."""
+    try:
+        with open(f"/tmp/urirun-kvm-cdp-{port}/chrome-stderr.log", errors="replace") as fh:
+            return fh.read()[-limit:].strip()
+    except OSError:
+        return ""
+
+
+def _raw_json_probe(base: str) -> str:
+    """Probe the debug HTTP endpoint directly so we can tell WHY reachable() is False: a connection
+    error (port not bound), an HTTP error (DNS-rebinding Host rejection), or a 200 with N targets but
+    no `type==page` (Chrome up but no page tab). Returns a short diagnostic string."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(f"{base}/json", timeout=3) as r:
+            data = json.loads(r.read() or b"[]")
+        types: dict[str, int] = {}
+        for t in data if isinstance(data, list) else []:
+            types[t.get("type", "?")] = types.get(t.get("type", "?"), 0) + 1
+        pages = sum(1 for t in (data or []) if t.get("type") == "page" and t.get("webSocketDebuggerUrl"))
+        return f"/json 200: {len(data)} targets {types}, usable pages={pages}"
+    except Exception as exc:  # noqa: BLE001
+        return f"/json probe error: {type(exc).__name__}: {exc}"[:160]
 
 
 def await_ready(timeout: float = _CDP_AWAIT_TIMEOUT) -> dict:
@@ -186,8 +236,14 @@ def await_ready(timeout: float = _CDP_AWAIT_TIMEOUT) -> dict:
         if reachable():
             return {"ok": True, "ready": True, "endpoint": base}
         if _t.monotonic() >= deadline:
-            return {"ok": False, "ready": False, "endpoint": base,
-                    "error": "debugger not reachable within timeout"}
+            port = base.rsplit(":", 1)[-1].split("/")[0]
+            out = {"ok": False, "ready": False, "endpoint": base,
+                   "error": "debugger not reachable within timeout"}
+            tail = _chrome_stderr_tail(port)
+            if tail:
+                out["chromeStderr"] = tail  # WHY the port never bound (display/lock/crash)
+            out["jsonProbe"] = _raw_json_probe(base)  # connection vs HTTP-reject vs no-page
+            return out
         _t.sleep(0.5)
 
 
