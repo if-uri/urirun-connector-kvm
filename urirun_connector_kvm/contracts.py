@@ -38,9 +38,10 @@ CONTRACTS: dict[str, Contract] = {
             # Sukces — niesie path + fullSize do dalszego łańcucha
             {"kind": "const:screenshot", "path": "str", "bytes": "int",
              "fullSize": ["int"], "via": "str"},
-            # Degraded (portal-denied / placeholder) — BRAK path/fullSize; nie da się łańcuchować
-            {"kind": "const:screenshot", "degraded": "const:true",
-             "degradedReason": "str", "bytes": "int"},
+            # Degraded — DWA kształty: placeholder (ma kind+bytes) i portal-denied/backend-error
+            # (urirun.ok(degraded=True, degradedReason, platform) — BEZ kind/bytes). Wspólny rdzeń:
+            # degraded:true + degradedReason; kind/bytes/path to nadmiar dozwolony, gdy są.
+            {"degraded": "const:true", "degradedReason": "str"},
             # Fallback CDP — realny zrzut STRONY przeglądarki (portal OS zablokowany, CDP osiągalny);
             # viewport, nie cały pulpit, więc bez fullSize — `scope` to oznacza
             {"kind": "const:screenshot", "path": "str", "bytes": "int",
