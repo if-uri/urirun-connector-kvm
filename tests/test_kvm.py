@@ -191,6 +191,7 @@ def test_capture_single_monitor_connector_does_not_collide_with_connector_id(mon
                 "monitors": [{"index": 3, "connector": "DP-1"}]}
 
     monkeypatch.setattr(B, "dispatch", _dispatch)
+    monkeypatch.setattr(B, "_gnome_monitors", lambda: [{"index": 3, "connector": "DP-1"}])
     monkeypatch.setattr(core.os.path, "getsize", lambda _p: 204931)
     monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
 
@@ -216,6 +217,7 @@ def test_capture_single_monitor_narrows_bbox_to_that_monitor(monkeypatch) -> Non
                 "bbox": [0, 0, 5888, 2889], "width": 2560, "height": 1600}
 
     monkeypatch.setattr(B, "dispatch", _dispatch)
+    monkeypatch.setattr(B, "_gnome_monitors", lambda: monitors)
     monkeypatch.setattr(core.os.path, "getsize", lambda _p: 204931)
     monkeypatch.setattr(core.os.path, "exists", lambda _p: True)
 
@@ -224,6 +226,24 @@ def test_capture_single_monitor_narrows_bbox_to_that_monitor(monkeypatch) -> Non
     assert r["ok"] is True
     assert r["scope"] == "monitor" and r["monitor"] == 3
     assert r["bbox"] == [0, 329, 2048, 1280]       # DP-1's region, not [0, 0, 5888, 2889]
+
+
+def test_capture_rejects_requested_monitor_outside_backend_inventory(monkeypatch) -> None:
+    # Regression: the Mutter backend used to fall back to the primary monitor when a requested
+    # monitor index was outside the live inventory, producing ok:true with the wrong screenshot.
+    def _dispatch(action, **kw):
+        return {"backend": "mutter", "via": "mutter-screencast", "path": kw.get("output"),
+                "scope": "monitor", "connector": "HDMI-1", "monitor": 3,
+                "monitors": [{"index": 1, "connector": "HDMI-1"},
+                             {"index": 2, "connector": "DP-2"}],
+                "bbox": [0, 0, 4864, 2160], "width": 1024, "height": 768}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = capture(output="/tmp/m3.png", monitor=3)
+
+    assert r["ok"] is False
+    assert "monitor 3 not available" in r["error"]
 
 
 def test_window_list_passes_app_title_selector(monkeypatch) -> None:
@@ -256,6 +276,19 @@ def test_monitor_for_bbox_uses_logical_monitor_geometry() -> None:
 
     assert B._monitor_for_bbox([2600, 100, 1200, 900], monitors)["index"] == 2
     assert B._monitor_for_bbox([200, 500, 1000, 800], monitors)["index"] == 3
+
+
+def test_monitor_for_bbox_handles_atspi_local_origin_on_top_monitor() -> None:
+    monitors = [
+        {"index": 1, "connector": "HDMI-1", "x": 0, "y": 1609, "logicalWidth": 2048, "logicalHeight": 1280},
+        {"index": 2, "connector": "DP-2", "x": 2048, "y": 0, "logicalWidth": 3840, "logicalHeight": 2160},
+        {"index": 3, "connector": "DP-1", "x": 0, "y": 329, "logicalWidth": 2048, "logicalHeight": 1280},
+    ]
+
+    # Real GNOME/Wayland trace: AT-SPI reported Chrome as [0,0,2113,1592].
+    # Treat that as monitor-local top-origin and choose the 4K top monitor,
+    # instead of selecting DP-1 by accidental overlap.
+    assert B._monitor_for_bbox([0, 0, 2113, 1592], monitors)["index"] == 2
 
 
 def test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatch) -> None:

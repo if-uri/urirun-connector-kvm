@@ -315,6 +315,10 @@ if not record_all:
         num = 0
     if num > 0 and num <= len(monitors):
         conn = monitors[num - 1]["connector"]
+    elif num > 0:
+        print("monitor %s not available; active monitors: %s" %
+              (num, ",".join(str(m.get("index")) for m in monitors)), file=sys.stderr)
+        sys.exit(4)
     else:
         conn = primary
     if not conn: print("no active monitor", file=sys.stderr); sys.exit(4)
@@ -442,6 +446,8 @@ def _cap_mss(output: str, monitor: int = 0, **_: Any) -> dict:
     import mss.tools as _mss_tools  # `import mss` alone does not expose mss.tools
     with _mss.mss() as sct:
         mons = sct.monitors
+        if monitor > 0 and monitor >= len(mons):
+            raise BackendError(f"monitor {monitor} not available; active monitors: 1..{max(0, len(mons) - 1)}")
         mon = mons[monitor if 0 <= monitor < len(mons) else 0]
         img = sct.grab(mon)
         _mss_tools.to_png(img.rgb, img.size, output=output)
@@ -457,7 +463,9 @@ def _cap_pillow(output: str, **_: Any) -> dict:
 
 @backend("capture", "scrot", priority=60,
          platforms=("linux-x11", "linux-wayland"), needs_bin=("scrot",))
-def _cap_scrot(output: str, **_: Any) -> dict:
+def _cap_scrot(output: str, monitor: int = 0, **_: Any) -> dict:
+    if int(monitor or 0) > 0:
+        raise BackendError("scrot captures the whole X11 root and cannot target a specific monitor")
     # On XWayland sessions DISPLAY is available even when WAYLAND_DISPLAY is set;
     # scrot uses X11 so it works in that environment.
     env = session_env()
@@ -468,14 +476,18 @@ def _cap_scrot(output: str, **_: Any) -> dict:
 
 
 @backend("capture", "imagemagick", priority=40, platforms=("linux-x11",), needs_bin=("import",))
-def _cap_im(output: str, **_: Any) -> dict:
+def _cap_im(output: str, monitor: int = 0, **_: Any) -> dict:
+    if int(monitor or 0) > 0:
+        raise BackendError("imagemagick root capture cannot target a specific monitor")
     _run(["import", "-window", "root", output])
     return {"path": output, "via": "imagemagick", "bytes": _require_nonempty(output, "imagemagick")}
 
 
 @backend("capture", "gnome-screenshot", priority=35,
          platforms=("linux-x11", "linux-wayland"), needs_bin=("gnome-screenshot",))
-def _cap_gnome(output: str, **_: Any) -> dict:
+def _cap_gnome(output: str, monitor: int = 0, **_: Any) -> dict:
+    if int(monitor or 0) > 0:
+        raise BackendError("gnome-screenshot cannot target a specific monitor")
     _run(["gnome-screenshot", "-f", output], timeout=20)
     return {"path": output, "via": "gnome-screenshot", "bytes": _require_nonempty(output, "gnome-screenshot")}
 
@@ -878,6 +890,22 @@ def _monitor_for_bbox(bbox: list | None, monitors: list[dict]) -> dict | None:
     if not bbox or len(bbox) < 4:
         return None
     x, y, w, h = [int(v) for v in bbox[:4]]
+    if len(monitors or []) > 1 and abs(x) <= 8 and abs(y) <= 8:
+        # AT-SPI on GNOME/Wayland may report a top-level frame in monitor-local
+        # coordinates. In a stacked layout this can otherwise overlap the monitor
+        # below and select it by area, even though the local [0,0] frame belongs
+        # to the top monitor (the common 4K-at-top case).
+        min_y = min(int(mon.get("y") or 0) for mon in monitors or [])
+        top = [mon for mon in monitors or [] if int(mon.get("y") or 0) == min_y]
+        if top:
+            def _fits(mon: dict) -> bool:
+                mw = int(mon.get("logicalWidth") or mon.get("width") or 0)
+                mh = int(mon.get("logicalHeight") or mon.get("height") or 0)
+                return w <= mw + 96 and h <= mh + 96
+            fits = [mon for mon in top if _fits(mon)]
+            if fits:
+                return max(fits, key=lambda mon: int(mon.get("logicalWidth") or mon.get("width") or 0)
+                           * int(mon.get("logicalHeight") or mon.get("height") or 0))
     cx, cy = x + max(0, w) / 2, y + max(0, h) / 2
     best: tuple[int, dict] | None = None
     for mon in monitors or []:

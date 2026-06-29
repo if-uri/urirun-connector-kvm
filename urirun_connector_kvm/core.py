@@ -232,6 +232,47 @@ def _single_monitor_bbox(payload: dict[str, Any]) -> list | None:
     return None
 
 
+def _missing_requested_monitor(monitor: int, backend_result: dict[str, Any]) -> str | None:
+    if int(monitor or 0) <= 0:
+        return None
+    if str(backend_result.get("scope") or "").strip().lower() not in {"", "monitor"}:
+        return None
+    monitors = backend_result.get("monitors")
+    if not isinstance(monitors, list) or not monitors:
+        return None
+    ids = sorted(
+        int(m.get("index"))
+        for m in monitors
+        if isinstance(m, dict) and isinstance(m.get("index"), int)
+    )
+    if int(monitor) in ids:
+        return None
+    available = ", ".join(str(i) for i in ids) or "none"
+    return f"monitor {int(monitor)} not available; active monitors: {available}"
+
+
+def _missing_requested_monitor_from_inventory(monitor: int, scope: str = "") -> str | None:
+    if int(monitor or 0) <= 0:
+        return None
+    if str(scope or "").strip().lower() in {"all", "all-monitors", "desktop"}:
+        return None
+    try:
+        monitors = B._gnome_monitors()
+    except Exception:  # noqa: BLE001 - inventory is best-effort; backend guard still applies
+        monitors = []
+    if not monitors:
+        return None
+    ids = sorted(
+        int(m.get("index"))
+        for m in monitors
+        if isinstance(m, dict) and isinstance(m.get("index"), int)
+    )
+    if int(monitor) in ids:
+        return None
+    available = ", ".join(str(i) for i in ids) or "none"
+    return f"monitor {int(monitor)} not available; active monitors: {available}"
+
+
 @conn.handler("screen/query/capture", isolated=True, meta={"label": "Capture the screen (auto backend)"})
 def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
             cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0,
@@ -259,6 +300,8 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
                 with open(out, "rb") as fh:
                     shot["pngBase64"] = _b64.b64encode(fh.read()).decode()
             return urirun.tag(_ok(**shot), "screenshot")
+    if missing := _missing_requested_monitor_from_inventory(monitor, scope):
+        return _fail_from("capture", B.BackendError(missing))
     try:
         res = B.dispatch("capture", output=out, monitor=monitor, scope=scope)
     except B.BackendError as exc:
@@ -273,6 +316,8 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
                 degraded=True, degradedReason=msg, platform=B.platform_tag(),
                 **({"need": _need} if _need else {})))
         return _fail_from("capture", exc)
+    if missing := _missing_requested_monitor(monitor, res):
+        return _fail_from("capture", B.BackendError(missing))
     full = crop = None
     try:
         full, crop = _apply_capture_postprocessing(out, cx, cy, zoom, crop_w, crop_h, max_width)
