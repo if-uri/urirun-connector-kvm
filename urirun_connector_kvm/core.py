@@ -273,6 +273,65 @@ def _missing_requested_monitor_from_inventory(monitor: int, scope: str = "") -> 
     return f"monitor {int(monitor)} not available; active monitors: {available}"
 
 
+def _resolve_output_path(output: str) -> str:
+    """Return the absolute path where the screenshot will be written."""
+    _art_root = os.path.expanduser(os.environ.get("URIRUN_ARTIFACT_DIR", "~/.urirun/artifacts"))
+    _shot_dir = os.path.join(_art_root, "screenshots")
+    if output and os.path.isabs(output):
+        return output
+    os.makedirs(_shot_dir, exist_ok=True)
+    name = os.path.basename(output) if output else f"urirun-kvm-shot-{os.getpid()}.png"
+    return os.path.join(_shot_dir, name)
+
+
+def _build_capture_payload(
+    out: str, res: dict, cx: int, cy: int,
+    zoom: int, crop_w: int, crop_h: int, max_width: int,
+) -> dict[str, Any]:
+    """Assemble and post-process the capture result payload."""
+    full = crop = None
+    try:
+        full, crop = _apply_capture_postprocessing(out, cx, cy, zoom, crop_w, crop_h, max_width)
+    except Exception:  # noqa: BLE001 - PIL optional; keep raw capture
+        pass
+    payload: dict[str, Any] = {
+        "kind": "screenshot", "path": out, "monitor": res.get("monitor"),
+        "via": res.get("via"), "backend": res.get("backend"),
+        "fullSize": full, "crop": crop,
+        "bytes": os.path.getsize(out) if os.path.exists(out) else 0,
+    }
+    for key in ("scope", "monitors", "bbox", "width", "height"):
+        if res.get(key) not in (None, "", []):
+            payload[key] = res.get(key)
+    if res.get("connector"):
+        payload["outputConnector"] = res["connector"]
+    mon_bbox = _single_monitor_bbox(payload)
+    if mon_bbox is not None:
+        payload["bbox"] = mon_bbox
+    return payload
+
+
+def _placeholder_guard(
+    payload: dict[str, Any], res: dict, out: str, base64: bool
+) -> dict[str, Any] | None:
+    """Return a degraded/CDP result if the file looks like a blocked-session placeholder, else None."""
+    if payload["bytes"] == 0 or (
+        payload["bytes"] < _MIN_REAL_SHOT_BYTES
+        and res.get("via") in {"xdg-portal", "mutter-screencast"}
+    ):
+        _via = res.get("via") or "unknown"
+        return _cdp_fallback_or(out, base64, urirun.ok(
+            connector=CONNECTOR_ID, action="capture", degraded=True, kind="screenshot",
+            degradedReason=(
+                f"{_via} returned a {payload['bytes']}-byte placeholder (empty/blocked) — not "
+                "a real screenshot; needs a GUI session or the grim/mutter/CDP backend"
+            ),
+            via=_via, backend=res.get("backend"), bytes=payload["bytes"], path=out,
+            platform=B.platform_tag(),
+        ))
+    return None
+
+
 @conn.handler("screen/query/capture", isolated=True, meta={"label": "Capture the screen (auto backend)"})
 def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
             cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0,
@@ -285,14 +344,7 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     ``crop`` in the result gives the tile's origin/size for mapping coords back.
     ``scope='browser'`` means a prior CDP browser step owns the visual surface, so prefer
     a viewport screenshot over an arbitrary OS monitor on multi-monitor sessions."""
-    _art_root = os.path.expanduser(os.environ.get("URIRUN_ARTIFACT_DIR", "~/.urirun/artifacts"))
-    _shot_dir = os.path.join(_art_root, "screenshots")
-    if output and os.path.isabs(output):
-        out = output
-    else:
-        os.makedirs(_shot_dir, exist_ok=True)
-        name = os.path.basename(output) if output else f"urirun-kvm-shot-{os.getpid()}.png"
-        out = os.path.join(_shot_dir, name)
+    out = _resolve_output_path(output)
     if _browser_capture_requested(scope):
         shot = _cdp_capture(out)
         if shot is not None:
@@ -318,45 +370,9 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
         return _fail_from("capture", exc)
     if missing := _missing_requested_monitor(monitor, res):
         return _fail_from("capture", B.BackendError(missing))
-    full = crop = None
-    try:
-        full, crop = _apply_capture_postprocessing(out, cx, cy, zoom, crop_w, crop_h, max_width)
-    except Exception:  # noqa: BLE001 - PIL optional; keep raw capture
-        pass
-    payload: dict[str, Any] = {"kind": "screenshot", "path": out, "monitor": monitor,
-                               "via": res.get("via"), "backend": res.get("backend"),
-                               "fullSize": full, "crop": crop,
-                               "bytes": os.path.getsize(out) if os.path.exists(out) else 0}
-    for key in ("scope", "monitors", "bbox", "width", "height"):
-        if res.get(key) not in (None, "", []):
-            payload[key] = res.get(key)
-    # The backend's "connector" is the captured monitor's OUTPUT name (e.g. "DP-1"), NOT the
-    # urirun connector id. Carry it under a distinct key so it does not shadow connector="kvm"
-    # that _ok() injects — copying it as "connector" raised TypeError: urirun.ok() got multiple
-    # values for keyword argument 'connector' whenever a specific monitor was captured.
-    if res.get("connector"):
-        payload["outputConnector"] = res["connector"]
-    # Narrow the union desktop bbox to the captured monitor's region for a single-monitor scope,
-    # so bbox describes the frame actually produced rather than the whole virtual desktop.
-    _mon_bbox = _single_monitor_bbox(payload)
-    if _mon_bbox is not None:
-        payload["bbox"] = _mon_bbox
-    # False-success guard (ANY backend): a tiny/empty file is not a real screenshot — a Wayland
-    # xdg-portal PLACEHOLDER (~3.8 KB), but ALSO a 0-byte gnome-screenshot/scrot that exits 0 yet
-    # writes nothing on a blocked session. A healthy mutter/grim/gnome frame is hundreds of KB.
-    # Returning ok here lets the flow trust — and irreversibly log — an empty frame. Report it
-    # DEGRADED (mirrors the portal-denied path) and try the CDP fallback so the twin never records a
-    # false-success capture, regardless of which backend produced the empty file.
-    if payload["bytes"] == 0 or (
-        payload["bytes"] < _MIN_REAL_SHOT_BYTES and res.get("via") in {"xdg-portal", "mutter-screencast"}
-    ):
-        _via = res.get("via") or "unknown"
-        return _cdp_fallback_or(out, base64, urirun.ok(
-            connector=CONNECTOR_ID, action="capture", degraded=True, kind="screenshot",
-            degradedReason=(f"{_via} returned a {payload['bytes']}-byte placeholder (empty/blocked) — not "
-                            f"a real screenshot; needs a GUI session or the grim/mutter/CDP backend"),
-            via=_via, backend=res.get("backend"), bytes=payload["bytes"], path=out,
-            platform=B.platform_tag()))
+    payload = _build_capture_payload(out, res, cx, cy, zoom, crop_w, crop_h, max_width)
+    if guarded := _placeholder_guard(payload, res, out, base64):
+        return guarded
     if base64:
         with open(out, "rb") as fh:
             payload["pngBase64"] = _b64.b64encode(fh.read()).decode()

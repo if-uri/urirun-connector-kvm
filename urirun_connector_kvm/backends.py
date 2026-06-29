@@ -892,33 +892,34 @@ print(json.dumps({"windows": windows}))
 """
 
 
+def _mon_dims(mon: dict) -> tuple[int, int, int, int]:
+    """Return (x, y, logicalWidth, logicalHeight) from a monitor dict."""
+    mx = int(mon.get("x") or 0)
+    my = int(mon.get("y") or 0)
+    mw = int(mon.get("logicalWidth") or mon.get("width") or 0)
+    mh = int(mon.get("logicalHeight") or mon.get("height") or 0)
+    return mx, my, mw, mh
+
+
 def _monitor_for_bbox(bbox: list | None, monitors: list[dict]) -> dict | None:
     if not bbox or len(bbox) < 4:
         return None
     x, y, w, h = [int(v) for v in bbox[:4]]
-    if len(monitors or []) > 1 and abs(x) <= 8 and abs(y) <= 8:
+    mons = monitors or []
+    if len(mons) > 1 and abs(x) <= 8 and abs(y) <= 8:
         # AT-SPI on GNOME/Wayland may report a top-level frame in monitor-local
         # coordinates. In a stacked layout this can otherwise overlap the monitor
         # below and select it by area, even though the local [0,0] frame belongs
         # to the top monitor (the common 4K-at-top case).
-        min_y = min(int(mon.get("y") or 0) for mon in monitors or [])
-        top = [mon for mon in monitors or [] if int(mon.get("y") or 0) == min_y]
-        if top:
-            def _fits(mon: dict) -> bool:
-                mw = int(mon.get("logicalWidth") or mon.get("width") or 0)
-                mh = int(mon.get("logicalHeight") or mon.get("height") or 0)
-                return w <= mw + 96 and h <= mh + 96
-            fits = [mon for mon in top if _fits(mon)]
-            if fits:
-                return max(fits, key=lambda mon: int(mon.get("logicalWidth") or mon.get("width") or 0)
-                           * int(mon.get("logicalHeight") or mon.get("height") or 0))
+        min_y = min(_mon_dims(mon)[1] for mon in mons)
+        top = [mon for mon in mons if _mon_dims(mon)[1] == min_y]
+        fits = [mon for mon in top if w <= _mon_dims(mon)[2] + 96 and h <= _mon_dims(mon)[3] + 96]
+        if fits:
+            return max(fits, key=lambda mon: _mon_dims(mon)[2] * _mon_dims(mon)[3])
     cx, cy = x + max(0, w) / 2, y + max(0, h) / 2
     best: tuple[int, dict] | None = None
-    for mon in monitors or []:
-        mx = int(mon.get("x") or 0)
-        my = int(mon.get("y") or 0)
-        mw = int(mon.get("logicalWidth") or mon.get("width") or 0)
-        mh = int(mon.get("logicalHeight") or mon.get("height") or 0)
+    for mon in mons:
+        mx, my, mw, mh = _mon_dims(mon)
         if mw <= 0 or mh <= 0:
             continue
         if mx <= cx < mx + mw and my <= cy < my + mh:
@@ -943,8 +944,7 @@ def _attest_window_monitor(bbox: list | None, mon: dict | None) -> dict | None:
     if not (bbox and len(bbox) >= 4 and isinstance(mon, dict)):
         return None
     w, h = int(bbox[2]), int(bbox[3])
-    mw = int(mon.get("logicalWidth") or mon.get("width") or 0)
-    mh = int(mon.get("logicalHeight") or mon.get("height") or 0)
+    _, _, mw, mh = _mon_dims(mon)
     fits = (mw <= 0 or w <= mw + 96) and (mh <= 0 or h <= mh + 96)
     conn = mon.get("connector")
     return {"ok": bool(fits), "monitor": mon.get("index"), "connector": conn, "fits": bool(fits),
