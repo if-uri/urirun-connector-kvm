@@ -291,6 +291,18 @@ def test_monitor_for_bbox_handles_atspi_local_origin_on_top_monitor() -> None:
     assert B._monitor_for_bbox([0, 0, 2113, 1592], monitors)["index"] == 2
 
 
+def test_attest_window_monitor_flags_oversized_window_label() -> None:
+    # The DP-2/DP-1 data-bug class: a 4K Chrome frame mislabelled onto a smaller monitor.
+    # Independent size redundancy must flag it (a window cannot be larger than its display) —
+    # downstream captured==selected would NOT, because the bad value propagates.
+    dp1 = {"index": 3, "connector": "DP-1", "logicalWidth": 2048, "logicalHeight": 1280}
+    dp2 = {"index": 2, "connector": "DP-2", "logicalWidth": 3840, "logicalHeight": 2160}
+    bad = B._attest_window_monitor([2048, 0, 2113, 1592], dp1)
+    assert bad["ok"] is False and "does NOT fit" in bad["detail"]
+    good = B._attest_window_monitor([2048, 0, 2113, 1592], dp2)
+    assert good["ok"] is True
+
+
 def test_capture_xdg_portal_placeholder_is_degraded_not_false_success(monkeypatch) -> None:
     """A tiny xdg-portal capture (~3.8 KB) is the empty/blocked-portal placeholder, not a real
     screenshot. It must come back degraded — never a false ok — so the flow's degraded handling keeps

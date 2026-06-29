@@ -925,6 +925,27 @@ def _monitor_for_bbox(bbox: list | None, monitors: list[dict]) -> dict | None:
     return best[1] if best else None
 
 
+def _attest_window_monitor(bbox: list | None, mon: dict | None) -> dict | None:
+    """Independent geometry redundancy for a window→monitor label (the DP-2/DP-1 data-bug class).
+
+    ``mon`` was chosen by position (``_monitor_for_bbox``). Cross-check it a SECOND, independent
+    way: a window cannot be larger than the display it is on, so it must FIT in ``mon``. When a
+    window is bigger than its assigned monitor the label is a lie — exactly how DP-2 (4K) got
+    mislabelled DP-1 (a 2113x1592 Chrome frame cannot live on a 2048x1280 output). Emitting this
+    attestation makes the seam self-report instead of trusting the position heuristic silently;
+    ``ok: false`` is the layer-attribution signal a postcondition checker reads."""
+    if not (bbox and len(bbox) >= 4 and isinstance(mon, dict)):
+        return None
+    w, h = int(bbox[2]), int(bbox[3])
+    mw = int(mon.get("logicalWidth") or mon.get("width") or 0)
+    mh = int(mon.get("logicalHeight") or mon.get("height") or 0)
+    fits = (mw <= 0 or w <= mw + 96) and (mh <= 0 or h <= mh + 96)
+    conn = mon.get("connector")
+    return {"ok": bool(fits), "monitor": mon.get("index"), "connector": conn, "fits": bool(fits),
+            "detail": (f"window {w}x{h} fits {conn} {mw}x{mh}" if fits
+                       else f"window {w}x{h} does NOT fit monitor {conn} {mw}x{mh} — label suspect")}
+
+
 @backend("window_list", "atspi", priority=85, platforms=("linux-wayland", "linux-x11"))
 def _winlist_atspi(app: str = "", title: str = "", **_: Any) -> dict:
     py = _atspi_python()
@@ -946,6 +967,10 @@ def _winlist_atspi(app: str = "", title: str = "", **_: Any) -> dict:
         if mon:
             item["monitor"] = mon.get("index")
             item["monitorConnector"] = mon.get("connector")
+            # L8 self-attestation: independent size-fit redundancy on the monitor label.
+            att = _attest_window_monitor(win.get("bbox"), mon)
+            if att is not None:
+                item["monitorAttestation"] = att
         enriched.append(item)
     selected = enriched[0] if enriched else None
     return {"via": "atspi", "windows": enriched, "selected": selected, "monitors": monitors}
