@@ -267,6 +267,42 @@ def test_window_list_passes_app_title_selector(monkeypatch) -> None:
     assert r["selected"]["monitor"] == 2
 
 
+def test_atspi_window_list_uses_long_timeout_and_monitor_inventory(monkeypatch) -> None:
+    seen = {}
+
+    class Proc:
+        stdout = json.dumps({
+            "windows": [{
+                "app": "Google Chrome",
+                "title": "Chrome",
+                "role": "frame",
+                "bbox": [2048, 0, 1200, 900],
+            }]
+        })
+
+    monkeypatch.setattr(B, "_atspi_python", lambda: "/usr/bin/python3")
+    monkeypatch.setattr(B, "session_env", lambda: {"DISPLAY": ":0"})
+    monkeypatch.setattr(B, "_gnome_monitors", lambda: [
+        {"index": 1, "connector": "HDMI-1", "x": 0, "y": 1609, "logicalWidth": 2048, "logicalHeight": 1280},
+        {"index": 2, "connector": "DP-2", "x": 2048, "y": 0, "logicalWidth": 3840, "logicalHeight": 2160},
+    ])
+
+    def _run(argv, *, env=None, timeout=30):
+        seen["argv"] = argv
+        seen["env"] = env
+        seen["timeout"] = timeout
+        return Proc()
+
+    monkeypatch.setattr(B, "_run", _run)
+
+    r = B._winlist_atspi(app="chrome")
+
+    assert seen["timeout"] == 25
+    assert json.loads(seen["argv"][-1]) == {"app": "chrome", "title": ""}
+    assert r["selected"]["monitor"] == 2
+    assert r["selected"]["monitorConnector"] == "DP-2"
+
+
 def test_monitor_for_bbox_uses_logical_monitor_geometry() -> None:
     monitors = [
         {"index": 1, "connector": "HDMI-1", "x": 0, "y": 1609, "logicalWidth": 2048, "logicalHeight": 1280},

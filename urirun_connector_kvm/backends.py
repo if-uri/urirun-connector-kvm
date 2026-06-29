@@ -861,7 +861,14 @@ for i in range(desktop.get_child_count()):
         app_name = app.get_name() or ""
     except Exception:
         app_name = ""
-    for j in range(app.get_child_count()):
+    hay_app = app_name.lower()
+    if app_q and not title_q and app_q not in hay_app:
+        continue
+    try:
+        child_count = app.get_child_count()
+    except Exception:
+        child_count = 0
+    for j in range(max(0, child_count)):
         frame = app.get_child_at_index(j)
         if frame is None:
             continue
@@ -870,7 +877,6 @@ for i in range(desktop.get_child_count()):
             role = frame.get_role_name() or ""
         except Exception:
             continue
-        hay_app = app_name.lower()
         hay_title = title.lower()
         if app_q and app_q not in hay_app and app_q not in hay_title:
             continue
@@ -952,7 +958,7 @@ def _winlist_atspi(app: str = "", title: str = "", **_: Any) -> dict:
     if not py:
         raise BackendError("AT-SPI window list needs python3 with gi + Atspi (install python3-gobject + gnome a11y)")
     payload = json.dumps({"app": app, "title": title})
-    p = _run([py, "-c", _ATSPI_WINDOW_LIST_SCRIPT, payload], env=session_env(), timeout=12)
+    p = _run([py, "-c", _ATSPI_WINDOW_LIST_SCRIPT, payload], env=session_env(), timeout=25)
     data = json.loads((p.stdout or "{}").strip() or "{}")
     windows = data.get("windows") if isinstance(data, dict) else []
     if not isinstance(windows, list):
