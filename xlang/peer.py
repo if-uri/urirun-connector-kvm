@@ -57,7 +57,7 @@ def handle(route: str, payload: dict, lie: bool = False) -> dict:
     (inaczej dowód byłby cyrkularny). To jest „node" odpytywany przez zewnętrzny driver."""
     if route == "screen/query/capture":
         return {"ok": True, "connector": "kvm", "action": "capture", "kind": "screenshot",
-                "path": "/home/u/.urirun/artifacts/s.png", "bytes": 204931,
+                "path": "~/.urirun/artifacts/s.png", "bytes": 204931,
                 "fullSize": [2560, 1440], "via": "py-serve"}
     if route == "abs/command/click":
         sw, sh = payload.get("sw", 1920), payload.get("sh", 1080)

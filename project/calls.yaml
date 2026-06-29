@@ -1,4 +1,4 @@
-project: /home/tom/github/if-uri/urirun-connector-kvm
+project: ~/github/if-uri/urirun-connector-kvm
 generated_from: code2llm call graph analysis
 stats:
   total_nodes: 255

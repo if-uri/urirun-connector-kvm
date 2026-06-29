@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 command -v node >/dev/null 2>&1 || { echo "SKIP: node nieobecny — pomijam driver konformansu"; exit 0; }
 command -v go   >/dev/null 2>&1 || { echo "SKIP: go nieobecny — pomijam driver konformansu"; exit 0; }
 
-TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}"
+TOOLKIT="${URIRUN_TOOLKIT:-~/github/if-uri/urirun/adapters/python}"
 export PYTHONPATH="..:${TOOLKIT}"
 
 python emit_contracts.py

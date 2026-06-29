@@ -16,7 +16,7 @@ export const click: Out_abs_command_click = {
 // Wariant sukcesu unii capture (oneOf→union): niesie path + fullSize.
 export const shot: Out_screen_query_capture = {
   kind: "screenshot",
-  path: "/home/u/.urirun/artifacts/s.png",
+  path: "~/.urirun/artifacts/s.png",
   bytes: 204931,
   fullSize: [2560, 1440],
   via: "grim",

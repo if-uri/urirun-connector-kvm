@@ -43,7 +43,7 @@ def main() -> int:
     parser.add_argument(
         "--node",
         type=str,
-        default="http://192.168.188.201:8766",
+        default="http://localhost:8766",
         help="urirun node URL (for --env kvm): drives a real desktop via kvm:// routes.",
     )
     parser.add_argument(

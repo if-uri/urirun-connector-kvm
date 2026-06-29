@@ -11,7 +11,7 @@ cd "$(dirname "$0")"
 
 command -v tsc >/dev/null 2>&1 || { echo "SKIP: brak tsc — pomijam dowód czasu kompilacji"; exit 0; }
 
-TOOLKIT="${URIRUN_TOOLKIT:-/home/tom/github/if-uri/urirun/adapters/python}"
+TOOLKIT="${URIRUN_TOOLKIT:-~/github/if-uri/urirun/adapters/python}"
 PYTHONPATH="..:${TOOLKIT}" python emit_typescript.py
 echo
 

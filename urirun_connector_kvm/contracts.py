@@ -96,7 +96,7 @@ CONTRACTS: dict[str, Contract] = {
         examples=(
             {"payload": {"base64": False},
              "result": {"ok": True, "connector": "kvm", "action": "capture",
-                        "kind": "screenshot", "path": "/home/u/.urirun/artifacts/s.png",
+                        "kind": "screenshot", "path": "~/.urirun/artifacts/s.png",
                         "bytes": 204931, "fullSize": [2560, 1440], "via": "grim"}},
             {"payload": {},
              "result": {"ok": True, "connector": "kvm", "action": "capture",
@@ -104,7 +104,7 @@ CONTRACTS: dict[str, Contract] = {
                         "degradedReason": "xdg-portal returned a 3811-byte placeholder"}},
             {"payload": {"scope": "browser"},
              "result": {"ok": True, "connector": "kvm", "kind": "screenshot",
-                        "path": "/home/u/.urirun/artifacts/screenshots/shot.png", "bytes": 66573,
+                        "path": "~/.urirun/artifacts/screenshots/shot.png", "bytes": 66573,
                         "via": "cdp", "backend": "cdp-page", "scope": "browser-page"}},
         ),
     ),
