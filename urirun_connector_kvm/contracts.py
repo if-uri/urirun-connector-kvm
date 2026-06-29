@@ -76,7 +76,7 @@ CONTRACTS: dict[str, Contract] = {
                 "allValue": -1,
                 "emptyValues": [0, ""],
                 "preference": "screen.capture.default",
-                "skipWhen": {"scope": ["all", "all-monitors", "desktop"]},
+                "skipWhen": {"scope": ["all", "all-monitors", "desktop", "browser", "browser-page"]},
             },
         },
         out={"oneOf": [
