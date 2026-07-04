@@ -1254,6 +1254,12 @@ def vnc_click(text: str = "", x: int = -1, y: int = -1, button: int = 1, double:
             if verify:
                 time.sleep(min(float(settle), 15.0))
                 check = _vnc_find_on(v.grab(c)["path"], verify)
+                if not check.get("found"):
+                    # one re-look: a single frame can catch mid-render UI or the pointer
+                    # glyph sitting ON the verify text (seen live: the cursor over a fresh
+                    # fluxbox menu row mangled its OCR) — frame noise, not a real failure
+                    time.sleep(0.6)
+                    check = _vnc_find_on(v.grab(c)["path"], verify)
                 out["verified"] = bool(check.get("found"))
                 out["verify"] = {"text": verify, **({"center": check["center"]} if check.get("found") else
                                                     {"misses": check.get("misses")})}
