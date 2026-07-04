@@ -1240,23 +1240,23 @@ def vnc_click(text: str = "", x: int = -1, y: int = -1, button: int = 1, double:
     try:
         v = _vnc_surface()
         hit: dict[str, Any] = {}
-        if text:
-            shot = v.capture(target=target)
-            hit = _vnc_find_on(shot["path"], text)
-            if not hit.get("found"):
-                return urirun.fail(f"vnc-click: {text!r} not located on remote frame",
-                                   connector=CONNECTOR_ID, misses=hit.get("misses"))
-            x, y = hit["center"]
-        if x < 0 or y < 0:
-            return urirun.fail("vnc-click: give text or x/y", connector=CONNECTOR_ID)
-        res = v.click(x, y, button=button, double=double, target=target)
-        out = _ok(action="click", located=hit.get("center"), source=hit.get("source"), **res)
-        if verify:
-            time.sleep(min(float(settle), 15.0))
-            check = _vnc_find_on(v.capture(target=target)["path"], verify)
-            out["verified"] = bool(check.get("found"))
-            out["verify"] = {"text": verify, **({"center": check["center"]} if check.get("found") else
-                                                {"misses": check.get("misses")})}
+        with v.session(target) as c:      # ONE RFB session per process (see vnc.py)
+            if text:
+                hit = _vnc_find_on(v.grab(c)["path"], text)
+                if not hit.get("found"):
+                    return urirun.fail(f"vnc-click: {text!r} not located on remote frame",
+                                       connector=CONNECTOR_ID, misses=hit.get("misses"))
+                x, y = hit["center"]
+            if x < 0 or y < 0:
+                return urirun.fail("vnc-click: give text or x/y", connector=CONNECTOR_ID)
+            res = v.click_at(c, x, y, button=button, double=double)
+            out = _ok(action="click", located=hit.get("center"), source=hit.get("source"), **res)
+            if verify:
+                time.sleep(min(float(settle), 15.0))
+                check = _vnc_find_on(v.grab(c)["path"], verify)
+                out["verified"] = bool(check.get("found"))
+                out["verify"] = {"text": verify, **({"center": check["center"]} if check.get("found") else
+                                                    {"misses": check.get("misses")})}
         return out
     except Exception as exc:  # noqa: BLE001
         return _fail_from("vnc-click", exc)

@@ -9,6 +9,12 @@
 # races. Requires the [vnc] extra (vncdotool). The web noVNC client and this surface can be
 # used side by side: a human watches through noVNC while URIs act through RFB.
 #
+# PROCESS MODEL: vncdotool runs a twisted reactor in a NON-daemon thread; a process that
+# connected must call api.shutdown() or it never exits (proven: handler processes hung
+# forever). Reactors don't restart, so the rule is ONE ``session()`` PER PROCESS — which is
+# exactly what isolated=True route handlers get (subprocess per call). Batch every RFB op
+# of one handler inside one ``with session(...)`` block using the client-level helpers.
+#
 # Target resolution order: explicit ``target=`` on the route, else URIRUN_KVM_VNC
 # (vncdotool syntax: 'host::5900' for a raw port, 'host:1' for display :1).
 from __future__ import annotations
@@ -31,8 +37,8 @@ def resolve_target(target: str = "") -> str:
 
 @contextmanager
 def session(target: str = "", password: str | None = None, timeout: float = 12) -> Iterator[Any]:
-    """Connect for one operation batch and always disconnect: routes run isolated
-    (subprocess per call), so a cached client would never be reused anyway."""
+    """One RFB session per process (see PROCESS MODEL above): connect, yield the client,
+    then disconnect AND stop the reactor so the process can exit."""
     try:
         from vncdotool import api
     except ImportError as exc:  # pragma: no cover - environment-dependent
@@ -41,19 +47,21 @@ def session(target: str = "", password: str | None = None, timeout: float = 12) 
     try:
         yield client
     finally:
-        try:
-            client.disconnect()
-        except Exception:  # noqa: BLE001 - disconnect is best-effort cleanup
-            pass
+        for step in (client.disconnect, api.shutdown):
+            try:
+                step()
+            except Exception:  # noqa: BLE001 - teardown is best-effort, exit must proceed
+                pass
 
 
-def capture(target: str = "", out: str = "", password: str | None = None) -> dict:
-    """Native-resolution framebuffer grab. Returns path + size; size doubles as the
-    coordinate space for click/move (RFB coords == image px, always)."""
+# ---- client-level ops: compose several inside ONE session ----------------------------
+
+def grab(client: Any, out: str = "") -> dict:
+    """Native-resolution framebuffer grab. Returned size doubles as the coordinate
+    space for click/move (RFB coords == image px, always)."""
     out = out or os.path.join(_shots_dir(), "vnc_capture.png")
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    with session(target, password) as c:
-        c.captureScreen(out)
+    client.captureScreen(out)
     w = h = None
     try:
         from PIL import Image
@@ -64,16 +72,55 @@ def capture(target: str = "", out: str = "", password: str | None = None) -> dic
     return {"path": out, "width": w, "height": h, "via": "rfb", "coord_space": "framebuffer-px"}
 
 
+def click_at(client: Any, x: int, y: int, button: int = 1, double: bool = False) -> dict:
+    """Pointer press+release at EXACT framebuffer coords (1=left 2=middle 3=right)."""
+    client.mouseMove(int(x), int(y))
+    client.mousePress(int(button))
+    if double:
+        client.pause(0.08)
+        client.mousePress(int(button))
+    return {"clicked": [int(x), int(y)], "button": int(button), "double": bool(double), "via": "rfb"}
+
+
+_CHAR_KEYS = {" ": "space", "\n": "enter", "\t": "tab"}
+
+
+def type_on(client: Any, text: str, enter: bool = False) -> dict:
+    """Type text char-by-char as RFB key events (keysyms carry case/symbols natively —
+    no host keyboard-layout dependency, unlike ydotool/xdotool)."""
+    for ch in text:
+        client.keyPress(_CHAR_KEYS.get(ch, ch))
+    if enter:
+        client.keyPress("enter")
+    return {"typed": len(text), "enter": bool(enter), "via": "rfb"}
+
+
+def combo_on(client: Any, combo: str) -> dict:
+    """Press a chord like 'ctrl-alt-t', 'alt-F2', 'enter': modifiers held, final key
+    pressed, modifiers released in reverse order."""
+    parts = [p for p in combo.replace("+", "-").split("-") if p]
+    if not parts:
+        raise VncError("empty key combo")
+    mods, last = parts[:-1], parts[-1]
+    for m in mods:
+        client.keyDown(m)
+    client.keyPress(_CHAR_KEYS.get(last, last))
+    for m in reversed(mods):
+        client.keyUp(m)
+    return {"combo": combo, "via": "rfb"}
+
+
+# ---- single-op conveniences (each opens THE process's one session) --------------------
+
+def capture(target: str = "", out: str = "", password: str | None = None) -> dict:
+    with session(target, password) as c:
+        return grab(c, out)
+
+
 def click(x: int, y: int, button: int = 1, double: bool = False,
           target: str = "", password: str | None = None) -> dict:
-    """Pointer press+release at EXACT framebuffer coords (1=left 2=middle 3=right)."""
     with session(target, password) as c:
-        c.mouseMove(int(x), int(y))
-        c.mousePress(int(button))
-        if double:
-            c.pause(0.08)
-            c.mousePress(int(button))
-    return {"clicked": [int(x), int(y)], "button": int(button), "double": bool(double), "via": "rfb"}
+        return click_at(c, x, y, button=button, double=double)
 
 
 def move(x: int, y: int, target: str = "", password: str | None = None) -> dict:
@@ -82,34 +129,14 @@ def move(x: int, y: int, target: str = "", password: str | None = None) -> dict:
     return {"moved": [int(x), int(y)], "via": "rfb"}
 
 
-_CHAR_KEYS = {" ": "space", "\n": "enter", "\t": "tab"}
-
-
 def type_text(text: str, enter: bool = False, target: str = "", password: str | None = None) -> dict:
-    """Type text char-by-char as RFB key events (keysyms carry case/symbols natively —
-    no host keyboard-layout dependency, unlike ydotool/xdotool)."""
     with session(target, password) as c:
-        for ch in text:
-            c.keyPress(_CHAR_KEYS.get(ch, ch))
-        if enter:
-            c.keyPress("enter")
-    return {"typed": len(text), "enter": bool(enter), "via": "rfb"}
+        return type_on(c, text, enter=enter)
 
 
 def key_combo(combo: str, target: str = "", password: str | None = None) -> dict:
-    """Press a chord like 'ctrl-alt-t', 'alt-F2', 'enter': modifiers held, final key
-    pressed, modifiers released in reverse order."""
-    parts = [p for p in combo.replace("+", "-").split("-") if p]
-    if not parts:
-        raise VncError("empty key combo")
-    mods, last = parts[:-1], parts[-1]
     with session(target, password) as c:
-        for m in mods:
-            c.keyDown(m)
-        c.keyPress(_CHAR_KEYS.get(last, last))
-        for m in reversed(mods):
-            c.keyUp(m)
-    return {"combo": combo, "via": "rfb"}
+        return combo_on(c, combo)
 
 
 def _shots_dir() -> str:

@@ -1022,3 +1022,38 @@ def test_cdp_shim_uses_real_surface_when_urirun_cdp_present() -> None:
     """With urirun_cdp installed (host), the shim must resolve the canonical surface, not the stub."""
     from urirun_connector_kvm import cdp
     assert cdp.reachable is not None and cdp.navigate is not None
+
+
+# ---- vnc/* RFB surface + locate hardening (noVNC reliability work) --------------------
+
+def test_vnc_routes_guard_inputs(monkeypatch) -> None:
+    """Every vnc route must fail honestly (ok:false), never raise, on missing inputs/target."""
+    monkeypatch.delenv("URIRUN_KVM_VNC", raising=False)
+    assert core.vnc_find()["ok"] is False                       # no text
+    assert core.vnc_type()["ok"] is False                       # no text
+    assert core.vnc_key()["ok"] is False                        # no combo
+    assert core.vnc_click()["ok"] is False                      # no text and no x/y
+    assert core.vnc_status()["ok"] is False                     # no target anywhere
+
+
+def test_fuzzy_line_matches_rescues_ocr_noise() -> None:
+    """OCR splits/mangles labels ('Reconfigure' -> 'Reconfig re'); fuzzy fallback must
+    match them, carry the ratio for audit, and reject unrelated text."""
+    lines = [
+        {"text": "Reconfig re", "conf": 80.0, "box": [10, 20, 100, 14], "center": [60, 27]},
+        {"text": "Norkspaces", "conf": 85.0, "box": [10, 40, 90, 14], "center": [55, 47]},
+        {"text": "Exit", "conf": 96.0, "box": [10, 60, 30, 14], "center": [25, 67]},
+    ]
+    hit = B._fuzzy_line_matches(lines, "reconfigure")
+    assert hit and hit[0]["center"] == [60, 27] and hit[0]["fuzzy"] >= 0.78
+    assert B._fuzzy_line_matches(lines, "workspaces")[0]["text"] == "Norkspaces"
+    assert B._fuzzy_line_matches(lines, "shutdown") == []
+
+
+def test_merge_matches_offsets_and_dedupes() -> None:
+    base = [{"text": "Save", "conf": 90.0, "box": [5, 5, 40, 12], "center": [25, 11]}]
+    band = [{"text": "Save", "conf": 88.0, "box": [5, 2, 40, 12], "center": [25, 8]},   # dup after +3
+            {"text": "Cancel", "conf": 91.0, "box": [60, 2, 50, 12], "center": [85, 8]}]
+    merged = B._merge_matches(base, band, dy=3)
+    assert [m["text"] for m in merged] == ["Save", "Cancel"]
+    assert merged[1]["center"] == [85, 11]                       # band offset applied

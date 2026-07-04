@@ -1257,6 +1257,71 @@ def _rescale_matches(matches: list[dict], scale: int) -> list[dict]:
     return matches
 
 
+_FUZZY_MIN = 0.78  # SequenceMatcher ratio floor: 1 flipped glyph in a short label passes
+
+
+def _fuzzy_line_matches(lines: list[dict], ql: str) -> list[dict]:
+    """Fuzzy fallback for OCR noise: score each OCR line against the query on
+    alnum-normalized text; best ratio >= _FUZZY_MIN wins. Line-level boxes (the label
+    IS the line for menus/buttons); each match carries its 'fuzzy' ratio for audit."""
+    import difflib
+
+    def norm(s: str) -> str:
+        return "".join(ch for ch in s.lower() if ch.isalnum())
+
+    qn = norm(ql)
+    if not qn:
+        return []
+    scored = []
+    for m in lines:
+        r = difflib.SequenceMatcher(None, qn, norm(m["text"])).ratio()
+        if r >= _FUZZY_MIN:
+            scored.append((r, dict(m, fuzzy=round(r, 2))))
+    return [m for _, m in sorted(scored, key=lambda t: -t[0])]
+
+
+_EDGE_BAND = 0.18  # top/bottom strips where taskbars/menubars live
+
+
+def _ocr_passes(prepped: str) -> list[tuple[str, int]]:
+    """OCR pass images beyond the plain full frame: inverted full (light-on-dark themes)
+    and top/bottom edge bands re-run standalone. Tesseract's segmentation drops small
+    text regions on a sparse desktop frame (a taskbar strip OCRs perfectly on its own
+    while the full frame yields nothing — proven on real noVNC frames); dedicated passes
+    make those regions first-class. Returns (path, y_offset_in_prepped_px)."""
+    passes: list[tuple[str, int]] = []
+    try:
+        from PIL import Image, ImageOps
+        with Image.open(prepped) as im:
+            base = os.path.splitext(prepped)[0]
+            inv = base + "_inv.png"
+            ImageOps.invert(im.convert("L")).save(inv)
+            passes.append((inv, 0))
+            band = int(im.height * _EDGE_BAND)
+            for tag, box, dy in (("top", (0, 0, im.width, band), 0),
+                                 ("bot", (0, im.height - band, im.width, im.height), im.height - band)):
+                p = f"{base}_{tag}.png"
+                im.crop(box).save(p)
+                passes.append((p, dy))
+    except Exception:  # noqa: BLE001 - no Pillow / decode issue: single-pass OCR still works
+        pass
+    return passes
+
+
+def _merge_matches(base: list[dict], extra: list[dict], dy: int) -> list[dict]:
+    """Merge a pass's matches into the running list: offset band coords back to frame
+    space, drop duplicates (same text within 12px)."""
+    for m in extra:
+        m["box"] = [m["box"][0], m["box"][1] + dy, m["box"][2], m["box"][3]]
+        m["center"] = [m["center"][0], m["center"][1] + dy]
+        dup = any(d["text"].lower() == m["text"].lower()
+                  and abs(d["center"][0] - m["center"][0]) <= 12
+                  and abs(d["center"][1] - m["center"][1]) <= 12 for d in base)
+        if not dup:
+            base.append(m)
+    return base
+
+
 @backend("locate", "tesseract", priority=65, needs_bin=("tesseract",))
 def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: str = "",
                       name: str = "", min_conf: float = 40, **_: Any) -> dict:
@@ -1272,12 +1337,21 @@ def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: st
         cap = _capture_tmp()           # find/click handlers call us without an image
         image, full = cap["path"], cap.get("fullSize")
     prepped, scale = _ocr_prep(image)
-    p = _run(["tesseract", prepped, "stdout", "--psm", "11", "tsv"], timeout=60)
     ql = q.lower()
-    if not ql:
-        matches = sorted(_tsv_lines(p.stdout, float(min_conf)), key=lambda m: -m["conf"])
-    else:
-        matches = _tesseract_query_matches(p.stdout, ql, float(min_conf))
+
+    def _pass_matches(path: str) -> list[dict]:
+        tsv = _run(["tesseract", path, "stdout", "--psm", "11", "tsv"], timeout=60).stdout
+        if not ql:
+            return sorted(_tsv_lines(tsv, float(min_conf)), key=lambda m: -m["conf"])
+        exact = _tesseract_query_matches(tsv, ql, float(min_conf))
+        # OCR noise splits/mangles UI labels ('Reconfigure' -> 'Reconfig re', 'Workspaces'
+        # -> 'Norkspaces'); when the exact matcher comes up empty, fall back to fuzzy
+        # line-level matching so one flipped glyph doesn't sink the whole locate.
+        return exact or _fuzzy_line_matches(_tsv_lines(tsv, float(min_conf)), ql)
+
+    matches = _pass_matches(prepped)
+    for path, dy in _ocr_passes(prepped):
+        matches = _merge_matches(matches, _pass_matches(path), dy)
     matches = _rescale_matches(matches, scale)
     out = {"via": "tesseract", "source": "tesseract", "coord_space": "image-px",
            "query": q, "count": len(matches), "matches": matches, "fullSize": full}
@@ -1384,6 +1458,24 @@ def _capture_tmp() -> dict:
 
 
 @backend("locate", "imgl", priority=60, needs_mod=("imgl",))
+def _imgl_matching_hits(image: str, q: str, role: str) -> list[dict]:
+    """Run ``imgl.cli find`` and keep only TRUSTWORTHY hits. imgl's --text is advisory
+    (measured: same top element for any query — 20% hit-rate, 290px median error on the
+    bench), so hits whose OWN text doesn't contain the query are dropped; anything else
+    must be an honest miss, or vnc/ui verify-loops get poisoned by a plausible-looking
+    wrong element."""
+    import json as _json
+    args = [sys.executable, "-m", "imgl.cli", "find", image, "--list"]
+    if q:
+        args += ["--text", q]
+    if role:
+        args += ["--type", role]
+    hits = _json.loads(_run(args, timeout=40).stdout or "[]")
+    if q:
+        hits = [h for h in hits if q.lower() in str(h.get("text") or "").lower()]
+    return hits
+
+
 def _locate_imgl(image: str = "", query: str = "", text: str = "", role: str = "",
                  name: str = "", **_: Any) -> dict:
     """Vision locate: screenshot → imgl find by text → bbox+center (image-px). Accepts a
@@ -1398,13 +1490,7 @@ def _locate_imgl(image: str = "", query: str = "", text: str = "", role: str = "
         image, full = cap["path"], cap.get("fullSize")
     if not q and not role:
         raise BackendError("imgl: empty query — refusing to return an arbitrary element")
-    args = [sys.executable, "-m", "imgl.cli", "find", image, "--list"]
-    if q:
-        args += ["--text", q]
-    if role:
-        args += ["--type", role]
-    p = _run(args, timeout=40)
-    hits = _json.loads(p.stdout or "[]")
+    hits = _imgl_matching_hits(image, q, role)
     if not hits:
         raise BackendError(f"imgl: no element matching text~{q!r} role~{role!r}")
     h = hits[0]
@@ -1427,17 +1513,25 @@ def _locate_vql(image: str = "", query: str = "", text: str = "", role: str = ""
     p = _run([sys.executable, "-m", "imgl.cli", "vql", image], timeout=40)
     doc = _json.loads(p.stdout or "{}")
     needle = (query or text or role).lower()
+    hit = _vql_first_match(doc, needle)
+    if hit is None:
+        raise BackendError(f"vql: no object matching {needle!r}")
+    box, label = hit
+    return {"found": True, "bbox": box,
+            "center": [box[0] + box[2] // 2, box[1] + box[3] // 2],
+            "source": "vql", "coord_space": "image-px", "text": label,
+            "fullSize": full, "actionable": False}
+
+
+def _vql_first_match(doc: dict, needle: str) -> "tuple[list[int], Any] | None":
     for layer in (doc.get("scene", {}).get("layers") or []):
         for obj in layer.get("objects", []):
             label = " ".join(str(v) for v in (obj.get("text"), obj.get("label")) if v).lower()
             if needle and needle in label and obj.get("bbox"):
                 b = obj["bbox"]
-                box = [int(b.get("x") or 0), int(b.get("y") or 0), int(b.get("w") or 0), int(b.get("h") or 0)]
-                return {"found": True, "bbox": box,
-                        "center": [box[0] + box[2] // 2, box[1] + box[3] // 2],
-                        "source": "vql", "coord_space": "image-px", "text": obj.get("text"),
-                        "fullSize": full, "actionable": False}
-    raise BackendError(f"vql: no object matching {needle!r}")
+                return ([int(b.get("x") or 0), int(b.get("y") or 0),
+                         int(b.get("w") or 0), int(b.get("h") or 0)], obj.get("text"))
+    return None
 
 
 
