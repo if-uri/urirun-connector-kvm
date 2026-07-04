@@ -76,6 +76,18 @@ class Screen:
         """Kotwica: czy oczekiwany tekst JEST na ekranie (celowany OCR)."""
         return bool(self._run("kvm://host/ui/query/verify", {"text": text}).get("present"))
 
+    def verify_texts(self, texts: list[str], max_width: int = 1600) -> dict:
+        """SZYBKA wielo-kotwica: JEDNO capture + JEDNO OCR (@max_width) + sprawdzenie wielu
+        tekstów lokalnie — zamiast N× ui/query/verify (każdy robi osobny capture+OCR ~6 s).
+        OCR to główny koszt percepcji (tesseract ~5–8 s pełny; ~4,6 s @1600 bez utraty
+        trafności). N kotwic za cenę JEDNEGO OCR. Zwraca {tekst: bool}."""
+        cap = self._run("kvm://host/screen/query/capture", {"base64": False, "max_width": max_width})
+        path = cap.get("path")
+        if not path:
+            return {t: False for t in texts}
+        ocr = (self._run("ocr://host/image/query/text", {"image": path}).get("text") or "").lower()
+        return {t: (t.lower() in ocr) for t in texts}
+
     # --- strażnicy ---
     def settle(self, timeout: float = 10, interval: float = 0.6, stable: int = 2, tol: int = 4) -> int:
         """Czekaj aż ekran przestanie się zmieniać (koniec ładowania) — zamiast sleep na sztywno.
