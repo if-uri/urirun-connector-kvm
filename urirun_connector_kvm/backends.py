@@ -103,6 +103,7 @@ class Backend:
     platforms: tuple = ALL_PLATFORMS
     needs_bin: tuple = ()
     needs_mod: tuple = ()
+    needs_compositor: tuple = ()   # tags the active compositor must satisfy (e.g. ('wlroots',))
 
     def missing(self) -> dict:
         return {
@@ -114,18 +115,29 @@ class Backend:
         if platform_tag() not in self.platforms:
             return False
         m = self.missing()
-        return not m["bin"] and not m["mod"]
+        if m["bin"] or m["mod"]:
+            return False
+        if self.needs_compositor:
+            active = compositor_tag()
+            if active != "wlroots" and "wlroots" in self.needs_compositor:
+                # grim/portal-input depend on wlr-protocols; GNOME (Mutter) and KDE (KWin) ship
+                # their own protocols and will always reject them — report unavailable so the
+                # ``doctor`` route doesn't advertise a backend that fails at capture time.
+                return False
+        return True
 
 
 _REGISTRY: dict[str, list[Backend]] = {}
 
 
 def backend(action: str, name: str, *, priority: int = 50, platforms: tuple = ALL_PLATFORMS,
-            needs_bin: tuple = (), needs_mod: tuple = ()) -> Callable:
+            needs_bin: tuple = (), needs_mod: tuple = (),
+            needs_compositor: tuple = ()) -> Callable:
     """Register ``fn`` as a backend for ``action``. Highest priority + available wins."""
     def deco(fn: Callable) -> Callable:
         _REGISTRY.setdefault(action, []).append(
-            Backend(action, name, fn, priority, platforms, tuple(needs_bin), tuple(needs_mod)))
+            Backend(action, name, fn, priority, platforms, tuple(needs_bin), tuple(needs_mod),
+                    tuple(needs_compositor)))
         _REGISTRY[action].sort(key=lambda b: -b.priority)
         return fn
     return deco
@@ -407,13 +419,28 @@ def _cap_mutter(output: str, monitor: int = 0, scope: str = "", **_: Any) -> dic
 
 
 
+def compositor_tag() -> str:
+    """Coarse classification of the active Wayland compositor, keyed to the protocol families
+    a backend needs. ``wlroots`` = supports wlr-screencopy-unstable-v1 / wlr-virtual-pointer
+    (Sway, Hyprland, wlroots-based); ``mutter``/``kwin``/``other`` use proprietary equivalents.
+    Determined from ``XDG_CURRENT_DESKTOP`` (env or the session D-Bus) — the same ground truth
+    ``_is_wlroots_compositor`` already relied on, now surfaced as a tag for availability."""
+    desktop = (session_env().get("XDG_CURRENT_DESKTOP") or os.environ.get("XDG_CURRENT_DESKTOP", "")).lower()
+    if any(d in desktop for d in ("gnome", "unity", "pantheon", "budgie")):
+        return "mutter"      # GNOME family
+    if any(d in desktop for d in ("kde", "plasma")):
+        return "kwin"
+    if "wlroots" in desktop or any(d in desktop for d in ("sway", "hyprland", "wayfire", "river", "labwc")):
+        return "wlroots"
+    if "weston" in desktop:
+        return "weston"
+    return "other"
+
+
 def _is_wlroots_compositor() -> bool:
     """True only on compositors that support wlr-screencopy-unstable-v1 (Sway, Hyprland, etc.).
     GNOME and KDE use their own Wayland protocols and will always reject grim."""
-    desktop = (session_env().get("XDG_CURRENT_DESKTOP") or os.environ.get("XDG_CURRENT_DESKTOP", "")).lower()
-    if any(d in desktop for d in ("gnome", "kde", "plasma", "unity", "cinnamon", "budgie")):
-        return False
-    return True
+    return compositor_tag() == "wlroots"
 
 
 def _require_nonempty(output: str, via: str) -> int:
@@ -428,7 +455,8 @@ def _require_nonempty(output: str, via: str) -> int:
     return n
 
 
-@backend("capture", "grim", priority=85, platforms=("linux-wayland",), needs_bin=("grim",))
+@backend("capture", "grim", priority=85, platforms=("linux-wayland",), needs_bin=("grim",),
+         needs_compositor=("wlroots",))
 def _cap_grim(output: str, **_: Any) -> dict:
     if not _is_wlroots_compositor():
         desktop = os.environ.get("XDG_CURRENT_DESKTOP") or session_env().get("XDG_CURRENT_DESKTOP") or "unknown"

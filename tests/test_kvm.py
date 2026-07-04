@@ -145,6 +145,76 @@ def test_doctor_reports_backends() -> None:
         assert set(entry) >= {"name", "priority", "available", "missing"}
 
 
+def test_compositor_tag_classifies_known_desktops(monkeypatch) -> None:
+    # XDG_CURRENT_DESKTOP is the ground truth; map the common compositors to their tag.
+    cases = {
+        "ubuntu:GNOME": "mutter",
+        "GNOME": "mutter",
+        "KDE": "kwin",
+        "sway": "wlroots",
+        "Hyprland": "wlroots",
+        "wayfire": "wlroots",
+        "weston": "weston",
+        "XFCE": "other",      # X11 desktop, not a wlroots family
+    }
+    for desktop, expected in cases.items():
+        monkeypatch.setattr(B, "session_env", lambda **_: {})
+        monkeypatch.setenv("XDG_CURRENT_DESKTOP", desktop)
+        assert B.compositor_tag() == expected, f"{desktop} -> expected {expected}"
+
+
+def test_grim_reports_unavailable_on_mutter_via_doctor(monkeypatch) -> None:
+    """The regression: grim needs wlr-screencopy-unstable-v1, which GNOME/Mutter does not ship.
+    ``doctor`` must NOT advertise grim as available there, even when the binary is installed and
+    the session is wayland — otherwise capture falls through to grim and fails at runtime."""
+    monkeypatch.setattr(B, "session_env", lambda **_: {})
+    monkeypatch.setenv("XDG_CURRENT_DESKTOP", "ubuntu:GNOME")
+    monkeypatch.setattr(B, "is_wayland", lambda: True)        # platform linux-wayland passes
+    monkeypatch.setattr(B, "have_bin", lambda name: True)     # grim IS installed
+    grim = next(b for b in B._REGISTRY["capture"] if b.name == "grim")
+    assert grim.available() is False
+    assert grim.needs_compositor == ("wlroots",)
+    # surfaced through the doctor route too, not just the Backend object
+    r = doctor()
+    grim_entry = next(e for e in r["backends"]["capture"] if e["name"] == "grim")
+    assert grim_entry["available"] is False
+
+
+def test_grim_remains_available_on_wlroots(monkeypatch) -> None:
+    """The flip side: on a wlroots compositor (Sway/Hyprland) where grim actually works, the
+    compositor gate must NOT hide it. The needs_compositor fix is a tightener, not a blanket off."""
+    monkeypatch.setattr(B, "session_env", lambda **_: {})
+    monkeypatch.setenv("XDG_CURRENT_DESKTOP", "sway")
+    monkeypatch.setattr(B, "is_wayland", lambda: True)
+    monkeypatch.setattr(B, "have_bin", lambda name: True)
+    grim = next(b for b in B._REGISTRY["capture"] if b.name == "grim")
+    assert grim.available() is True
+
+
+def test_mutter_capture_backend_not_gated_by_wlroots_requirement(monkeypatch) -> None:
+    """The compositor gate must be targeted: GNOME's native ``mutter`` capture backend works ON
+    GNOME/Mutter, so it must stay available there — only grim (wlroots-only) is hidden."""
+    monkeypatch.setattr(B, "session_env", lambda **_: {})
+    monkeypatch.setenv("XDG_CURRENT_DESKTOP", "ubuntu:GNOME")
+    monkeypatch.setattr(B, "is_wayland", lambda: True)
+    monkeypatch.setattr(B, "have_bin", lambda name: True)
+    mutter = next((b for b in B._REGISTRY["capture"] if b.name == "mutter"), None)
+    assert mutter is not None, "mutter capture backend must exist as the GNOME fallback"
+    assert mutter.available() is True
+    assert mutter.needs_compositor == ()
+
+
+def test_grim_unavailable_on_kwin_not_just_mutter(monkeypatch) -> None:
+    """KDE/KWin is the other major non-wlroots compositor.grim must also be hidden there; the
+    native portal/mutter backends stay available so capture still has a path."""
+    monkeypatch.setattr(B, "session_env", lambda **_: {})
+    monkeypatch.setenv("XDG_CURRENT_DESKTOP", "KDE")
+    monkeypatch.setattr(B, "is_wayland", lambda: True)
+    monkeypatch.setattr(B, "have_bin", lambda name: True)
+    grim = next(b for b in B._REGISTRY["capture"] if b.name == "grim")
+    assert grim.available() is False
+
+
 def test_capture_tags_screenshot_as_frozen_artifact(monkeypatch) -> None:
     monkeypatch.setattr(
         B, "dispatch",
