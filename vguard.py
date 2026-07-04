@@ -34,15 +34,25 @@ class Screen:
         return val if isinstance(val, dict) else (env.get("result") or {})
 
     # --- percepcja ---
-    def capture(self, scope: str = "all") -> bytes | None:
-        v = self._run("kvm://host/screen/query/capture", {"base64": True, "scope": scope})
+    def capture(self, scope: str = "all", max_width: int = 0) -> bytes | None:
+        # max_width zmniejsza transfer 8× (scope=all ~1 MB → ~120 KB) — do dhash/settle wystarcza
+        # zdrap 400–800 px, i tak skalujemy do 16 px. Pełny zrzut tylko gdy potrzebny do wizji.
+        payload = {"base64": True, "scope": scope}
+        if max_width:
+            payload["max_width"] = max_width
+        v = self._run("kvm://host/screen/query/capture", payload)
         b64 = v.get("pngBase64")
         return base64.b64decode(b64) if b64 else None
+
+    def batch(self, steps: list[dict]) -> dict:
+        """Wykonaj wiele kroków w JEDNYM wywołaniu (jeden subprocess zamiast N) — ~2–3× szybciej
+        dla sekwencji. steps: [{'op':'type','text':...}, {'op':'key','keys':'Return'}, ...]."""
+        return self._run("kvm://host/input/command/task_run", {"steps": steps})
 
     def dhash(self, png: bytes | None = None, size: int = 16) -> int:
         """Perceptual hash (różnicowy) — tolerancyjny na drobny szum, czuły na realną zmianę
         układu. Wymaga PIL; bez niego spada do sha1 bajtów (czuły, ale wciąż wykrywa zmianę)."""
-        png = png or self.capture()
+        png = png or self.capture(max_width=480)   # do detekcji zmiany mały zrzut wystarcza (8× mniej danych)
         if not png:
             return 0
         try:
