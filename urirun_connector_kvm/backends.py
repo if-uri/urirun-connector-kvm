@@ -143,6 +143,11 @@ def backend(action: str, name: str, *, priority: int = 50, platforms: tuple = AL
     return deco
 
 
+def backends_for(action: str) -> list["Backend"]:
+    """Public accessor: registered backends for an action (registration order)."""
+    return list(_REGISTRY.get(action, []))
+
+
 def dispatch(action: str, **kwargs: Any) -> dict:
     """Run ``action`` through the best available backend, returning a result dict
     with ``backend`` set, or raising ``BackendError`` with per-backend diagnostics."""
@@ -1219,6 +1224,39 @@ def _tesseract_query_matches(tsv_stdout: str, ql: str, min_conf: float) -> list[
     return matches
 
 
+_OCR_UPSCALE = 2  # desktop UI text is small; 2x LANCZOS + sparse-psm rescues it (see bench)
+
+
+def _ocr_prep(image: str) -> tuple[str, int]:
+    """Preprocess a screenshot for OCR: grayscale + 2x upscale. Tesseract's default page
+    segmentation finds ~nothing on a desktop screenshot (sparse small text on dark
+    background — e.g. a full-res noVNC frame yields 0 words); prepped + --psm 11 the same
+    frame reads every menu label at ~96% conf. Returns (path, scale); scale rescales
+    boxes back to original image-px. No Pillow -> original image, scale 1."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return image, 1
+    try:
+        with Image.open(image) as im:
+            prepped = im.convert("L").resize(
+                (im.width * _OCR_UPSCALE, im.height * _OCR_UPSCALE), Image.LANCZOS)
+        out = os.path.join(tempfile.gettempdir(), f"kvm_ocr_prep_{os.getpid()}.png")
+        prepped.save(out)
+        return out, _OCR_UPSCALE
+    except Exception:  # noqa: BLE001 - any decode hiccup: OCR the original
+        return image, 1
+
+
+def _rescale_matches(matches: list[dict], scale: int) -> list[dict]:
+    if scale == 1:
+        return matches
+    for m in matches:
+        m["box"] = [v // scale for v in m["box"]]
+        m["center"] = [v // scale for v in m["center"]]
+    return matches
+
+
 @backend("locate", "tesseract", priority=65, needs_bin=("tesseract",))
 def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: str = "",
                       name: str = "", min_conf: float = 40, **_: Any) -> dict:
@@ -1233,12 +1271,14 @@ def _locate_tesseract(image: str = "", query: str = "", text: str = "", role: st
     if not image or not os.path.exists(image):
         cap = _capture_tmp()           # find/click handlers call us without an image
         image, full = cap["path"], cap.get("fullSize")
-    p = _run(["tesseract", image, "stdout", "tsv"], timeout=60)
+    prepped, scale = _ocr_prep(image)
+    p = _run(["tesseract", prepped, "stdout", "--psm", "11", "tsv"], timeout=60)
     ql = q.lower()
     if not ql:
         matches = sorted(_tsv_lines(p.stdout, float(min_conf)), key=lambda m: -m["conf"])
     else:
         matches = _tesseract_query_matches(p.stdout, ql, float(min_conf))
+    matches = _rescale_matches(matches, scale)
     out = {"via": "tesseract", "source": "tesseract", "coord_space": "image-px",
            "query": q, "count": len(matches), "matches": matches, "fullSize": full}
     if matches and ql:
@@ -1344,42 +1384,59 @@ def _capture_tmp() -> dict:
 
 
 @backend("locate", "imgl", priority=60, needs_mod=("imgl",))
-def _locate_imgl(text: str = "", role: str = "", **_: Any) -> dict:
-    """Vision locate: screenshot → imgl find by text → bbox (image-px). Cross-platform;
-    on HiDPI the caller should scale image-px → logical coords (see fullSize)."""
+def _locate_imgl(image: str = "", query: str = "", text: str = "", role: str = "",
+                 name: str = "", **_: Any) -> dict:
+    """Vision locate: screenshot → imgl find by text → bbox+center (image-px). Accepts a
+    pre-captured ``image`` (a noVNC/RFB frame, a golden fixture) like the OCR backends do;
+    captures the local screen only when none is given. Honest miss when the query is empty
+    or unmatched — never 'first arbitrary element' (that clicked garbage before)."""
     import json as _json
-    cap = _capture_tmp()
-    args = [sys.executable, "-m", "imgl.cli", "find", cap["path"], "--list"]
-    if text:
-        args += ["--text", text]
+    q = (query or text or name or "").strip()
+    full = None
+    if not image or not os.path.exists(image):
+        cap = _capture_tmp()
+        image, full = cap["path"], cap.get("fullSize")
+    if not q and not role:
+        raise BackendError("imgl: empty query — refusing to return an arbitrary element")
+    args = [sys.executable, "-m", "imgl.cli", "find", image, "--list"]
+    if q:
+        args += ["--text", q]
     if role:
         args += ["--type", role]
     p = _run(args, timeout=40)
     hits = _json.loads(p.stdout or "[]")
     if not hits:
-        raise BackendError(f"imgl: no element matching text~{text!r} role~{role!r}")
+        raise BackendError(f"imgl: no element matching text~{q!r} role~{role!r}")
     h = hits[0]
     bb = h.get("bbox") or {}
-    return {"found": True, "bbox": [bb.get("x", h["x"]), bb.get("y", h["y"]), bb.get("w", 0), bb.get("h", 0)],
-            "source": "imgl", "coord_space": "image-px", "text": h.get("text"),
-            "fullSize": cap.get("fullSize"), "actionable": False, "candidates": len(hits)}
+    box = [int(bb.get("x", h.get("x", 0))), int(bb.get("y", h.get("y", 0))),
+           int(bb.get("w", h.get("w", 0))), int(bb.get("h", h.get("h", 0)))]
+    return {"found": True, "bbox": box,
+            "center": [box[0] + box[2] // 2, box[1] + box[3] // 2],
+            "source": "imgl", "coord_space": "image-px", "text": h.get("text"), "query": q,
+            "fullSize": full, "actionable": False, "candidates": len(hits)}
 
 
 @backend("locate", "vql", priority=50, needs_mod=("vql",))
-def _locate_vql(text: str = "", role: str = "", **_: Any) -> dict:
+def _locate_vql(image: str = "", query: str = "", text: str = "", role: str = "", **_: Any) -> dict:
     import json as _json
-    cap = _capture_tmp()
-    p = _run([sys.executable, "-m", "imgl.cli", "vql", cap["path"]], timeout=40)
+    full = None
+    if not image or not os.path.exists(image):
+        cap = _capture_tmp()
+        image, full = cap["path"], cap.get("fullSize")
+    p = _run([sys.executable, "-m", "imgl.cli", "vql", image], timeout=40)
     doc = _json.loads(p.stdout or "{}")
-    needle = (text or role).lower()
+    needle = (query or text or role).lower()
     for layer in (doc.get("scene", {}).get("layers") or []):
         for obj in layer.get("objects", []):
             label = " ".join(str(v) for v in (obj.get("text"), obj.get("label")) if v).lower()
             if needle and needle in label and obj.get("bbox"):
                 b = obj["bbox"]
-                return {"found": True, "bbox": [b.get("x"), b.get("y"), b.get("w"), b.get("h")],
+                box = [int(b.get("x") or 0), int(b.get("y") or 0), int(b.get("w") or 0), int(b.get("h") or 0)]
+                return {"found": True, "bbox": box,
+                        "center": [box[0] + box[2] // 2, box[1] + box[3] // 2],
                         "source": "vql", "coord_space": "image-px", "text": obj.get("text"),
-                        "fullSize": cap.get("fullSize"), "actionable": False}
+                        "fullSize": full, "actionable": False}
     raise BackendError(f"vql: no object matching {needle!r}")
 
 

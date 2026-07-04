@@ -1150,6 +1150,141 @@ def doctor() -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- #
+# vnc/* — direct RFB surface for noVNC-hosted desktops (vnc.py). Deterministic by
+# design: explicit target, native-resolution perceive (framebuffer grab) → OCR/vision
+# locate → act at exact remote coords. No canvas scaling, no host-focus races, and no
+# AT-SPI (which reads the LOCAL a11y tree — meaningless for a remote framebuffer).
+# --------------------------------------------------------------------------- #
+try:
+    from urirun_connector_kvm import vnc as _vnc
+except ImportError:  # pragma: no cover - flat single-file deploy
+    try:
+        import vnc as _vnc  # type: ignore
+    except ImportError:
+        _vnc = None  # type: ignore
+
+_VNC_LOCATE_ORDER = ("easyocr", "tesseract", "imgl", "vql")
+
+
+def _vnc_surface():
+    if _vnc is None:
+        raise RuntimeError("vnc surface unavailable — pip install 'urirun-connector-kvm[vnc]'")
+    return _vnc
+
+
+def _vnc_find_on(path: str, query: str, role: str = "") -> dict[str, Any]:
+    """Locate on a pre-captured remote frame with OCR/vision backends only, in fixed
+    reliability order; first genuine hit wins, misses are accumulated for the caller."""
+    misses: list[str] = []
+    backends = {b.name: b for b in B.backends_for("locate")}
+    for nm in _VNC_LOCATE_ORDER:
+        b = backends.get(nm)
+        if b is None or not b.available():
+            continue
+        try:
+            hit = b.fn(image=path, query=query, role=role)
+            if hit.get("found"):
+                return hit
+            misses.append(f"{nm}: found=false ({hit.get('candidates', 0)} candidates)")
+        except Exception as exc:  # noqa: BLE001 - fall through the chain per backend
+            misses.append(f"{nm}: {exc}")
+    return {"found": False, "misses": misses}
+
+
+@conn.handler("vnc/query/status", isolated=True,
+              meta={"label": "RFB reachability + native framebuffer size"})
+def vnc_status(target: str = "") -> dict[str, Any]:
+    try:
+        v = _vnc_surface()
+        shot = v.capture(target=target, out=os.path.join(tempfile.gettempdir(), "kvm_vnc_status.png"))
+        return _ok(target=v.resolve_target(target), width=shot["width"], height=shot["height"], via="rfb")
+    except Exception as exc:  # noqa: BLE001 - connectivity errors become an honest fail
+        return _fail_from("vnc-status", exc)
+
+
+@conn.handler("vnc/query/capture", isolated=True,
+              meta={"label": "Native-resolution framebuffer screenshot over RFB"})
+def vnc_capture(target: str = "", out: str = "", base64: bool = False) -> dict[str, Any]:
+    try:
+        shot = _vnc_surface().capture(target=target, out=out)
+        res = _ok(action="capture", **shot)
+        if base64:
+            res["base64"] = _b64.b64encode(open(shot["path"], "rb").read()).decode()
+        return res
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("vnc-capture", exc)
+
+
+@conn.handler("vnc/query/find", isolated=True,
+              meta={"label": "Locate text on the remote framebuffer (OCR/vision chain)"})
+def vnc_find(text: str = "", role: str = "", target: str = "") -> dict[str, Any]:
+    if not text and not role:
+        return urirun.fail("text (or role) is required", connector=CONNECTOR_ID)
+    try:
+        v = _vnc_surface()
+        shot = v.capture(target=target)
+        hit = _vnc_find_on(shot["path"], text, role)
+        return _ok(action="find", frame=shot["path"], coord_space="framebuffer-px", **hit)
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("vnc-find", exc)
+
+
+@conn.handler("vnc/command/click", isolated=True,
+              meta={"label": "Click the remote desktop: by located text or exact coords"})
+def vnc_click(text: str = "", x: int = -1, y: int = -1, button: int = 1, double: bool = False,
+              verify: str = "", settle: float = 1.0, target: str = "") -> dict[str, Any]:
+    """Perceive → act → verify in one route: locate ``text`` on a fresh native frame
+    (or take exact ``x``/``y``), click over RFB, and when ``verify`` is given re-capture
+    after ``settle`` seconds and require that text on screen — the flow layer gets an
+    honest ``verified`` instead of fire-and-forget."""
+    try:
+        v = _vnc_surface()
+        hit: dict[str, Any] = {}
+        if text:
+            shot = v.capture(target=target)
+            hit = _vnc_find_on(shot["path"], text)
+            if not hit.get("found"):
+                return urirun.fail(f"vnc-click: {text!r} not located on remote frame",
+                                   connector=CONNECTOR_ID, misses=hit.get("misses"))
+            x, y = hit["center"]
+        if x < 0 or y < 0:
+            return urirun.fail("vnc-click: give text or x/y", connector=CONNECTOR_ID)
+        res = v.click(x, y, button=button, double=double, target=target)
+        out = _ok(action="click", located=hit.get("center"), source=hit.get("source"), **res)
+        if verify:
+            time.sleep(min(float(settle), 15.0))
+            check = _vnc_find_on(v.capture(target=target)["path"], verify)
+            out["verified"] = bool(check.get("found"))
+            out["verify"] = {"text": verify, **({"center": check["center"]} if check.get("found") else
+                                                {"misses": check.get("misses")})}
+        return out
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("vnc-click", exc)
+
+
+@conn.handler("vnc/command/type", isolated=True,
+              meta={"label": "Type text into the remote desktop over RFB keysyms"})
+def vnc_type(text: str = "", enter: bool = False, target: str = "") -> dict[str, Any]:
+    if not text and not enter:
+        return urirun.fail("text is required", connector=CONNECTOR_ID)
+    try:
+        return _ok(action="type", **_vnc_surface().type_text(text, enter=enter, target=target))
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("vnc-type", exc)
+
+
+@conn.handler("vnc/command/key", isolated=True,
+              meta={"label": "Press a key chord (e.g. ctrl-alt-t) over RFB"})
+def vnc_key(combo: str = "", target: str = "") -> dict[str, Any]:
+    if not combo:
+        return urirun.fail("combo is required", connector=CONNECTOR_ID)
+    try:
+        return _ok(action="key", **_vnc_surface().key_combo(combo, target=target))
+    except Exception as exc:  # noqa: BLE001
+        return _fail_from("vnc-key", exc)
+
+
+# --------------------------------------------------------------------------- #
 # desktop apps — launch / list the way the system app search does (XDG/open/start)
 # --------------------------------------------------------------------------- #
 @conn.handler("app://host/desktop/command/launch", isolated=True,

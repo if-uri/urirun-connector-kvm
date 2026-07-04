@@ -22,6 +22,7 @@ input = ["pynput>=1.7"]                           # cross-platform keyboard/mous
 ocr = ["pytesseract>=0.3.10", "Pillow>=10.0"]     # click-text / text location (tesseract CLI)
 easyocr = ["easyocr>=1.7", "Pillow>=10.0"]        # stronger UI/low-contrast OCR locate (pulls torch)
 vision = ["imgl>=0.7"]                            # imgl locate backend (screenshot → find by text/role)
+vnc = ["vncdotool>=1.2"]                          # direct RFB surface for noVNC-hosted desktops (vnc/*)
 windows = ["pygetwindow>=0.0.9"]                  # window focus on Windows/macOS
 full = ["mss>=9.0", "Pillow>=10.0", "pynput>=1.7", "pytesseract>=0.3.10", "imgl>=0.7"]
 
