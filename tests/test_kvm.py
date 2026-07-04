@@ -1057,3 +1057,21 @@ def test_merge_matches_offsets_and_dedupes() -> None:
     merged = B._merge_matches(base, band, dy=3)
     assert [m["text"] for m in merged] == ["Save", "Cancel"]
     assert merged[1]["center"] == [85, 11]                       # band offset applied
+
+
+def test_locate_backends_accept_standard_kwargs(tmp_path) -> None:
+    """Every registered locate backend must accept the standard call shape
+    (image=/query=/role=/name=) without TypeError. Regression: a helper function once
+    swallowed the @backend decorator, so the REGISTERED fn rejected query= and the
+    backend silently scored 0 on every locate."""
+    import base64
+    png = tmp_path / "one.png"  # 1x1 PNG: no text anywhere, every backend must miss honestly
+    png.write_bytes(base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="))
+    for b in B.backends_for("locate"):
+        try:
+            b.fn(image=str(png), query="NoSuchLabel", role="", name="")
+        except TypeError as exc:
+            raise AssertionError(f"locate backend {b.name!r} rejects standard kwargs: {exc}")
+        except Exception:
+            pass  # honest miss / missing tool is fine — only the call SHAPE is under test

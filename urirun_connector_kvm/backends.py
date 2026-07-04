@@ -1457,12 +1457,11 @@ def _capture_tmp() -> dict:
     return res
 
 
-@backend("locate", "imgl", priority=60, needs_mod=("imgl",))
 def _imgl_matching_hits(image: str, q: str, role: str) -> list[dict]:
-    """Run ``imgl.cli find`` and keep only TRUSTWORTHY hits. imgl's --text is advisory
-    (measured: same top element for any query — 20% hit-rate, 290px median error on the
-    bench), so hits whose OWN text doesn't contain the query are dropped; anything else
-    must be an honest miss, or vnc/ui verify-loops get poisoned by a plausible-looking
+    """Run ``imgl.cli find`` and keep only TRUSTWORTHY hits: hits whose OWN text doesn't
+    contain the query are dropped (belt-and-braces on top of imgl>=0.7.16, where --list
+    finally honours --text; older imgl returned every action — measured 20% hit-rate,
+    290px median error), or vnc/ui verify-loops get poisoned by a plausible-looking
     wrong element."""
     import json as _json
     args = [sys.executable, "-m", "imgl.cli", "find", image, "--list"]
@@ -1476,6 +1475,7 @@ def _imgl_matching_hits(image: str, q: str, role: str) -> list[dict]:
     return hits
 
 
+@backend("locate", "imgl", priority=60, needs_mod=("imgl",))
 def _locate_imgl(image: str = "", query: str = "", text: str = "", role: str = "",
                  name: str = "", **_: Any) -> dict:
     """Vision locate: screenshot → imgl find by text → bbox+center (image-px). Accepts a
