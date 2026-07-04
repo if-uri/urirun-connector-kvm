@@ -49,6 +49,20 @@ class Screen:
         dla sekwencji. steps: [{'op':'type','text':...}, {'op':'key','keys':'Return'}, ...]."""
         return self._run("kvm://host/input/command/task_run", {"steps": steps})
 
+    def guarded_batch(self, steps: list[dict], expect, tries: int = 3) -> dict:
+        """SZYBKO I PEWNIE: batch akcji + POSTCOND (verify_texts) + retry. Naprawia ciche
+        porażki — np. `type` który nie złapał fokusu (contenteditable jeszcze nie gotowy):
+        pierwszy raz tekst nie ląduje, verify_texts to wykrywa, retry ląduje. Łączy zysk
+        prędkości (batch+1 OCR) z niezawodnością (verify-before-act). expect: tekst/lista."""
+        exp = [expect] if isinstance(expect, str) else list(expect)
+        last = {}
+        for i in range(tries):
+            self.batch(steps)
+            last = self.verify_texts(exp)
+            if all(last.values()):
+                return {"ok": True, "tries": i + 1}
+        return {"ok": False, "tries": tries, "missing": [t for t, ok in last.items() if not ok]}
+
     def dhash(self, png: bytes | None = None, size: int = 16) -> int:
         """Perceptual hash (różnicowy) — tolerancyjny na drobny szum, czuły na realną zmianę
         układu. Wymaga PIL; bez niego spada do sha1 bajtów (czuły, ale wciąż wykrywa zmianę)."""
