@@ -435,6 +435,103 @@ CONTRACTS: dict[str, Contract] = {
         ),
     ),
 
+    # ── vnc/* — direct RFB surface for noVNC-hosted desktops (vnc.py). Golden examples
+    # are LIVE-measured outputs from the example-11 container (fluxbox menu sequence).
+    "vnc/query/status": Contract(
+        version="v1",
+        effect="query",
+        inp={"target": "?str"},
+        out={"target": "str", "width": "?int", "height": "?int", "via": "const:rfb"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"target": "172.19.0.2::5900"},
+             "result": {"ok": True, "connector": "kvm", "target": "172.19.0.2::5900",
+                        "width": 1280, "height": 900, "via": "rfb"}},
+        ),
+    ),
+
+    "vnc/query/capture": Contract(
+        version="v1",
+        effect="query",
+        inp={"target": "?str", "out": "?str", "base64": "?bool"},
+        out={"action": "const:capture", "path": "str", "width": "?int", "height": "?int",
+             "via": "const:rfb", "coord_space": "const:framebuffer-px", "base64": "?str"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"target": "172.19.0.2::5900"},
+             "result": _result("capture", path="/home/tom/.urirun/artifacts/screenshots/vnc_capture.png",
+                                width=1280, height=900, via="rfb", coord_space="framebuffer-px")},
+        ),
+    ),
+
+    "vnc/query/find": Contract(
+        version="v1",
+        effect="query",
+        inp={"text": "?str", "role": "?str", "target": "?str"},
+        out={"action": "const:find", "frame": "str", "found": "bool",
+             "coord_space": "const:framebuffer-px", "center": "?list", "bbox": "?list",
+             "source": "?str", "text": "?str", "misses": "?list", "candidates": "?int",
+             "query": "?str", "fullSize": "?obj", "actionable": "?bool", "matches": "?list"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"text": "Reconfigure", "target": "172.19.0.2::5900"},
+             "result": _result("find", frame="/home/tom/.urirun/artifacts/screenshots/vnc_capture.png",
+                                found=True, center=[612, 574], bbox=[578, 567, 68, 14],
+                                source="tesseract", coord_space="framebuffer-px")},
+            {"payload": {"text": "NoSuchLabel", "target": "172.19.0.2::5900"},
+             "result": _result("find", frame="/home/tom/.urirun/artifacts/screenshots/vnc_capture.png",
+                                found=False, coord_space="framebuffer-px",
+                                misses=["tesseract: found=false (0 candidates)"])},
+        ),
+    ),
+
+    # perceive→act→verify in one route; `verified` is honest (False = expect-text absent
+    # after the click+settle+re-look), so flows can branch instead of assuming success.
+    "vnc/command/click": Contract(
+        version="v1",
+        effect="command",
+        inp={"text": "?str", "x": "?int", "y": "?int", "button": "?int", "double": "?bool",
+             "verify": "?str", "settle": "?num", "target": "?str"},
+        out={"action": "const:click", "clicked": "list", "button": "int", "double": "bool",
+             "via": "const:rfb", "located": "?list", "source": "?str",
+             "verified": "?bool", "verify": "?obj"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"text": "Reconfigure", "verify": "Workspace 1",
+                         "settle": 1.2, "target": "172.19.0.2::5900"},
+             "result": _result("click", clicked=[612, 574], button=1, double=False, via="rfb",
+                                located=[612, 574], source="tesseract", verified=True,
+                                verify={"text": "Workspace 1", "center": [62, 891]})},
+            {"payload": {"x": 640, "y": 450, "button": 3, "target": "172.19.0.2::5900"},
+             "result": _result("click", clicked=[640, 450], button=3, double=False, via="rfb",
+                                located=None, source=None)},
+        ),
+    ),
+
+    "vnc/command/type": Contract(
+        version="v1",
+        effect="command",
+        inp={"text": "?str", "enter": "?bool", "target": "?str"},
+        out={"action": "const:type", "typed": "int", "enter": "bool", "via": "const:rfb"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"text": "hello", "enter": True, "target": "172.19.0.2::5900"},
+             "result": _result("type", typed=5, enter=True, via="rfb")},
+        ),
+    ),
+
+    "vnc/command/key": Contract(
+        version="v1",
+        effect="command",
+        inp={"combo": "str", "target": "?str"},
+        out={"action": "const:key", "combo": "str", "via": "const:rfb"},
+        errors=("degraded-backend", "precondition-unmet"),
+        examples=(
+            {"payload": {"combo": "ctrl-alt-t", "target": "172.19.0.2::5900"},
+             "result": _result("key", combo="ctrl-alt-t", via="rfb")},
+        ),
+    ),
+
     "app://host/desktop/command/launch": Contract(
         version="v1",
         effect="command",

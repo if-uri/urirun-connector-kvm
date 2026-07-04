@@ -1224,7 +1224,10 @@ def vnc_find(text: str = "", role: str = "", target: str = "") -> dict[str, Any]
         v = _vnc_surface()
         shot = v.capture(target=target)
         hit = _vnc_find_on(shot["path"], text, role)
-        return _ok(action="find", frame=shot["path"], coord_space="framebuffer-px", **hit)
+        # locate backends emit their own coord_space=image-px; on an RFB frame that IS
+        # framebuffer-px, so override rather than collide on the kwarg
+        return _ok(**{**hit, "action": "find", "frame": shot["path"],
+                      "coord_space": "framebuffer-px"})
     except Exception as exc:  # noqa: BLE001
         return _fail_from("vnc-find", exc)
 
