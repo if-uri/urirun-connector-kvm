@@ -344,6 +344,36 @@ CONTRACTS: dict[str, Contract] = {
         ),
     ),
 
+    # ── DOM verbs: precise CDP fill/click by selector (preferred over vision in browser flows).
+    # Not declared reversible: we don't capture the prior field value / focus to synthesise an undo.
+    "cdp/page/command/dom-fill": Contract(
+        version="v1",
+        effect="command",
+        reversible=False,
+        inp={"selector": "str", "value": "?str"},
+        out={"action": "const:cdp-dom-fill", "matched": "bool", "value": "?str"},
+        errors=("invalid-argument", "unreachable"),
+        examples=(
+            {"payload": {"selector": "#email", "value": "a@b.test"},
+             "result": {"ok": True, "connector": "kvm", "action": "cdp-dom-fill",
+                        "matched": True, "value": "a@b.test"}},
+        ),
+    ),
+
+    "cdp/page/command/dom-click": Contract(
+        version="v1",
+        effect="command",
+        reversible=False,
+        inp={"selector": "?str", "text": "?str"},
+        out={"action": "const:cdp-dom-click", "matched": "bool"},
+        errors=("invalid-argument", "unreachable"),
+        examples=(
+            {"payload": {"selector": "button[type=submit]"},
+             "result": {"ok": True, "connector": "kvm", "action": "cdp-dom-click",
+                        "matched": True}},
+        ),
+    ),
+
     "cdp/session/command/ensure": Contract(
         version="v1",
         effect="command",
