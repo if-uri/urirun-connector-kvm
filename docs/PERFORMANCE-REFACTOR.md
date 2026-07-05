@@ -144,8 +144,14 @@ Wejście (uinput/ydotool) ZOSTAJE izolowane — crash nie może zdjąć węzła;
   zdejmuje go z sys.modules (`_write_pushed_code`), więc kolejne wywołanie importuje
   świeży kod — ale ALIASY `urirun_connector_kvm.*` odtwarza dopiero `_adopt_flat_siblings`
   przy imporcie core.
-- **Reszta (~350 ms):** HTTP + base64 ~1 MB PNG w JSON + postprocess. Dalsze zejście:
-  mniejszy `max_width`, JPEG/WebP zamiast PNG, albo strumień zdarzeń zamiast poll.
+- **Reszta (~350 ms) — ROZWIĄZANE 2026-07-05 (commit 772060a):** to nie była koperta,
+  tylko UKRYTY re-encode: `_apply_capture_postprocessing` robił bezwarunkowe
+  `im.save(format="PNG", optimize=True)` na KAŻDEJ klatce (wolna ścieżka PIL; po cichu
+  konwertował też jpeg workera z powrotem na większy PNG). No-op nie dotyka już pliku.
+  Do tego `fmt=jpeg` (gst jpegenc q=85, PROTO 3) przez całą ścieżkę; vguard używa jpeg.
+  **Finał (lenovo, end-to-end):** capture@1600 jpeg **91–112 ms** (rano 1850 — **20×**),
+  png 161–173 ms, sonda dhash@480 **107 ms**, kotwica z cache **127 ms**; zimna
+  weryfikacja = już tylko koszt OCR hosta (~0,5–1,7 s zależnie od gęstości ekranu).
 - **Opcja B (pool `--pool`):** node serve ma gotowy HandlerPool (urirun_runtime.worker),
   ale włącza go tylko flaga/config przy starcie — wymaga interwencji na lenovo; po niej
   także trasy izolowane (input) dostaną ciepły start.
