@@ -23,8 +23,9 @@ Złożenie na typową pętlę **percepcja→akcja**:
 - sekwencja akcji osobno = `N × (290 + praca)`; batch = `290 + N × praca`.
 
 Do tego **retry przy flaky kompozytorze** (brak kontroli DOM) → pojedyncze zadanie potrafi
-zająć 15–30 s. Zmierzone end-to-end „otwórz kompozytor → zweryfikuj → wpisz": **24 s** starym
-sposobem.
+zająć 15–30 s. Zmierzone end-to-end „otwórz kompozytor → zweryfikuj → wpisz": **24,2 s** starym
+sposobem vs **8,6 s** nowym (batch + verify_texts) = **2,82×** — przy czym stary nawet nie
+otworzył kompozytora, więc realny zysk przy tej samej pracy jest większy.
 
 ## Zmierzone liczby (baseline)
 
@@ -75,12 +76,33 @@ teardown+init na każdy zrzut.
 
 ### Tier 2 — szybszy OCR (drugi lever percepcji)
 Tesseract CPU pełnoekranowy = 4,6 s. Opcje (najlepiej łącznie):
-- **easyocr + GPU** (env: `easyocr=false`) → OCR z ~4,6 s na <1 s, jeśli jest CUDA.
-- **naprawić crop** — capture ignoruje `crop_*`/`monitor` (zmierzone: identyczny wynik). OCR
-  regionu kotwicy (½ pikseli) → ~2×.
+- **easyocr** (env na .201: `easyocr=false`) → OCR z ~4,6 s na <1 s. **Backend już ISTNIEJE
+  w repo**: `backends.py:1372` `_EASYOCR_READER` (ciepły reader cache'owany modułowo,
+  `gpu=False`), a `core.py:1166` `_VNC_LOCATE_ORDER` stawia easyocr przed tesseractem.
+  Do zrobienia tylko: `pip install easyocr` w venv connectora na węźle (manage-install),
+  rozgrzać reader przy starcie node (pierwsze wywołanie ładuje model ~10 s), sprawdzić że
+  ścieżka `ui/query/*` też go preferuje. Ryzyko: waga zależności (torch).
+- **naprawić crop** — capture na .201 ignoruje `crop_*`/`monitor` (zmierzone: identyczny
+  wynik dla wszystkich parametrów). **Kod croppingu JEST w repo**: `core.py:142`
+  `_apply_capture_postprocessing` (cx/cy/zoom/crop_w/crop_h/max_width) — czyli na .201 działa
+  stara wersja connectora albo trasa gubi parametry. Akcja: redeploy connectora (signed-deploy)
+  + **test kontraktowy round-tripu parametrów capture** (payload → pole `crop` w odpowiedzi),
+  żeby regresja była łapana. OCR regionu kotwicy (½ pikseli) → ~2×.
 - **tuning tesseract** — `--psm 6`, `--oem 1`, grayscale, mniejszy region.
 - **Zysk:** percepcja `verify_texts` z ~4,8 s na <1–2 s.
 - **Gdzie:** connector ocr (`ocr://…/image/query/text`) + capture crop w kvm.
+
+### Tier 2b — serwerowe `verify_many` / `guarded_task_run` + cache OCR po dhash
+Dziś `vguard.verify_texts` = 2 round-tripy (capture → ocr) i zakłada, że plik zrzutu widzi
+`ocr://host` na tym samym węźle; `guarded_batch` płaci 2×N round-tripów za retry.
+- **Nowa trasa** `kvm://host/ui/query/verify_many` (payload `{"texts": [...], "max_width": 1600,
+  "region": {...}}`): capture+OCR+match w JEDNYM wywołaniu po stronie węzła, zwraca
+  `{tekst: bool}` — zero PNG po sieci. Analogicznie `input/command/guarded_task_run`
+  (steps + expect + tries) — retry bez pełnego cyklu klient↔węzeł.
+- **Cache OCR kluczowany dhash:** przed OCR policz dhash klatki; hamming ≤ próg vs poprzednia →
+  zwróć zcache'owany tekst. Pętle settle/verify na statycznym ekranie przestają płacić za OCR.
+  Naturalne miejsce: ten sam ciepły worker co Tier 1.
+- **Zysk:** ~2× na percepcji (round-tripy) + prawie darmowe pętle na statycznym ekranie.
 
 ### Tier 3 — ciepły worker / de-izolacja tanich handlerów
 Izolowany subprocess na każde wywołanie = 290 ms. `batch` już to amortyzuje w sekwencjach,
@@ -104,6 +126,36 @@ utrwala się). Blokuje kopiowanie plików na węzeł (i tym samym instalację pl
 - **Zysk:** działający transfer host↔node (`uri-cp` + `archive/unpack-b64` już gotowe po stronie
   klienta) → odblokowuje Tier 4.
 - **Gdzie:** handler fs — zapis musi trafiać na realny FS, nie do efemerycznego isolated.
+
+## Higiena kodu przy refaktorze (warunek wejścia w Tier 1/2b)
+
+- `backends.py` ma 1556 linii, `core.py` 1361 — wydzielając ciepły worker i trasy verify_many
+  trzymać regułę **CC ≤ 15, extract-method** (gate: `tests/test_cc_gate.py`, `make complexity`).
+- Sugerowany podział: `capture_worker.py` (Tier 1), `ocr.py` (tesseract/easyocr + cache dhash),
+  `backends.py` zostaje rejestrem backendów + input.
+- Kontrakt `navigate` jest lustrzany w 4 polyglot-peerach — zmiany kontraktów ruszać razem.
+
+## Metodologia pomiaru (każdy krok udowodniony, nie zadeklarowany)
+
+- **End-to-end:** to samo zadanie („otwórz kompozytor → zweryfikuj → wpisz → postcond") starą
+  i nową ścieżką, `time.perf_counter` wokół całości, na portalu testowym na lenovo.
+- **Mikrobenchmark prymitywu:** 3× wywołanie, mediana; zimną pierwszą próbę raportować osobno
+  (po Tier 1/2 zimny start będzie jednorazowy, nie per-op).
+- **Zysk liczy się tylko przy wykonanej pracy:** stary pomiar 24,2 s zrobił MNIEJ (nie otworzył
+  kompozytora) — zawsze potwierdzać postcond (`verify_texts`) przed zapisaniem wyniku.
+
+## Pułapki znane z sesji (nie odkrywać ponownie)
+
+- Portal potrafi zwrócić placeholder <20 KB → traktować jako degraded i spaść do
+  mutter-screencast/CDP (`_placeholder_guard`, `core.py:314`).
+- `settle()` uznaje ekran za stabilny ZANIM pole dostanie fokus — postcond na wpisany tekst
+  jest obowiązkowy (stąd `guarded_batch`).
+- Nawigacja na URL identyczny z bieżącym to no-op — kompozytor nie otwiera się „świeżo",
+  auto-fokus pola nie następuje.
+- ydotoold jest transient; współrzędne logiczne 1600 (skalowanie HiDPI).
+- vncdotool: jedna sesja na proces albo hang.
+- CDP: Chrome startować z `about:blank` + `--remote-allow-origins`, inaczej navigate pada
+  mimo działającego debuggera.
 
 ## Zasady, których trzymać się w refaktorze (lekcje sesji)
 
