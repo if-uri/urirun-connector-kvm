@@ -239,7 +239,10 @@ def _keyboard_fd() -> int:
 def _with_keyboard(emit: Callable) -> dict:
     fd = _keyboard_fd()
     emit(fd)
-    time.sleep(0.15)
+    # Hold BEFORE the device can be destroyed (process exit / atexit). Too short and the
+    # tail of a keystroke burst is still buffered in the compositor when DESTROY fires and
+    # those chars are dropped — the intermittent "type lands nothing" seen on lenovo.
+    time.sleep(0.4)
     return {"via": "uinput-keyboard"}
 
 
