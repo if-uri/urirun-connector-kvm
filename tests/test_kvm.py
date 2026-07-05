@@ -111,10 +111,15 @@ def test_bindings_are_isolated_handlers() -> None:
     b = urirun_bindings()["bindings"]
     assert set(b) == EXPECTED_ROUTES
     binding = b[ROUTE_CAPTURE]
-    assert binding["adapter"] == "local-function-subprocess"
+    # capture is deliberately IN-PROCESS (Tier 3 of PERFORMANCE-REFACTOR): read-only,
+    # heavy work delegated to the warm capture-worker subprocess, and the isolated
+    # spawn was ~600 ms of the ~730 ms hot perception path on a node.
+    assert binding["adapter"] == "local-function"
     assert binding["python"]["module"] == "urirun_connector_kvm.core"
     assert binding["python"]["export"] == "capture"
     assert "argv" not in binding
+    # input stays ISOLATED: it touches uinput/ydotool and must not take the node down.
+    assert b["kvm://host/input/command/key"]["adapter"] == "local-function-subprocess"
     domains = (binding.get("meta") or {}).get("contract", {}).get("domains") or {}
     assert domains["monitor"]["domain"] == "env:monitors.id"
     json.dumps(urirun_bindings())  # serializable: no live ref leaks

@@ -365,7 +365,10 @@ def _placeholder_guard(
     return None
 
 
-@conn.handler("screen/query/capture", isolated=True, meta={"label": "Capture the screen (auto backend)"})
+@conn.handler("screen/query/capture", isolated=False,  # in-process: read-only, and the
+              # isolated spawn was ~600 ms of the ~730 ms hot perception path (Tier 3);
+              # heavy lifting is in the warm capture worker subprocess anyway
+              meta={"label": "Capture the screen (auto backend)"})
 def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
             cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0,
             scope: str = "") -> dict[str, Any]:
@@ -419,7 +422,8 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
 # display geometry — a first-class query (callers hit a missing display/query/info
 # 374x to get screen size; capture only returned it as a side effect)
 # --------------------------------------------------------------------------- #
-@conn.handler("display/query/info", isolated=True, meta={"label": "Screen size, monitors, scale (the capture/action coordinate space)"})
+@conn.handler("display/query/info", isolated=False,  # read-only, in-process (Tier 3)
+              meta={"label": "Screen size, monitors, scale (the capture/action coordinate space)"})
 def display_info() -> dict[str, Any]:
     """The display geometry callers need without taking a screenshot: full pixel size (the
     space capture and click coordinates live in), per-monitor geometry+scale, and whether
