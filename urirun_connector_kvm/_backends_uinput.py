@@ -139,6 +139,130 @@ def _uinput_emit_clicks(ev: Callable, fd: int, button: str, clicks: int) -> None
         time.sleep(0.06)
 
 
+# --------------------------------------------------------------------------- #
+# virtual KEYBOARD via raw uinput — same working /dev/uinput path as the pointer.
+# Motivation (lenovo 2026-07-05): ydotoold reports ok yet its key events never reach
+# the GNOME-Wayland session, while the raw-uinput pointer lands every click.
+# --------------------------------------------------------------------------- #
+_KEY_ENTER, _KEY_LEFTCTRL, _KEY_LEFTSHIFT, _KEY_LEFTALT, _KEY_LEFTMETA = 28, 29, 42, 56, 125
+
+_KEYROWS = (("1234567890", 2), ("qwertyuiop", 16), ("asdfghjkl", 30), ("zxcvbnm", 44))
+_CHARMAP: dict[str, tuple[int, bool]] = {}
+for _row, _base in _KEYROWS:
+    for _i, _ch in enumerate(_row):
+        _CHARMAP[_ch] = (_base + _i, False)
+for _ch, _shifted in zip("1234567890", "!@#$%^&*()"):
+    _CHARMAP[_shifted] = (_CHARMAP[_ch][0], True)
+for _ch in "qwertyuiopasdfghjklzxcvbnm":
+    _CHARMAP[_ch.upper()] = (_CHARMAP[_ch][0], True)
+for _plain, _shift_ch, _code in (("-", "_", 12), ("=", "+", 13), ("[", "{", 26),
+                                 ("]", "}", 27), ("\\", "|", 43), (";", ":", 39),
+                                 ("'", '"', 40), ("`", "~", 41), (",", "<", 51),
+                                 (".", ">", 52), ("/", "?", 53)):
+    _CHARMAP[_plain] = (_code, False)
+    _CHARMAP[_shift_ch] = (_code, True)
+_CHARMAP.update({" ": (57, False), "\t": (15, False), "\n": (_KEY_ENTER, False)})
+
+_KEYNAMES = {"ctrl": _KEY_LEFTCTRL, "control": _KEY_LEFTCTRL, "shift": _KEY_LEFTSHIFT,
+             "alt": _KEY_LEFTALT, "super": _KEY_LEFTMETA, "meta": _KEY_LEFTMETA,
+             "enter": _KEY_ENTER, "return": _KEY_ENTER, "esc": 1, "escape": 1,
+             "tab": 15, "space": 57, "backspace": 14, "delete": 111, "insert": 110,
+             "up": 103, "down": 108, "left": 105, "right": 106,
+             "home": 102, "end": 107, "pageup": 104, "pagedown": 109,
+             **{f"f{n}": c for n, c in zip(range(1, 11), range(59, 69))},
+             "f11": 87, "f12": 88}
+
+
+def _uinput_create_keyboard() -> int:
+    fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
+    for ev in (_EV_KEY, _EV_SYN):
+        _fcntl.ioctl(fd, _UI_SET_EVBIT, ev)
+    for code in range(1, 128):  # the whole basic keyboard block
+        _fcntl.ioctl(fd, _UI_SET_KEYBIT, code)
+    dev = _struct.pack("<80s4HI", b"urirun-virt-keyboard", 0x03, 0x1234, 0x5679, 1, 0)
+    dev += _struct.pack("<64i", *([0] * 64)) + _struct.pack("<192i", *([0] * 192))
+    os.write(fd, dev)
+    _fcntl.ioctl(fd, _UI_DEV_CREATE)
+    return fd
+
+
+def _kbd_ev(fd: int, t: int, c: int, v: int) -> None:
+    os.write(fd, _struct.pack("llHHi", 0, 0, t, c, v))
+
+
+def _kbd_tap(fd: int, code: int, shift: bool = False, hold: float = 0.012) -> None:
+    if shift:
+        _kbd_ev(fd, _EV_KEY, _KEY_LEFTSHIFT, 1)
+        _kbd_ev(fd, _EV_SYN, 0, 0)
+    _kbd_ev(fd, _EV_KEY, code, 1)
+    _kbd_ev(fd, _EV_SYN, 0, 0)
+    time.sleep(hold)
+    _kbd_ev(fd, _EV_KEY, code, 0)
+    _kbd_ev(fd, _EV_SYN, 0, 0)
+    if shift:
+        _kbd_ev(fd, _EV_KEY, _KEY_LEFTSHIFT, 0)
+        _kbd_ev(fd, _EV_SYN, 0, 0)
+    time.sleep(hold)
+
+
+def _with_keyboard(emit: Callable, settle: float = 0.9) -> dict:
+    """Create the virtual keyboard, wait for the compositor to map it, run ``emit(fd)``."""
+    if not uinput_available():
+        raise BackendError("no write access to /dev/uinput (add user to 'input' group or udev rule)")
+    fd = _uinput_create_keyboard()
+    try:
+        time.sleep(float(settle))
+        emit(fd)
+        time.sleep(0.15)
+        return {"via": "uinput-keyboard"}
+    finally:
+        try:
+            _fcntl.ioctl(fd, _UI_DEV_DESTROY)
+        except Exception:  # noqa: BLE001
+            pass
+        os.close(fd)
+
+
+def uinput_type_text(text: str) -> dict:
+    """Type ASCII text on a raw-uinput virtual keyboard (US keymap). Non-mappable
+    chars raise so dispatch can fall through to a clipboard/other backend."""
+    unmapped = sorted({c for c in text if c not in _CHARMAP})
+    if unmapped:
+        raise BackendError("uinput keymap cannot type: %r" % "".join(unmapped))
+
+    def emit(fd: int) -> None:
+        for ch in text:
+            code, shift = _CHARMAP[ch]
+            _kbd_tap(fd, code, shift)
+    return {**_with_keyboard(emit), "typed": len(text)}
+
+
+def uinput_key_combo(combo: str) -> dict:
+    """Press a key/chord like ``Return``, ``ctrl+l``, ``ctrl+shift+t`` via raw uinput."""
+    parts = [p.strip() for p in str(combo).replace("-", "+").split("+") if p.strip()]
+    codes = []
+    for p in parts:
+        low = p.lower()
+        if low in _KEYNAMES:
+            codes.append(_KEYNAMES[low])
+        elif len(p) == 1 and p in _CHARMAP and not _CHARMAP[p][1]:
+            codes.append(_CHARMAP[p][0])
+        elif len(p) == 1 and p.lower() in _CHARMAP:
+            codes.append(_CHARMAP[p.lower()][0])
+        else:
+            raise BackendError("uinput keymap has no key %r (combo %r)" % (p, combo))
+
+    def emit(fd: int) -> None:
+        for c in codes[:-1]:
+            _kbd_ev(fd, _EV_KEY, c, 1)
+            _kbd_ev(fd, _EV_SYN, 0, 0)
+        _kbd_tap(fd, codes[-1])
+        for c in reversed(codes[:-1]):
+            _kbd_ev(fd, _EV_KEY, c, 0)
+            _kbd_ev(fd, _EV_SYN, 0, 0)
+    return {**_with_keyboard(emit), "combo": combo}
+
+
 def uinput_abs_click(x: int, y: int, sw: int, sh: int, button: str = "left",
                      do_click: bool = True, settle: float = 0.9, clicks: int = 1) -> dict:
     if not uinput_available():

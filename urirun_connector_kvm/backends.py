@@ -715,6 +715,27 @@ def _clipboard_set(text: str) -> str:
                        "browser-cdp surface — none installed on this node; ydotool cannot type it")
 
 
+@backend("type", "uinput", priority=85, platforms=("linux-wayland", "linux-x11"))
+def _type_uinput(text: str, **_: Any) -> dict:
+    """Raw-uinput virtual keyboard — the same /dev/uinput path the pointer uses.
+    Beats ydotool (prio 80) because ydotoold can report ok while its events never
+    reach the session (observed on lenovo GNOME-Wayland); raw uinput lands. ASCII
+    only — non-ASCII raises BackendError so dispatch falls to ydotool's clipboard path."""
+    if not uinput_available():
+        raise BackendError("no write access to /dev/uinput")
+    if not text.isascii():
+        raise BackendError("uinput keymap is ASCII-only — falling through")
+    return {**uinput_type_text(text), "chars": len(text)}
+
+
+@backend("key", "uinput", priority=85, platforms=("linux-wayland", "linux-x11"))
+def _key_uinput(key: str = "", keys: str = "", **_: Any) -> dict:
+    """Key/chord via the raw-uinput virtual keyboard (see _type_uinput)."""
+    if not uinput_available():
+        raise BackendError("no write access to /dev/uinput")
+    return uinput_key_combo(keys or key)
+
+
 @backend("type", "ydotool", priority=80, platforms=("linux-wayland", "linux-x11"), needs_bin=("ydotool", "ydotoold"))
 def _type_ydotool(text: str, **_: Any) -> dict:
     # Non-ASCII: ydotool drops it, so set the clipboard and paste it verbatim instead — or fail
@@ -1623,6 +1644,7 @@ try:  # normal package import
         _EV_SYN, _EV_KEY, _EV_ABS, _ABS_X, _ABS_Y, _BTN_CODE, _BTN_TOUCH, _ABS_RANGE,
         _SCREEN_WH_CACHE, _ui_io, _ui_iow, uinput_available, _uinput_create_abs,
         _read_text, _screen_wh, _calib, _compute_abs_coords, _uinput_emit_clicks, uinput_abs_click,
+        uinput_type_text, uinput_key_combo,
     )
 except ImportError:  # flat-module deploy
     from _backends_uinput import (  # type: ignore  # noqa: E402
@@ -1630,6 +1652,7 @@ except ImportError:  # flat-module deploy
         _EV_SYN, _EV_KEY, _EV_ABS, _ABS_X, _ABS_Y, _BTN_CODE, _BTN_TOUCH, _ABS_RANGE,
         _SCREEN_WH_CACHE, _ui_io, _ui_iow, uinput_available, _uinput_create_abs,
         _read_text, _screen_wh, _calib, _compute_abs_coords, _uinput_emit_clicks, uinput_abs_click,
+        uinput_type_text, uinput_key_combo,
     )
 
 # Surface awareness helpers extracted to _backends_surface.
