@@ -917,22 +917,45 @@ def ready_resolve(task: str = "", service: str = "") -> dict[str, Any]:
         cdp_reachable = bool(_cdp_mod().reachable())
     except Exception:  # noqa: BLE001
         cdp_reachable = False
-    # atspi can't always enumerate Chrome windows here; flag it as a degraded signal so the
-    # resolver treats blind HID focus as unsafe rather than assuming a clean window list.
-    try:
-        wins = _window_mod_list()
-        chrome_seen = any("chrome" in str(w.get("app", "")).lower() for w in wins)
-    except Exception:  # noqa: BLE001
-        chrome_seen = False
+    # Window enumeration: PREFER vdisplay (multi-backend, sees Chrome on Wayland where atspi
+    # cannot); fall back to the local atspi list. Degraded means the enumeration BACKEND could
+    # not list windows at all — NOT merely that Chrome isn't running — so the resolver trusts
+    # the window signal whenever a backend works.
+    enum_ok, win_backend = _enumerate_windows()
     signals = {
         "browser_sessions": sessions,
         "cdp_reachable": cdp_reachable,
         "cdp_auth_known": any((b.get("sessions") or {}).get(service) for b in running_cdp),
         "input_available": B.uinput_available() or bool(shutil.which("ydotool")),
-        "window_list_degraded": not chrome_seen,
+        "window_list_degraded": not enum_ok,
+        "window_backend": win_backend,
         "api_connector_available": _api_connector_available(service),
     }
     return _ok(action="ready-resolve", **_readiness_mod().resolve(task or f"{service}.action", service, signals))
+
+
+def _enumerate_windows() -> tuple[bool, str]:
+    """(enumeration_worked, backend). Prefer vdisplay's multi-backend enumeration (sees Chrome
+    on Wayland); fall back to the kvm atspi list. vdisplay is optional — absent on a node it
+    simply isn't used. ``enumeration_worked`` is True when a backend returned a window list at
+    all (even empty on an idle desktop) — atspi that can only ever see gnome-shell here counts
+    as degraded, since it can't confirm an app's focus owner."""
+    try:
+        from urirun_connector_vdisplay.core import windows_list as _vd_windows
+        r = _vd_windows(apps_only=False)
+        if r.get("ok"):
+            return True, "vdisplay"
+    except Exception:  # noqa: BLE001 - vdisplay not installed on this node
+        pass
+    try:
+        wins = _window_mod_list()
+        # atspi here only ever surfaces gnome-shell/Terminal (never app/Chrome windows) — treat
+        # that as degraded: it cannot ground an unambiguous app-window focus owner.
+        app_like = [w for w in wins if str(w.get("app", "")).lower()
+                    not in ("gnome-shell", "", "org.gnome.terminal")]
+        return bool(app_like), "atspi"
+    except Exception:  # noqa: BLE001
+        return False, "none"
 
 
 def _window_mod_list() -> list:
