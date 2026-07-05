@@ -77,6 +77,33 @@ class Screen:
         dla sekwencji. steps: [{'op':'type','text':...}, {'op':'key','keys':'Return'}, ...]."""
         return self._run("kvm://host/input/command/task_run", {"steps": steps})
 
+    def press(self, keys: str, n: int = 1, gap: float = 0.12) -> None:
+        """Wciśnij `keys` (np. 'Tab', 'shift+Tab', 'Return') n razy przez batch."""
+        steps = []
+        for _ in range(max(1, n)):
+            steps.append({"op": "key", "keys": keys})
+            if gap:
+                steps.append({"op": "wait", "ms": int(gap * 1000)})
+        self.batch(steps)
+
+    def focus_field(self, expect: str, max_tabs: int = 12, shift: bool = False,
+                    probe: str = "vguardFOCUS") -> dict:
+        """DETERMINISTYCZNY fokus przez Tab/Shift+Tab — pewniejszy niż klik w piksel czy
+        auto-fokus (lekcja 2026-07-05: contenteditable gubi fokus, klik ma wyścig z layoutem).
+        Po każdym Tab wpisuje krótką sondę i sprawdza OCR: jeśli `expect` (etykieta pola,
+        które właśnie zyskało fokus) LUB sonda pojawia się — fokus jest na polu edytowalnym.
+        Zwraca {ok, tabs}. Kasuje sondę (backspace×len) po znalezieniu."""
+        key = "shift+Tab" if shift else "Tab"
+        for i in range(max_tabs):
+            self.press(key)
+            self.batch([{"op": "type", "text": probe}])
+            time.sleep(0.35)
+            hit = self.verify_texts([probe, expect], force=True)
+            if hit.get(probe) or hit.get(expect):
+                self.press("BackSpace", n=len(probe))  # wyczyść sondę
+                return {"ok": True, "tabs": i + 1, "matched": "probe" if hit.get(probe) else "label"}
+        return {"ok": False, "tabs": max_tabs}
+
     def user_active(self, window: float = 1.2, tol: int = 6) -> bool:
         """Czy ktoś PRACUJE na maszynie? Dwa małe zrzuty w odstępie `window` s — różnica
         ponad próg = ekran żyje sam z siebie (user pisze/scrolluje, animacja). Lekcja
