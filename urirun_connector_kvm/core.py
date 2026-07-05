@@ -934,6 +934,29 @@ def ready_resolve(task: str = "", service: str = "") -> dict[str, Any]:
     return _ok(action="ready-resolve", **_readiness_mod().resolve(task or f"{service}.action", service, signals))
 
 
+def _call_node_route(uri: str, payload: dict, timeout: float = 20) -> "dict | None":
+    """In-node route composition: call a SIBLING connector's route served on THIS node, over
+    the node's own loopback (URIRUN_NODE_SELF_URL, set at deploy via --env). The right way for
+    one connector to consume another — the deployed module name (flat vs package) is irrelevant,
+    only the served URI matters. Returns None when self-URL is unset or the call fails, so the
+    caller degrades. Safe: the node is a ThreadingHTTPServer, so a self-call runs on a new
+    thread (no deadlock)."""
+    base = os.environ.get("URIRUN_NODE_SELF_URL")
+    if not base:
+        return None
+    try:
+        import json as _j
+        import urllib.request as _u
+        body = _j.dumps({"uri": uri, "mode": "execute", "payload": payload}).encode()
+        req = _u.Request(base.rstrip("/") + "/run", data=body,
+                         headers={"Content-Type": "application/json"})
+        env = _j.load(_u.urlopen(req, timeout=timeout))
+        val = (env.get("result") or {}).get("value")
+        return val if isinstance(val, dict) else (env.get("result") or {})
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def _enumerate_windows() -> tuple[bool, str]:
     """(can_ground_app_focus, backend). Whether we can TRUST the window list to identify an
     app's focus owner — the precondition for safe blind HID.
@@ -942,13 +965,23 @@ def _enumerate_windows() -> tuple[bool, str]:
     unless org.gnome.Shell.Eval is on (usually disabled) — x11/xdotool sees only XWayland,
     atspi only gnome-shell. So a window list that came back is NOT automatically trustworthy:
     vdisplay reports ``wayland_native_visible`` and we honour it. When Wayland-native windows
-    are invisible we return degraded, so the resolver won't recommend blind typing."""
+    are invisible we return degraded, so the resolver won't recommend blind typing.
+
+    Composition order: the vdisplay ROUTE via in-node self-call (works regardless of how
+    vdisplay is deployed) → the vdisplay package import (dev/local) → the atspi fallback."""
+    r = _call_node_route("vdisplay://host/windows/query/list", {"apps_only": False})
+    if r is not None:                       # the ROUTE was reached (composition layer worked)
+        if r.get("ok"):
+            return bool(r.get("wayland_native_visible")), "vdisplay:route"
+        # route reached but enumeration unavailable (e.g. Wayland: xdotool missing) — trustworthy
+        # window grounding is impossible here, so degraded; but record that vdisplay answered.
+        return False, "vdisplay:route(unavailable)"
     try:
         from urirun_connector_vdisplay.core import windows_list as _vd_windows
         r = _vd_windows(apps_only=False)
         if r.get("ok"):
             # trustworthy only if Wayland-native windows are actually enumerable (or X11 session)
-            return bool(r.get("wayland_native_visible")), "vdisplay"
+            return bool(r.get("wayland_native_visible")), "vdisplay:import"
     except Exception:  # noqa: BLE001 - vdisplay not installed on this node
         pass
     try:

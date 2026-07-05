@@ -37,6 +37,9 @@ for f in core.py backends.py cdp.py _cdp_impl.py control.py environment.py \
   CODE+=(--code "$PKG_DIR/$f")
 done
 
+# URIRUN_NODE_SELF_URL lets kvm handlers compose SIBLING connector routes (vdisplay://,
+# vql://) over the node's own loopback — in-node route composition, not package import.
 exec "$URIRUN" host deploy "$NODE_URL" --bindings "$BINDINGS" \
   --allow 'kvm://**' --allow 'app://**' "${CODE[@]}" \
+  --env URIRUN_NODE_SELF_URL=http://127.0.0.1:8765 \
   --merge --persist --identity ~/.ssh/id_ed25519
