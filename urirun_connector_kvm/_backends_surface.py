@@ -13,7 +13,10 @@ from urirun.connectors.backend_registry import have_bin
 
 def _gnome_monitors() -> list[dict]:
     """Best-effort logical-monitor geometry via Mutter DisplayConfig (gdbus); [] if absent."""
-    from urirun_connector_kvm.backends import _portal_python, session_env  # lazy circular-safe
+    try:
+        from urirun_connector_kvm.backends import _portal_python, session_env  # lazy circular-safe
+    except ImportError:  # flat-module deploy
+        from backends import _portal_python, session_env  # type: ignore
     py = _portal_python()
     if py:
         script = r"""
@@ -139,7 +142,10 @@ def _os_level_reliable(wl: bool | None, multi: bool, fractional: bool, unconfirm
 def _surface_flags(linux: bool, mons: list[dict], wl: bool | None) -> dict:
     """Derive the Wayland/multi/fractional/reliability booleans from monitor geometry and
     the (True/False/None) Wayland signal. Factored out so ``surface_report`` stays simple."""
-    from urirun_connector_kvm.backends import is_wayland  # lazy circular-safe
+    try:
+        from urirun_connector_kvm.backends import is_wayland  # lazy circular-safe
+    except ImportError:  # flat-module deploy
+        from backends import is_wayland  # type: ignore
     multi = len(mons) > 1
     fractional = any(m["scale"] not in (0, 1.0) for m in mons)
     # GNOME answered DisplayConfig and the session isn't positively X11 → treat as Wayland-ish.
@@ -156,7 +162,10 @@ def surface_report() -> dict:
     even on a node process that can't see WAYLAND_DISPLAY. Surfaces: os-level (raw input,
     this connector), browser-cdp (Playwright/CDP), remotedesktop-portal, vdisplay. On
     Wayland multi-monitor / fractional-HiDPI, os-level pixel input is unreliable."""
-    from urirun_connector_kvm.backends import platform_tag  # lazy circular-safe
+    try:
+        from urirun_connector_kvm.backends import platform_tag  # lazy circular-safe
+    except ImportError:  # flat-module deploy
+        from backends import platform_tag  # type: ignore
     plat = platform_tag()
     linux = sys.platform.startswith("linux")
     mons = _gnome_monitors() if linux else []     # ground truth via Mutter (works w/o WAYLAND_DISPLAY)

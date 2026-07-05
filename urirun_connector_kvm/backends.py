@@ -15,6 +15,7 @@ install hints surfaced by the ``doctor`` route.
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -163,6 +164,8 @@ def dispatch(action: str, **kwargs: Any) -> dict:
             result = b.fn(**kwargs) or {}
             result.setdefault("backend", b.name)
             result["platform"] = platform_tag()
+            if errors:  # higher-priority backends that failed before this one won —
+                result["backendErrors"] = errors  # visible remotely (no node-side logs)
             return result
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{b.name}: {exc}")
@@ -395,6 +398,80 @@ def _png_dimensions(path: str) -> tuple[int, int] | None:
     if len(head) >= 24 and head.startswith(b"\x89PNG\r\n\x1a\n") and head[12:16] == b"IHDR":
         return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
     return None
+
+
+_WARM_PROTO = 2  # keep in lockstep with capture_worker.PROTO
+
+
+def _warm_selector(monitor: int, scope: str) -> str:
+    all_scopes = {"all", "all-monitors", "desktop"}
+    return "all" if str(scope or "").strip().lower() in all_scopes or monitor < 0 else str(monitor)
+
+
+def _warm_socket(selector: str) -> str:
+    return os.path.join(_runtime_dir(), "urirun-kvm-warm-%s.sock" % selector)
+
+
+def _spawn_warm_worker(selector: str, sock: str) -> None:
+    """Start the detached warm-capture daemon (capture_worker.py next to this file —
+    the same layout packaged AND flat-deployed). It negotiates the ScreenCast session
+    once and serves frames on ``sock`` until idle-exit; we do not wait for it here."""
+    py = _mutter_python()
+    if not py:
+        raise BackendError("warm capture needs python3 with dbus+gi+gstreamer")
+    worker = os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_worker.py")
+    if not os.path.exists(worker):
+        raise BackendError("capture_worker.py not deployed next to backends.py")
+    subprocess.Popen([py, worker, sock, selector], env=session_env(),
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     start_new_session=True)
+
+
+def _warm_request(sock: str, output: str, max_width: int = 0) -> dict:
+    """One frame from the warm worker; raises OSError/ValueError on a dead socket."""
+    c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    c.settimeout(15)
+    try:
+        c.connect(sock)
+        c.sendall((json.dumps({"output": output, "max_width": int(max_width or 0)})
+                   + "\n").encode("utf-8"))
+        resp = json.loads(c.makefile("r").readline() or "{}")
+    finally:
+        c.close()
+    if not resp.get("ok"):
+        raise ValueError(str(resp.get("error") or "warm worker returned no frame"))
+    return resp
+
+
+@backend("capture", "mutter-warm", priority=99, platforms=("linux-wayland",))
+def _cap_mutter_warm(output: str, monitor: int = 0, scope: str = "",
+                     max_width: int = 0, **_: Any) -> dict:
+    """WARM mutter capture: a long-lived worker holds the ScreenCast session + pipewire
+    node open, so a frame costs a tiny gst pipeline instead of the full dbus negotiation
+    (~150-300 ms vs ~700-1200 ms — Tier 1 of PERFORMANCE-REFACTOR). First call spawns the
+    worker and falls through (BackendError) to the cold ``mutter`` backend, so callers
+    always get a frame; the worker idle-exits after 120 s without requests."""
+    selector = _warm_selector(monitor, scope)
+    sock = _warm_socket(selector)
+    if not os.path.exists(sock):
+        _spawn_warm_worker(selector, sock)
+        raise BackendError("warm capture worker starting — cold path serves this call")
+    try:
+        meta = _warm_request(sock, output, max_width)
+        if meta.get("proto") != _WARM_PROTO:  # worker predates the last deploy
+            raise ValueError("outdated warm worker (proto %s != %s) — retiring"
+                             % (meta.get("proto"), _WARM_PROTO))
+    except (OSError, ValueError) as exc:
+        try:  # stale socket (worker crashed/idle-exited mid-check): clear + respawn next call
+            os.unlink(sock)
+        except OSError:
+            pass
+        raise BackendError("warm capture failed (%s) — cold path serves this call" % exc)
+    data_len = os.path.getsize(output)
+    dims = _png_dimensions(output)
+    return {"path": output, "bytes": data_len, "via": "mutter-screencast-warm",
+            **({"width": dims[0], "height": dims[1]} if dims else {}),
+            **{k: v for k, v in meta.items() if k not in {"path", "ok"}}}
 
 
 @backend("capture", "mutter", priority=98, platforms=("linux-wayland",))
@@ -1536,18 +1613,35 @@ def _vql_first_match(doc: dict, needle: str) -> "tuple[list[int], Any] | None":
 
 
 # Pixel-accurate uinput pointer helpers extracted to _backends_uinput.
-from ._backends_uinput import (  # noqa: E402
-    _UI, _UI_DEV_CREATE, _UI_DEV_DESTROY, _UI_SET_EVBIT, _UI_SET_KEYBIT, _UI_SET_ABSBIT,
-    _EV_SYN, _EV_KEY, _EV_ABS, _ABS_X, _ABS_Y, _BTN_CODE, _BTN_TOUCH, _ABS_RANGE,
-    _SCREEN_WH_CACHE, _ui_io, _ui_iow, uinput_available, _uinput_create_abs,
-    _read_text, _screen_wh, _calib, _compute_abs_coords, _uinput_emit_clicks, uinput_abs_click,
-)
+# NOTE: flat fallback is MANDATORY — a bare relative import here made every flat
+# `--code backends.py` deploy fail on the node ("attempted relative import with no
+# known parent package"), silently pinning nodes to a stale bundled backends.
+try:  # normal package import
+    from ._backends_uinput import (  # noqa: E402
+        _UI, _UI_DEV_CREATE, _UI_DEV_DESTROY, _UI_SET_EVBIT, _UI_SET_KEYBIT, _UI_SET_ABSBIT,
+        _EV_SYN, _EV_KEY, _EV_ABS, _ABS_X, _ABS_Y, _BTN_CODE, _BTN_TOUCH, _ABS_RANGE,
+        _SCREEN_WH_CACHE, _ui_io, _ui_iow, uinput_available, _uinput_create_abs,
+        _read_text, _screen_wh, _calib, _compute_abs_coords, _uinput_emit_clicks, uinput_abs_click,
+    )
+except ImportError:  # flat-module deploy
+    from _backends_uinput import (  # type: ignore  # noqa: E402
+        _UI, _UI_DEV_CREATE, _UI_DEV_DESTROY, _UI_SET_EVBIT, _UI_SET_KEYBIT, _UI_SET_ABSBIT,
+        _EV_SYN, _EV_KEY, _EV_ABS, _ABS_X, _ABS_Y, _BTN_CODE, _BTN_TOUCH, _ABS_RANGE,
+        _SCREEN_WH_CACHE, _ui_io, _ui_iow, uinput_available, _uinput_create_abs,
+        _read_text, _screen_wh, _calib, _compute_abs_coords, _uinput_emit_clicks, uinput_abs_click,
+    )
 
 # Surface awareness helpers extracted to _backends_surface.
-from ._backends_surface import (  # noqa: E402
-    _gnome_monitors, _wayland_present, _surface_warnings,
-    _os_level_reliable, _surface_flags, surface_report,
-)
+try:  # normal package import
+    from ._backends_surface import (  # noqa: E402
+        _gnome_monitors, _wayland_present, _surface_warnings,
+        _os_level_reliable, _surface_flags, surface_report,
+    )
+except ImportError:  # flat-module deploy
+    from _backends_surface import (  # type: ignore  # noqa: E402
+        _gnome_monitors, _wayland_present, _surface_warnings,
+        _os_level_reliable, _surface_flags, surface_report,
+    )
 
 # Register the launch/launch_list backends (their @backend decorators run on import).
 try:  # normal package import

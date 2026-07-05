@@ -74,7 +74,10 @@ def _screen_wh() -> tuple[int, int]:
             except ValueError:
                 pass
     try:
-        from urirun_connector_kvm.backends import dispatch  # lazy to avoid circular at module level
+        try:
+            from urirun_connector_kvm.backends import dispatch  # lazy to avoid circular at module level
+        except ImportError:  # flat-module deploy
+            from backends import dispatch  # type: ignore
         out = os.path.join(tempfile.gettempdir(), "urirun-kvm-wh.png")
         dispatch("capture", output=out, monitor=0)
         from PIL import Image

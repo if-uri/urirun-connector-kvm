@@ -85,13 +85,22 @@ bindings z `urirun_bindings()` z refami spłaszczonymi (`urirun_connector_kvm.co
 
 ## Plan refaktoryzacji (connector kvm + runtime) — kolejność wg zysk/koszt
 
-### Tier 1 — ciepły screencast (największy lever percepcji)
-Trzymać **otwarty strumień pipewire/mutter-screencast** i wyciągać klatkę na żądanie zamiast
-teardown+init na każdy zrzut.
-- **Zysk:** zrzut **800 → ~50–100 ms** (~8–16×). To przyspiesza `settle`, każdą kotwicę i całą
-  pętlę wizyjną.
-- **Gdzie:** backend capture w connectorze kvm (`backends.py` / mutter/pipewire).
-- **Ryzyko:** trzymanie streamu (zasoby, uprawnienia portalu); fallback do zimnego grabu.
+### Tier 1 — ciepły screencast — ✅ WDROŻONE 2026-07-05 (`capture_worker.py`)
+Długożyjący worker (system-python: dbus+gi+gst) negocjuje sesję ScreenCast RAZ, trzyma węzeł
+pipewire otwarty i serwuje klatki po unix-sockecie; żądanie = mini-pipeline
+`pipewiresrc→(videoscale)→pngenc` na gotowym strumieniu. Backend `mutter-warm` (prio 99):
+pierwszy strzał spawnuje workera i spada do zimnego muttera, kolejne biją w socket; worker
+sam się kończy po 120 s bezczynności (wskaźnik „udostępniania ekranu" nie wisi wiecznie).
+- **Zmierzone (lenovo, end-to-end przez /run):** capture@1600: **1850 → ~730 ms**; sam grab
+  na ciepłym strumieniu **grabMs=108–123 ms** (telemetria w odpowiedzi). Skalowanie do
+  max_width robi gst W WORKERZE (4× mniej pikseli do pngenc; PIL na węźle już nie skaluje).
+- **Pełna percepcja po Tier 1 + host-OCR:** `verify_texts` zimno **1,9 s**, z cache dhash
+  **0,76 s** (bylo 4,6–5,7 s za jedną kotwicę).
+- **Stale-worker po redeployu:** żywy worker sprzed deployu serwuje starym kodem, dopóki
+  żądania odświeżają mu idle-timer — rozwiązane handshakiem `PROTO` (backend wykrywa
+  niezgodność, unlinkuje socket, respawnuje).
+- **Pozostały koszt (~600 ms):** spawn izolowanego subprocessu na węźle + koperta HTTP/base64
+  — to jest Tier 3 (de-izolacja tanich handlerów), teraz największy pozostały lever percepcji.
 
 ### Tier 2 — szybszy OCR (drugi lever percepcji)
 Tesseract CPU pełnoekranowy = 4,6 s. Opcje (najlepiej łącznie):
@@ -179,6 +188,15 @@ utrwala się). Blokuje kopiowanie plików na węzeł (i tym samym instalację pl
   → retry, raz na instancję.
 - `import urirun` z cwd `~/github/if-uri` łapie FOLDER `urirun/` zamiast pakietu
   (`urirun has no attribute connector`) — skrypty deployu muszą `cd` do neutralnego katalogu.
+- **Flat-deploy vs bundlowany pakiet (PRZYCZYNA „węzeł ma nowy core, stary backends"):**
+  bundle urirun z PyPI zawiera własny (stary) `urirun_connector_kvm`, a flat-owe moduły
+  preferowały import pakietowy — więc wypchnięty `backends.py` nigdy nie wygrywał. Naprawione
+  w `core._adopt_flat_siblings()`: w trybie flat (`__package__` puste) flat-owe sąsiednie pliki
+  są rejestrowane w `sys.modules` jako `urirun_connector_kvm.*` i stają się autorytatywne.
+  Do tego: relative importy w `backends.py` (`from ._backends_uinput import …`) wysypywały CAŁY
+  flat-import („attempted relative import") — każdy import międzymodułowy musi mieć fallback flat.
+  Warning `capture_worker: No module named 'dbus'` przy deployu jest OCZEKIWANY (walidacja
+  importu idzie w venv węzła; worker działa pod system-pythonem).
 - Portal potrafi zwrócić placeholder <20 KB → traktować jako degraded i spaść do
   mutter-screencast/CDP (`_placeholder_guard`, `core.py:314`).
 - `settle()` uznaje ekran za stabilny ZANIM pole dostanie fokus — postcond na wpisany tekst

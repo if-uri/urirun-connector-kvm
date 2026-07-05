@@ -40,6 +40,39 @@ from typing import Any
 
 import urirun
 
+
+def _adopt_flat_siblings() -> None:
+    """Flat-module deploy ONLY (``__package__`` empty): make the flat sibling files
+    authoritative for ``urirun_connector_kvm.*`` imports. Without this, a node whose
+    urirun BUNDLE ships an (older) installed ``urirun_connector_kvm`` silently wins
+    every ``from urirun_connector_kvm import X`` inside the deployed modules — the
+    node then runs new core.py with OLD backends.py (observed on lenovo: crop worked,
+    new capture backends never appeared)."""
+    import importlib
+    import sys as _sys
+    import types as _types
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in _sys.path:
+        _sys.path.insert(0, here)
+    pkg = _types.ModuleType("urirun_connector_kvm")
+    pkg.__path__ = [here]  # type: ignore[attr-defined]
+    _sys.modules["urirun_connector_kvm"] = pkg
+    for name in ("backends", "_backends_uinput", "_backends_surface", "launch_backends",
+                 "cdp", "_cdp_impl", "control", "environment", "strategies", "surface",
+                 "vnc", "contracts", "capture_worker"):
+        if not os.path.exists(os.path.join(here, name + ".py")):
+            continue
+        try:
+            mod = importlib.import_module(name)
+        except Exception:  # noqa: BLE001 - optional sibling (capture_worker needs dbus,
+            continue      # contracts may need a newer toolkit) — core must still load
+        _sys.modules["urirun_connector_kvm." + name] = mod
+        setattr(pkg, name, mod)
+
+
+if not __package__:  # running as a flat module pushed by `host deploy --code`
+    _adopt_flat_siblings()
+
 try:  # normal package import
     from urirun_connector_kvm import backends as B
 except ImportError as _e:  # flat-module deploy (host `deploy --code core.py backends.py`)
@@ -300,7 +333,7 @@ def _build_capture_payload(
         "fullSize": full, "crop": crop,
         "bytes": os.path.getsize(out) if os.path.exists(out) else 0,
     }
-    for key in ("scope", "monitors", "bbox", "width", "height"):
+    for key in ("scope", "monitors", "bbox", "width", "height", "grabMs", "backendErrors"):
         if res.get(key) not in (None, "", []):
             payload[key] = res.get(key)
     if res.get("connector"):
@@ -355,7 +388,10 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     if missing := _missing_requested_monitor_from_inventory(monitor, scope):
         return _fail_from("capture", B.BackendError(missing))
     try:
-        res = B.dispatch("capture", output=out, monitor=monitor, scope=scope)
+        # max_width reaches the warm worker (gst videoscale: 4x fewer pixels to
+        # png-encode + no PIL resize here); other backends ignore it via **_.
+        res = B.dispatch("capture", output=out, monitor=monitor, scope=scope,
+                         max_width=max_width if int(cx) < 0 else 0)
     except B.BackendError as exc:
         msg = str(exc)
         _need = _backend_need(msg)
