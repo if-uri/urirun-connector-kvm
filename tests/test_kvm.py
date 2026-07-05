@@ -43,6 +43,7 @@ EXPECTED_ROUTES = {
     "kvm://host/cdp/page/query/eval", "kvm://host/cdp/page/command/dom-fill",
     "kvm://host/cdp/page/command/dom-click",
     "kvm://host/ui/command/act", "kvm://host/env/query/profile", "kvm://host/surface/query/current", "kvm://host/display/query/info",
+    "kvm://host/ready/query/resolve",
     "kvm://host/browser/query/sessions",
     "kvm://host/vnc/query/status", "kvm://host/vnc/query/capture", "kvm://host/vnc/query/find",
     "kvm://host/vnc/command/click", "kvm://host/vnc/command/type", "kvm://host/vnc/command/key",

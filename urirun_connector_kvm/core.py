@@ -35,6 +35,7 @@ Helpful optional libraries (install for more platforms): ``mss``, ``pynput``,
 import base64 as _b64
 import json as _json
 import os
+import shutil
 import tempfile
 import time
 from typing import Any
@@ -60,7 +61,7 @@ def _adopt_flat_siblings() -> None:
     _sys.modules["urirun_connector_kvm"] = pkg
     for name in ("backends", "_backends_uinput", "_backends_surface", "launch_backends",
                  "cdp", "_cdp_impl", "control", "environment", "strategies", "surface",
-                 "vnc", "contracts", "capture_worker"):
+                 "vnc", "contracts", "capture_worker", "readiness"):
         if not os.path.exists(os.path.join(here, name + ".py")):
             continue
         try:
@@ -884,6 +885,68 @@ def browser_sessions(services: str = "") -> dict[str, Any]:
     svc_list = [s.strip() for s in services.split(",") if s.strip()] if services else None
     entries = _env.browser_sessions(svc_list)
     return _ok(action="browser-sessions", browsers=entries)
+
+
+def _readiness_mod() -> Any:
+    try:
+        from urirun_connector_kvm import readiness as _r
+    except ImportError:
+        import readiness as _r  # type: ignore
+    return _r
+
+
+@conn.handler("ready/query/resolve", isolated=True,
+              meta={"label": "Resolve the execution surface for a task and gate readiness (resolve-first)"})
+def ready_resolve(task: str = "", service: str = "") -> dict[str, Any]:
+    """READINESS KERNEL: before any input is sent, answer 'on which surface may this task
+    run, and is it safe?'. Composes the LIVE signals (browser sessions/auth per profile,
+    CDP reachability, window-enumeration health, input availability) into a policy-gated
+    ready:// decision — recommended_surface, forbidden, blockers — so a plan never opens a
+    throwaway browser when a logged-in profile exists. See readiness.py for the policy."""
+    if not service:
+        return urirun.fail("service is required (e.g. 'linkedin')", connector=CONNECTOR_ID,
+                           action="ready-resolve")
+    try:
+        from urirun_connector_kvm import environment as _env
+    except ImportError:
+        import environment as _env  # type: ignore
+    sessions = _env.browser_sessions([service])
+    running_cdp = [b for b in sessions if b.get("running") and b.get("cdp_port")]
+    cdp_reachable = False
+    try:
+        cdp_reachable = bool(_cdp_mod().reachable())
+    except Exception:  # noqa: BLE001
+        cdp_reachable = False
+    # atspi can't always enumerate Chrome windows here; flag it as a degraded signal so the
+    # resolver treats blind HID focus as unsafe rather than assuming a clean window list.
+    try:
+        wins = _window_mod_list()
+        chrome_seen = any("chrome" in str(w.get("app", "")).lower() for w in wins)
+    except Exception:  # noqa: BLE001
+        chrome_seen = False
+    signals = {
+        "browser_sessions": sessions,
+        "cdp_reachable": cdp_reachable,
+        "cdp_auth_known": any((b.get("sessions") or {}).get(service) for b in running_cdp),
+        "input_available": B.uinput_available() or bool(shutil.which("ydotool")),
+        "window_list_degraded": not chrome_seen,
+        "api_connector_available": _api_connector_available(service),
+    }
+    return _ok(action="ready-resolve", **_readiness_mod().resolve(task or f"{service}.action", service, signals))
+
+
+def _window_mod_list() -> list:
+    try:
+        r = window_list()
+    except Exception:  # noqa: BLE001
+        return []
+    return r.get("windows") or []
+
+
+def _api_connector_available(service: str) -> bool:
+    """Is a purpose-built API connector for this service importable on the node?"""
+    import importlib.util
+    return importlib.util.find_spec(f"urirun_connector_{service}") is not None
 
 
 @conn.handler("surface/query/current", isolated=True,

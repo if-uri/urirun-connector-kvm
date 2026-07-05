@@ -33,7 +33,7 @@ print(json.dumps(urirun_bindings()).replace('urirun_connector_kvm.', ''))" > "$B
 CODE=()
 for f in core.py backends.py cdp.py _cdp_impl.py control.py environment.py \
          strategies.py surface.py _backends_surface.py _backends_uinput.py \
-         launch_backends.py vnc.py contracts.py capture_worker.py; do
+         launch_backends.py vnc.py contracts.py capture_worker.py readiness.py; do
   CODE+=(--code "$PKG_DIR/$f")
 done
 
