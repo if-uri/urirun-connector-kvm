@@ -62,10 +62,19 @@ def _browser_auth_cand(service: str, authed: list[dict], signals: dict) -> dict:
             "profile": authed[0]["profile"] if authed else None}
 
 
-def _hid_cand(signals: dict) -> dict:
+# Tasks that a desktop surface (vision/HID) can actually accomplish: driving THIS machine.
+# A named external service (linkedin, gmail, slack) is NOT one of them — clicking a desktop
+# pixel does not publish to LinkedIn; those need an API or an authenticated browser. So the
+# desktop surfaces are only offered for a desktop-class task.
+_DESKTOP_SERVICES = ("", "desktop", "host", "screen")
+
+
+def _hid_cand(signals: dict, desktop_task: bool) -> dict:
     # kvm-hid needs a CONFIRMED focus owner: ambiguous windows OR a degraded window list
-    # (can't even see the app) both make blind typing unsafe.
+    # (can't even see the app) both make blind typing unsafe. And only for a desktop task.
     needs = []
+    if not desktop_task:
+        needs.append("a desktop task (HID cannot fulfil a named service)")
     if signals.get("window_ambiguous"):
         needs.append("unambiguous focused window")
     if signals.get("window_list_degraded"):
@@ -78,7 +87,8 @@ def _rank_surfaces(service: str, signals: dict) -> list[dict]:
     """Build the ranked candidate list with availability + what each one still needs."""
     authed = _authed_profiles(signals.get("browser_sessions") or [], service)
     api_ok = bool(signals.get("api_connector_available"))
-    vision_ok = bool(signals.get("vision_available"))
+    desktop_task = service in _DESKTOP_SERVICES
+    vision_ok = bool(signals.get("vision_available")) and desktop_task
     cands = [
         {"surface": "api", "uri": f"{service}://post/command/publish", "available": api_ok,
          "requires": [] if api_ok else [f"install/serve {service} connector",
@@ -91,7 +101,7 @@ def _rank_surfaces(service: str, signals: dict) -> list[dict]:
         # so it is the honest desktop path on GNOME-Wayland and safer than blind HID.
         {"surface": "kvm-vision", "uri": "vql://host/image/query/regions", "available": vision_ok,
          "requires": [] if vision_ok else ["screen capture + a vision analyser (vql) + input"]},
-        _hid_cand(signals),
+        _hid_cand(signals, desktop_task),
     ]
     order = {name: i for i, name in enumerate(SURFACE_RANK)}
     cands.sort(key=lambda c: order.get(c["surface"], 99))

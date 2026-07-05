@@ -46,7 +46,9 @@ def test_api_connector_wins_when_available():
 
 
 def test_clean_kvm_when_nothing_else_and_window_ok():
-    out = R.resolve("desktop.click", "linkedin", {
+    # A DESKTOP task (not a named service): with a clean window list and nothing else, kvm-hid
+    # is the honest last resort.
+    out = R.resolve("desktop.click", "desktop", {
         "browser_sessions": [], "cdp_reachable": False, "cdp_auth_known": False,
         "input_available": True, "window_list_degraded": False,
         "api_connector_available": False,
@@ -65,3 +67,15 @@ def test_vision_surface_available_on_wayland():
     })
     assert out["recommended_surface"] == "kvm-vision"
     assert out["ready"] is True
+
+
+def test_vision_not_offered_for_a_named_service():
+    # Clicking a desktop pixel does not publish to LinkedIn — vision/HID are desktop surfaces,
+    # not valid for a named external service (which needs api/browser).
+    out = R.resolve("linkedin.publish", "linkedin", {
+        "browser_sessions": [], "cdp_reachable": False, "cdp_auth_known": False,
+        "input_available": True, "window_list_degraded": True,
+        "vision_available": True, "api_connector_available": False,
+    })
+    assert out["recommended_surface"] != "kvm-vision"
+    assert out["ready"] is False
