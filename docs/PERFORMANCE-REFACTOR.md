@@ -132,13 +132,23 @@ Dziś `vguard.verify_texts` = 2 round-tripy (capture → ocr) i zakłada, że pl
   Naturalne miejsce: ten sam ciepły worker co Tier 1.
 - **Zysk:** ~2× na percepcji (round-tripy) + prawie darmowe pętle na statycznym ekranie.
 
-### Tier 3 — ciepły worker / de-izolacja tanich handlerów
-Izolowany subprocess na każde wywołanie = 290 ms. `batch` już to amortyzuje w sekwencjach,
-ale pojedyncze ops i tak płacą.
-- **Opcja A:** długożyjący worker connectora (jeden proces obsługuje ops przez kolejkę).
-- **Opcja B:** `isolated=False` dla tanich, bezpiecznych handlerów input (bez subprocesu).
-- **Zysk:** 290 → ~10 ms na pojedynczy op.
-- **Ryzyko:** izolacja jest dla bezpieczeństwa/odporności na crash — de-izolować selektywnie.
+### Tier 3 — de-izolacja tanich handlerów — ✅ WDROŻONE 2026-07-05 (percepcja)
+`screen/query/capture` + `display/query/info` przeszły na `isolated=False` (adapter
+`local-function`, in-process w węźle — executor jest w v1.EXECUTORS, żadnych zmian
+node-side). Obie trasy są read-only, a ciężar i tak niesie subprocess warm-workera.
+Wejście (uinput/ydotool) ZOSTAJE izolowane — crash nie może zdjąć węzła; test
+`test_bindings_are_isolated_handlers` pinuje OBIE strony kontraktu.
+- **Zmierzone (lenovo):** capture@1600 **730 → 462–498 ms**; capture@480 (sonda
+  dhash/settle) **184 ms**; kotwica/verify-cached **~520 ms**; settle 3,7–4,9 s → **1,7 s**.
+- **Uwaga hot-reload:** in-process moduł jest cache'owany w procesie węzła; deploy
+  zdejmuje go z sys.modules (`_write_pushed_code`), więc kolejne wywołanie importuje
+  świeży kod — ale ALIASY `urirun_connector_kvm.*` odtwarza dopiero `_adopt_flat_siblings`
+  przy imporcie core.
+- **Reszta (~350 ms):** HTTP + base64 ~1 MB PNG w JSON + postprocess. Dalsze zejście:
+  mniejszy `max_width`, JPEG/WebP zamiast PNG, albo strumień zdarzeń zamiast poll.
+- **Opcja B (pool `--pool`):** node serve ma gotowy HandlerPool (urirun_runtime.worker),
+  ale włącza go tylko flaga/config przy starcie — wymaga interwencji na lenovo; po niej
+  także trasy izolowane (input) dostaną ciepły start.
 
 ### Tier 4 — kontrola DOM (pewność + prędkość dla web)
 Bez CDP/pluginu sterowanie przeglądarką jest wolne i kruche (fokus, otwarcie kompozytora).
