@@ -28,7 +28,8 @@ import urllib.request
 class Screen:
     def __init__(self, node_url: str):
         self.url = node_url.rstrip("/")
-        self._ocr_cache: tuple[int, str] | None = None  # (dhash klatki, tekst) — patrz verify_texts
+        # (klucz: (max_width, region), dhash klatki, tekst) — patrz verify_texts
+        self._ocr_cache: tuple | None = None
         self._healed = False                            # samonaprawa tras: raz na instancję
 
     def _heal_routes(self) -> bool:
@@ -99,7 +100,7 @@ class Screen:
         last = {}
         for i in range(tries):
             self.batch(steps)
-            last = self.verify_texts(exp)
+            last = self.verify_texts(exp, force=True)  # postcond NIGDY z cache
             if all(last.values()):
                 return {"ok": True, "tries": i + 1}
         return {"ok": False, "tries": tries, "missing": [t for t, ok in last.items() if not ok]}
@@ -145,7 +146,8 @@ class Screen:
         return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else None
 
     def verify_texts(self, texts: list[str], max_width: int = 1600,
-                     engine: str = "host", region: tuple | None = None) -> dict:
+                     engine: str = "host", region: tuple | None = None,
+                     force: bool = False) -> dict:
         """SZYBKA wielo-kotwica: JEDNO capture + JEDNO OCR + N sprawdzeń. Zwraca {tekst: bool}.
 
         engine='host' (domyślnie): zrzut wraca base64 po LAN i OCR liczy HOST —
@@ -168,12 +170,18 @@ class Screen:
         if engine == "host" and cap.get("pngBase64"):
             png = base64.b64decode(cap["pngBase64"])
             h = self.dhash(png)
-            if self._ocr_cache and self.hamming(h, self._ocr_cache[0]) <= 4:
-                ocr = self._ocr_cache[1]           # ekran bez zmian — OCR z cache
+            key = (max_width, tuple(region) if region else None)
+            cached = (not force and self._ocr_cache and self._ocr_cache[0] == key
+                      and self.hamming(h, self._ocr_cache[1]) <= 4)
+            if cached:
+                ocr = self._ocr_cache[2]           # ekran bez zmian — OCR z cache
             else:
+                # force: POSTCOND po wpisaniu tekstu — mała zmiana (pasek adresu, pole)
+                # mieści się w tolerancji dhash i cache oddałby STARY tekst (fałszywy
+                # negatyw). Klucz cache: inna skala/region = inna przestrzeń hasha.
                 ocr = (self.ocr_host(png) or "").lower()
                 if ocr:
-                    self._ocr_cache = (h, ocr)
+                    self._ocr_cache = (key, h, ocr)
             if ocr:
                 return {t: (t.lower() in ocr) for t in texts}
         path = cap.get("path")                      # fallback: OCR na węźle
