@@ -935,16 +935,20 @@ def ready_resolve(task: str = "", service: str = "") -> dict[str, Any]:
 
 
 def _enumerate_windows() -> tuple[bool, str]:
-    """(enumeration_worked, backend). Prefer vdisplay's multi-backend enumeration (sees Chrome
-    on Wayland); fall back to the kvm atspi list. vdisplay is optional — absent on a node it
-    simply isn't used. ``enumeration_worked`` is True when a backend returned a window list at
-    all (even empty on an idle desktop) — atspi that can only ever see gnome-shell here counts
-    as degraded, since it can't confirm an app's focus owner."""
+    """(can_ground_app_focus, backend). Whether we can TRUST the window list to identify an
+    app's focus owner — the precondition for safe blind HID.
+
+    Empirically (2026-07-05): on GNOME-Wayland NO tool enumerates Wayland-native app windows
+    unless org.gnome.Shell.Eval is on (usually disabled) — x11/xdotool sees only XWayland,
+    atspi only gnome-shell. So a window list that came back is NOT automatically trustworthy:
+    vdisplay reports ``wayland_native_visible`` and we honour it. When Wayland-native windows
+    are invisible we return degraded, so the resolver won't recommend blind typing."""
     try:
         from urirun_connector_vdisplay.core import windows_list as _vd_windows
         r = _vd_windows(apps_only=False)
         if r.get("ok"):
-            return True, "vdisplay"
+            # trustworthy only if Wayland-native windows are actually enumerable (or X11 session)
+            return bool(r.get("wayland_native_visible")), "vdisplay"
     except Exception:  # noqa: BLE001 - vdisplay not installed on this node
         pass
     try:
