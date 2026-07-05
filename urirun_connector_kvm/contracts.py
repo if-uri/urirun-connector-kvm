@@ -459,7 +459,7 @@ CONTRACTS: dict[str, Contract] = {
         errors=("degraded-backend", "precondition-unmet"),
         examples=(
             {"payload": {"target": "172.19.0.2::5900"},
-             "result": _result("capture", path="/home/tom/.urirun/artifacts/screenshots/vnc_capture.png",
+             "result": _result("capture", path="~/.urirun/artifacts/screenshots/vnc_capture.png",
                                 width=1280, height=900, via="rfb", coord_space="framebuffer-px")},
         ),
     ),
@@ -475,11 +475,11 @@ CONTRACTS: dict[str, Contract] = {
         errors=("degraded-backend", "precondition-unmet"),
         examples=(
             {"payload": {"text": "Reconfigure", "target": "172.19.0.2::5900"},
-             "result": _result("find", frame="/home/tom/.urirun/artifacts/screenshots/vnc_capture.png",
+             "result": _result("find", frame="~/.urirun/artifacts/screenshots/vnc_capture.png",
                                 found=True, center=[612, 574], bbox=[578, 567, 68, 14],
                                 source="tesseract", coord_space="framebuffer-px")},
             {"payload": {"text": "NoSuchLabel", "target": "172.19.0.2::5900"},
-             "result": _result("find", frame="/home/tom/.urirun/artifacts/screenshots/vnc_capture.png",
+             "result": _result("find", frame="~/.urirun/artifacts/screenshots/vnc_capture.png",
                                 found=False, coord_space="framebuffer-px",
                                 misses=["tesseract: found=false (0 candidates)"])},
         ),

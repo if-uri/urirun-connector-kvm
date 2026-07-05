@@ -524,7 +524,14 @@ def test_capture_browser_scope_falls_back_to_os_when_cdp_unreachable(monkeypatch
 def test_manifest_prose_plus_derived_routes() -> None:
     m = connector_manifest()
     assert m["id"] == "kvm"
-    assert set(m["routes"]) == EXPECTED_ROUTES
+    # routes is now the GENERATED per-URI capability list (URI_COMMAND_STANDARD.md §6):
+    # each entry self-describes class/verb/summary/mutates/errors.
+    assert {r["uri"] for r in m["routes"]} == EXPECTED_ROUTES
+    cap = next(r for r in m["routes"] if r["uri"] == ROUTE_CAPTURE)
+    assert cap["class"] == "query" and cap["mutates"] is False and cap["summary"]
+    typ = next(r for r in m["routes"] if r["uri"] == ROUTE_TYPE)
+    assert typ["class"] == "command" and typ["mutates"] is True
+    assert "INVALID_ARGUMENT" in cap["errors"]        # from the ONE error catalog
     assert m["uriSchemes"] == ["app", "kvm"]
     assert m["summary"]
 
