@@ -169,7 +169,16 @@ utrwala się). Blokuje kopiowanie plików na węzeł (i tym samym instalację pl
   Każde przejęcie klawiatury/myszy poprzedzać `user_active()`; `settle()` wybijający timeout
   to często właśnie pracujący człowiek, nie „wolne ładowanie".
 - Merge-deploy NIE przeżywa restartu węzła — objaw: `Route not found: kvm.screen.query`,
-  routeCount spada do kilku; lek: redeploy (procedura wyżej, sekcja „Potwierdzone 2026-07-05").
+  routeCount spada do built-inów (7). Potwierdzone 2× (2026-07-05). ZAGADKA: `--persist`
+  raportuje sukces (`persisted: ~/.urirun-node/registry.json`, allow w configu, kod w
+  `~/.urirun-node/deploy/` — wszystko na dysku), a start węzła i tak ładuje tylko built-iny.
+  Root-cause wymaga wglądu NA lenovo (czym startuje node: systemd/skrypt, jakie --registry/
+  --config dostaje; podejrzenie: startuje bez configu/z innym cwd, więc nie widzi
+  utrwalonego registry). MITYGACJA (wdrożona): `scripts/redeploy_node.sh` (jedna komenda,
+  idempotentny merge, ~0,7 s) + samonaprawa w `vguard.Screen._run` — NOT_FOUND → redeploy
+  → retry, raz na instancję.
+- `import urirun` z cwd `~/github/if-uri` łapie FOLDER `urirun/` zamiast pakietu
+  (`urirun has no attribute connector`) — skrypty deployu muszą `cd` do neutralnego katalogu.
 - Portal potrafi zwrócić placeholder <20 KB → traktować jako degraded i spaść do
   mutter-screencast/CDP (`_placeholder_guard`, `core.py:314`).
 - `settle()` uznaje ekran za stabilny ZANIM pole dostanie fokus — postcond na wpisany tekst

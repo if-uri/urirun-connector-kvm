@@ -17,9 +17,11 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import time
+import urllib.error
 import urllib.request
 
 
@@ -27,12 +29,33 @@ class Screen:
     def __init__(self, node_url: str):
         self.url = node_url.rstrip("/")
         self._ocr_cache: tuple[int, str] | None = None  # (dhash klatki, tekst) — patrz verify_texts
+        self._healed = False                            # samonaprawa tras: raz na instancję
+
+    def _heal_routes(self) -> bool:
+        """Merge-deploy NIE przeżywa restartu węzła (objaw: NOT_FOUND na kvm.* mimo
+        żywego /health) — potwierdzone 2× na lenovo 2026-07-05. Samonaprawa: odpal
+        scripts/redeploy_node.sh (bindings+kod przez signed /deploy, idempotentny merge)
+        i pozwól wołającemu ponowić. Raz na instancję, żeby błędna diagnoza nie
+        zapętliła deployów."""
+        script = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "scripts", "redeploy_node.sh")
+        if self._healed or not os.path.exists(script):
+            return False
+        self._healed = True
+        r = subprocess.run(["bash", script, self.url], capture_output=True, timeout=180)
+        return r.returncode == 0
 
     def _run(self, uri: str, payload: dict, timeout: float = 40) -> dict:
         body = json.dumps({"uri": uri, "mode": "execute", "payload": payload}).encode()
         req = urllib.request.Request(self.url + "/run", data=body,
                                      headers={"Content-Type": "application/json"})
-        env = json.load(urllib.request.urlopen(req, timeout=timeout))
+        try:
+            env = json.load(urllib.request.urlopen(req, timeout=timeout))
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")
+            if "Route not found" not in detail or not self._heal_routes():
+                raise
+            env = json.load(urllib.request.urlopen(req, timeout=timeout))  # po heal: retry raz
         val = (env.get("result") or {}).get("value")
         return val if isinstance(val, dict) else (env.get("result") or {})
 
