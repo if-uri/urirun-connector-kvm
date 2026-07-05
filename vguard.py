@@ -63,7 +63,8 @@ class Screen:
     def capture(self, scope: str = "all", max_width: int = 0) -> bytes | None:
         # max_width zmniejsza transfer 8× (scope=all ~1 MB → ~120 KB) — do dhash/settle wystarcza
         # zdrap 400–800 px, i tak skalujemy do 16 px. Pełny zrzut tylko gdy potrzebny do wizji.
-        payload = {"base64": True, "scope": scope}
+        # fmt=jpeg dodatkowo tnie payload 4–6× (PIL czyta oba formaty do dhash).
+        payload = {"base64": True, "scope": scope, "fmt": "jpeg"}
         if max_width:
             payload["max_width"] = max_width
         v = self._run("kvm://host/screen/query/capture", payload)
@@ -154,7 +155,9 @@ class Screen:
         engine='node': stara ścieżka (plik na węźle + ocr://host) — gdy host bez tesseracta.
         region=(cx,cy,w,h): capture TYLKO wycinka wokół spodziewanej kotwicy
         (mniejszy transfer i OCR); wymaga connectora z obsługą crop (redeploy ≥2026-07-05)."""
-        payload: dict = {"base64": engine == "host", "max_width": max_width}
+        # fmt=jpeg: ~4-6x mniejszy transfer/base64 niż PNG; ciepły worker to honoruje,
+        # zimne backendy dają PNG (tesseract/PIL czytają oba, klucz pngBase64 zostaje).
+        payload: dict = {"base64": engine == "host", "max_width": max_width, "fmt": "jpeg"}
         if region:
             rcx, rcy, rw, rh = region
             payload.update({"cx": int(rcx), "cy": int(rcy), "crop_w": int(rw), "crop_h": int(rh),

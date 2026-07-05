@@ -400,7 +400,7 @@ def _png_dimensions(path: str) -> tuple[int, int] | None:
     return None
 
 
-_WARM_PROTO = 2  # keep in lockstep with capture_worker.PROTO
+_WARM_PROTO = 3  # keep in lockstep with capture_worker.PROTO
 
 
 def _warm_selector(monitor: int, scope: str) -> str:
@@ -427,14 +427,14 @@ def _spawn_warm_worker(selector: str, sock: str) -> None:
                      start_new_session=True)
 
 
-def _warm_request(sock: str, output: str, max_width: int = 0) -> dict:
+def _warm_request(sock: str, output: str, max_width: int = 0, fmt: str = "") -> dict:
     """One frame from the warm worker; raises OSError/ValueError on a dead socket."""
     c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     c.settimeout(15)
     try:
         c.connect(sock)
-        c.sendall((json.dumps({"output": output, "max_width": int(max_width or 0)})
-                   + "\n").encode("utf-8"))
+        c.sendall((json.dumps({"output": output, "max_width": int(max_width or 0),
+                               "fmt": fmt or "png"}) + "\n").encode("utf-8"))
         resp = json.loads(c.makefile("r").readline() or "{}")
     finally:
         c.close()
@@ -445,7 +445,7 @@ def _warm_request(sock: str, output: str, max_width: int = 0) -> dict:
 
 @backend("capture", "mutter-warm", priority=99, platforms=("linux-wayland",))
 def _cap_mutter_warm(output: str, monitor: int = 0, scope: str = "",
-                     max_width: int = 0, **_: Any) -> dict:
+                     max_width: int = 0, fmt: str = "", **_: Any) -> dict:
     """WARM mutter capture: a long-lived worker holds the ScreenCast session + pipewire
     node open, so a frame costs a tiny gst pipeline instead of the full dbus negotiation
     (~150-300 ms vs ~700-1200 ms — Tier 1 of PERFORMANCE-REFACTOR). First call spawns the
@@ -457,7 +457,7 @@ def _cap_mutter_warm(output: str, monitor: int = 0, scope: str = "",
         _spawn_warm_worker(selector, sock)
         raise BackendError("warm capture worker starting — cold path serves this call")
     try:
-        meta = _warm_request(sock, output, max_width)
+        meta = _warm_request(sock, output, max_width, fmt)
         if meta.get("proto") != _WARM_PROTO:  # worker predates the last deploy
             raise ValueError("outdated warm worker (proto %s != %s) — retiring"
                              % (meta.get("proto"), _WARM_PROTO))
@@ -470,6 +470,7 @@ def _cap_mutter_warm(output: str, monitor: int = 0, scope: str = "",
     data_len = os.path.getsize(output)
     dims = _png_dimensions(output)
     return {"path": output, "bytes": data_len, "via": "mutter-screencast-warm",
+            "format": fmt or "png",
             **({"width": dims[0], "height": dims[1]} if dims else {}),
             **{k: v for k, v in meta.items() if k not in {"path", "ok"}}}
 

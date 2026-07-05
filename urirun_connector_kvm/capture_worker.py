@@ -34,7 +34,7 @@ from gi.repository import GLib, Gst  # type: ignore  # noqa: E402
 # Bumped together with the backend's _WARM_PROTO on any request/response change:
 # a live worker predating the last deploy answers with its old value and the backend
 # retires it (unlink + respawn) instead of silently using stale behaviour.
-PROTO = 2
+PROTO = 3
 
 
 def _current_modes(physical):
@@ -150,11 +150,15 @@ def _scale_caps(meta: dict, max_width: int) -> str:
     return "! videoscale ! video/x-raw,width=%d,height=%d " % (max_width, h)
 
 
-def grab_frame(pw_node: int, output: str, meta: dict, max_width: int = 0) -> None:
-    """One frame off the WARM pipewire node — no dbus, just a tiny gst pipeline."""
+def grab_frame(pw_node: int, output: str, meta: dict, max_width: int = 0,
+               fmt: str = "png") -> None:
+    """One frame off the WARM pipewire node — no dbus, just a tiny gst pipeline.
+    ``fmt='jpeg'`` swaps pngenc for jpegenc (quality 85): ~4-6x smaller payload to
+    base64/JSON — for perception loops, not for pixel-exact artifacts."""
+    enc = "jpegenc quality=85" if fmt == "jpeg" else "pngenc snapshot=true"
     pipe = Gst.parse_launch(
-        "pipewiresrc path=%d num-buffers=1 ! videoconvert %s! pngenc snapshot=true "
-        "! filesink location=%s" % (pw_node, _scale_caps(meta, max_width), output))
+        "pipewiresrc path=%d num-buffers=1 ! videoconvert %s! %s "
+        "! filesink location=%s" % (pw_node, _scale_caps(meta, max_width), enc, output))
     pipe.set_state(Gst.State.PLAYING)
     msg = pipe.get_bus().timed_pop_filtered(
         10 * Gst.SECOND, Gst.MessageType.EOS | Gst.MessageType.ERROR)
@@ -207,7 +211,8 @@ def _handle(client: socket.socket, pw_node: int, meta: dict) -> None:
         if not output:
             raise ValueError("missing 'output'")
         t0 = time.monotonic()
-        grab_frame(pw_node, output, meta, int(req.get("max_width") or 0))
+        grab_frame(pw_node, output, meta, int(req.get("max_width") or 0),
+                   str(req.get("fmt") or "png"))
         resp = {"ok": True, "path": output, **meta, "proto": PROTO,
                 "grabMs": int((time.monotonic() - t0) * 1000)}
     except Exception as exc:  # noqa: BLE001 - report to caller, keep serving

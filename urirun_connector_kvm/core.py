@@ -193,6 +193,11 @@ def _apply_capture_postprocessing(out: str, cx: int, cy: int, zoom: int,
             if max_width and im.width > int(max_width):
                 ratio = int(max_width) / im.width
                 im = im.resize((int(max_width), int(im.height * ratio)))
+            else:
+                # Nothing changed — do NOT re-encode. The unconditional save used to
+                # PNG-re-encode (optimize=True, slow) EVERY frame, silently converting
+                # the warm worker's jpeg back to a bigger PNG and taxing every capture.
+                return full, None
         im.convert("RGB").save(out, format="PNG", optimize=True)
     return full, crop
 
@@ -333,7 +338,7 @@ def _build_capture_payload(
         "fullSize": full, "crop": crop,
         "bytes": os.path.getsize(out) if os.path.exists(out) else 0,
     }
-    for key in ("scope", "monitors", "bbox", "width", "height", "grabMs", "backendErrors"):
+    for key in ("scope", "monitors", "bbox", "width", "height", "grabMs", "backendErrors", "format"):
         if res.get(key) not in (None, "", []):
             payload[key] = res.get(key)
     if res.get("connector"):
@@ -371,7 +376,7 @@ def _placeholder_guard(
               meta={"label": "Capture the screen (auto backend)"})
 def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool = False,
             cx: int = -1, cy: int = -1, zoom: int = 0, crop_w: int = 0, crop_h: int = 0,
-            scope: str = "") -> dict[str, Any]:
+            scope: str = "", fmt: str = "") -> dict[str, Any]:
     """Capture the live screen via the best available backend. ``max_width`` downscales
     (so coords map 1:1 to a logical screen on HiDPI); ``base64`` returns the PNG inline.
     Focus crop: pass ``cx``/``cy`` (+ ``zoom`` N -> a full/N window, or explicit
@@ -393,8 +398,10 @@ def capture(output: str = "", monitor: int = 0, max_width: int = 0, base64: bool
     try:
         # max_width reaches the warm worker (gst videoscale: 4x fewer pixels to
         # png-encode + no PIL resize here); other backends ignore it via **_.
+        # fmt='jpeg' (warm worker only): ~4-6x smaller frame for perception loops;
+        # cold backends ignore it and still produce PNG — check `format` in the result.
         res = B.dispatch("capture", output=out, monitor=monitor, scope=scope,
-                         max_width=max_width if int(cx) < 0 else 0)
+                         max_width=max_width if int(cx) < 0 else 0, fmt=fmt)
     except B.BackendError as exc:
         msg = str(exc)
         _need = _backend_need(msg)
