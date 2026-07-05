@@ -145,6 +145,21 @@ class Screen:
                            input=png, capture_output=True, timeout=30)
         return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else None
 
+    def _host_ocr_cached(self, png: bytes, max_width: int, region: tuple | None,
+                         force: bool) -> str:
+        """OCR na hoście z cache po dhash. force: POSTCOND po wpisaniu tekstu — mała zmiana
+        (pasek adresu, pole) mieści się w tolerancji dhash i cache oddałby STARY tekst
+        (fałszywy negatyw). Klucz cache: inna skala/region = inna przestrzeń hasha."""
+        h = self.dhash(png)
+        key = (max_width, tuple(region) if region else None)
+        if (not force and self._ocr_cache and self._ocr_cache[0] == key
+                and self.hamming(h, self._ocr_cache[1]) <= 4):
+            return self._ocr_cache[2]              # ekran bez zmian — OCR z cache
+        ocr = (self.ocr_host(png) or "").lower()
+        if ocr:
+            self._ocr_cache = (key, h, ocr)
+        return ocr
+
     def verify_texts(self, texts: list[str], max_width: int = 1600,
                      engine: str = "host", region: tuple | None = None,
                      force: bool = False) -> dict:
@@ -168,20 +183,8 @@ class Screen:
         if engine == "host" and not cap.get("pngBase64"):
             cap = self._run("kvm://host/screen/query/capture", payload)  # transient: retry raz
         if engine == "host" and cap.get("pngBase64"):
-            png = base64.b64decode(cap["pngBase64"])
-            h = self.dhash(png)
-            key = (max_width, tuple(region) if region else None)
-            cached = (not force and self._ocr_cache and self._ocr_cache[0] == key
-                      and self.hamming(h, self._ocr_cache[1]) <= 4)
-            if cached:
-                ocr = self._ocr_cache[2]           # ekran bez zmian — OCR z cache
-            else:
-                # force: POSTCOND po wpisaniu tekstu — mała zmiana (pasek adresu, pole)
-                # mieści się w tolerancji dhash i cache oddałby STARY tekst (fałszywy
-                # negatyw). Klucz cache: inna skala/region = inna przestrzeń hasha.
-                ocr = (self.ocr_host(png) or "").lower()
-                if ocr:
-                    self._ocr_cache = (key, h, ocr)
+            ocr = self._host_ocr_cached(base64.b64decode(cap["pngBase64"]),
+                                        max_width, region, force)
             if ocr:
                 return {t: (t.lower() in ocr) for t in texts}
         path = cap.get("path")                      # fallback: OCR na węźle

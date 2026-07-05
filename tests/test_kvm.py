@@ -61,6 +61,7 @@ def test_no_backend_reports_install_hint(monkeypatch) -> None:
     # never raise — so a route stays usable to report what is missing.
     monkeypatch.setattr(B.shutil, "which", lambda _t: None)
     monkeypatch.setattr(B, "have_mod", lambda _m: False)
+    monkeypatch.setattr(B.os, "access", lambda *_a, **_k: False)  # no writable /dev/uinput either
     r = key("Return")
     assert r["ok"] is False and "no available backend" in r["error"]
 

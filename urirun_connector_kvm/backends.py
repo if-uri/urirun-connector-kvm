@@ -105,18 +105,20 @@ class Backend:
     needs_bin: tuple = ()
     needs_mod: tuple = ()
     needs_compositor: tuple = ()   # tags the active compositor must satisfy (e.g. ('wlroots',))
+    needs_dev: tuple = ()          # device nodes that must be writable (e.g. ('/dev/uinput',))
 
     def missing(self) -> dict:
         return {
             "bin": [b for b in self.needs_bin if not have_bin(b)],
             "mod": [m for m in self.needs_mod if not have_mod(m)],
+            "dev": [d for d in self.needs_dev if not os.access(d, os.W_OK)],
         }
 
     def available(self) -> bool:
         if platform_tag() not in self.platforms:
             return False
         m = self.missing()
-        if m["bin"] or m["mod"]:
+        if m["bin"] or m["mod"] or m["dev"]:
             return False
         if self.needs_compositor:
             active = compositor_tag()
@@ -133,12 +135,12 @@ _REGISTRY: dict[str, list[Backend]] = {}
 
 def backend(action: str, name: str, *, priority: int = 50, platforms: tuple = ALL_PLATFORMS,
             needs_bin: tuple = (), needs_mod: tuple = (),
-            needs_compositor: tuple = ()) -> Callable:
+            needs_compositor: tuple = (), needs_dev: tuple = ()) -> Callable:
     """Register ``fn`` as a backend for ``action``. Highest priority + available wins."""
     def deco(fn: Callable) -> Callable:
         _REGISTRY.setdefault(action, []).append(
             Backend(action, name, fn, priority, platforms, tuple(needs_bin), tuple(needs_mod),
-                    tuple(needs_compositor)))
+                    tuple(needs_compositor), tuple(needs_dev)))
         _REGISTRY[action].sort(key=lambda b: -b.priority)
         return fn
     return deco
@@ -174,7 +176,7 @@ def dispatch(action: str, **kwargs: Any) -> dict:
         for b in candidates:
             if platform_tag() in b.platforms:
                 miss = b.missing()
-                want = miss["bin"] + miss["mod"]
+                want = miss["bin"] + miss["mod"] + miss["dev"]
                 if want:
                     hints.append(f"{b.name} (install: {', '.join(want)})")
         raise BackendError(f"no available backend for {action!r} on {platform_tag()}; "
@@ -715,7 +717,7 @@ def _clipboard_set(text: str) -> str:
                        "browser-cdp surface — none installed on this node; ydotool cannot type it")
 
 
-@backend("type", "uinput", priority=85, platforms=("linux-wayland", "linux-x11"))
+@backend("type", "uinput", priority=85, platforms=("linux-wayland", "linux-x11"), needs_dev=("/dev/uinput",))
 def _type_uinput(text: str, **_: Any) -> dict:
     """Raw-uinput virtual keyboard — the same /dev/uinput path the pointer uses.
     Beats ydotool (prio 80) because ydotoold can report ok while its events never
@@ -728,7 +730,7 @@ def _type_uinput(text: str, **_: Any) -> dict:
     return {**uinput_type_text(text), "chars": len(text)}
 
 
-@backend("key", "uinput", priority=85, platforms=("linux-wayland", "linux-x11"))
+@backend("key", "uinput", priority=85, platforms=("linux-wayland", "linux-x11"), needs_dev=("/dev/uinput",))
 def _key_uinput(key: str = "", keys: str = "", **_: Any) -> dict:
     """Key/chord via the raw-uinput virtual keyboard (see _type_uinput)."""
     if not uinput_available():

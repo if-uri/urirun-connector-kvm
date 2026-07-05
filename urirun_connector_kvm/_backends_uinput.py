@@ -205,22 +205,42 @@ def _kbd_tap(fd: int, code: int, shift: bool = False, hold: float = 0.012) -> No
     time.sleep(hold)
 
 
-def _with_keyboard(emit: Callable, settle: float = 0.9) -> dict:
-    """Create the virtual keyboard, wait for the compositor to map it, run ``emit(fd)``."""
-    if not uinput_available():
-        raise BackendError("no write access to /dev/uinput (add user to 'input' group or udev rule)")
-    fd = _uinput_create_keyboard()
-    try:
-        time.sleep(float(settle))
-        emit(fd)
-        time.sleep(0.15)
-        return {"via": "uinput-keyboard"}
-    finally:
-        try:
-            _fcntl.ioctl(fd, _UI_DEV_DESTROY)
-        except Exception:  # noqa: BLE001
-            pass
-        os.close(fd)
+_KBD_FD: int | None = None
+
+
+def _keyboard_fd() -> int:
+    """One virtual keyboard per PROCESS, destroyed only at exit. Creating and
+    destroying a device per keystroke-burst loses events: the compositor may still
+    be mapping the device (or holding buffered events) when DESTROY hits — observed
+    on lenovo as 'ydotool/uinput report ok, chars appear late or never'. A batch
+    (task_run) runs in one process, so every step shares one warm, mapped device."""
+    global _KBD_FD
+    if _KBD_FD is None:
+        if not uinput_available():
+            raise BackendError("no write access to /dev/uinput (add user to 'input' group or udev rule)")
+        fd = _uinput_create_keyboard()
+        time.sleep(1.2)  # compositor maps the new device (too short = dropped events)
+        import atexit
+
+        def _destroy(fd=fd):
+            try:
+                _fcntl.ioctl(fd, _UI_DEV_DESTROY)
+            except Exception:  # noqa: BLE001
+                pass
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+        atexit.register(_destroy)
+        _KBD_FD = fd
+    return _KBD_FD
+
+
+def _with_keyboard(emit: Callable) -> dict:
+    fd = _keyboard_fd()
+    emit(fd)
+    time.sleep(0.15)
+    return {"via": "uinput-keyboard"}
 
 
 def uinput_type_text(text: str) -> dict:
