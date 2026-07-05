@@ -61,6 +61,25 @@ settle()                            ~3679 ms     ← kilka zrzutów × podłoga 
 | OCR `max_width=1600` | **1,9×** | mniej pikseli, bez utraty trafności |
 | małe zrzuty dhash/settle | 14× mniej danych | `max_width=480` do detekcji zmiany |
 | `guarded_batch()` | pewność | batch + postcond `verify_texts` + retry |
+| **OCR na HOŚCIE przez base64** (2026-07-05) | **OCR 4,6 s → 0,45 s (10×)**; kotwica 4,6–5,7 s → **0,85–2,6 s** | zrzut wraca base64 po LAN (~270 KB @1600, grosze), OCR liczy 16-rdzeniowy host zamiast laptopa |
+| cache OCR po dhash (2026-07-05) | ekran statyczny: percepcja ≈ sam capture (~0,9 s) | `verify_texts` pomija OCR, gdy dhash klatki ≈ poprzedni |
+| `user_active()` + `respect_user` (2026-07-05) | bezpieczeństwo | `guarded_batch` NIE przejmuje klawiatury, gdy ekran żyje (ktoś pracuje na maszynie) |
+
+**Zmierzone 2026-07-05 (żywy węzeł lenovo):** `verify_texts` 3 kotwice: host-OCR zimny **2,6 s**,
+z cache **0,87 s**, `anchor()` **0,85 s**, region-crop **0,87 s** — vs node-side `ui/query/verify`
+**4,6 s za JEDNĄ kotwicę**. Wniosek architektoniczny: **transport base64 + moc obliczeniowa hosta
+bije OCR na węźle o rząd wielkości** — węzeł ma tylko TANIO patrzeć (capture), liczyć ma host.
+To de-priorytetyzuje easyocr NA WĘŹLE (Tier 2): host-tesseract przez base64 daje już 0,45 s;
+paddle/easyocr na HOŚCIE (RTX 4060) to dalsza rezerwa — uwaga: paddle PP-OCRv6_medium na CPU
+z `enable_mkldnn=False` = **14,5 s** (zmierzone), do tej pętli się NIE nadaje; tylko mobile-modele
+albo GPU.
+
+**Potwierdzone 2026-07-05:** crop DZIAŁA po redeployu connectora na .201 (`crop:{x,y,w,h}`,
+22 KB zamiast 270 KB) — poprzedni negatywny wynik to była stara wersja na węźle, zgodnie z diagnozą.
+Redeploy po restarcie węzła (merge-deploy nie przeżywa restartu; routeCount 7 → 55):
+bindings z `urirun_bindings()` z refami spłaszczonymi (`urirun_connector_kvm.core` → `core`), potem
+`urirun host deploy http://…:8765 --bindings b.json --allow 'kvm://**' --allow 'app://**'
+--code <wszystkie moduły .py> --merge --persist --identity ~/.ssh/id_ed25519`.
 
 **Wyczerpane po stronie klienta.** Dalsze skoki wymagają zmian w connectorze/runtime.
 
@@ -146,6 +165,11 @@ utrwala się). Blokuje kopiowanie plików na węzeł (i tym samym instalację pl
 
 ## Pułapki znane z sesji (nie odkrywać ponownie)
 
+- **Lenovo to żywa maszyna usera** (2026-07-05: batch wpisał tekst w aktywną sesję Chrome).
+  Każde przejęcie klawiatury/myszy poprzedzać `user_active()`; `settle()` wybijający timeout
+  to często właśnie pracujący człowiek, nie „wolne ładowanie".
+- Merge-deploy NIE przeżywa restartu węzła — objaw: `Route not found: kvm.screen.query`,
+  routeCount spada do kilku; lek: redeploy (procedura wyżej, sekcja „Potwierdzone 2026-07-05").
 - Portal potrafi zwrócić placeholder <20 KB → traktować jako degraded i spaść do
   mutter-screencast/CDP (`_placeholder_guard`, `core.py:314`).
 - `settle()` uznaje ekran za stabilny ZANIM pole dostanie fokus — postcond na wpisany tekst

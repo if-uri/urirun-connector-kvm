@@ -17,6 +17,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import shutil
+import subprocess
 import time
 import urllib.request
 
@@ -24,6 +26,7 @@ import urllib.request
 class Screen:
     def __init__(self, node_url: str):
         self.url = node_url.rstrip("/")
+        self._ocr_cache: tuple[int, str] | None = None  # (dhash klatki, tekst) — patrz verify_texts
 
     def _run(self, uri: str, payload: dict, timeout: float = 40) -> dict:
         body = json.dumps({"uri": uri, "mode": "execute", "payload": payload}).encode()
@@ -49,11 +52,25 @@ class Screen:
         dla sekwencji. steps: [{'op':'type','text':...}, {'op':'key','keys':'Return'}, ...]."""
         return self._run("kvm://host/input/command/task_run", {"steps": steps})
 
-    def guarded_batch(self, steps: list[dict], expect, tries: int = 3) -> dict:
+    def user_active(self, window: float = 1.2, tol: int = 6) -> bool:
+        """Czy ktoś PRACUJE na maszynie? Dwa małe zrzuty w odstępie `window` s — różnica
+        ponad próg = ekran żyje sam z siebie (user pisze/scrolluje, animacja). Lekcja
+        z 2026-07-05: batch wpisał tekst w ŻYWĄ sesję usera na lenovo, bo nic tego nie
+        sprawdziło. Przejęcie klawiatury/myszy zawsze poprzedzać tym testem."""
+        a = self.dhash()
+        time.sleep(window)
+        return self.hamming(self.dhash(), a) > tol
+
+    def guarded_batch(self, steps: list[dict], expect, tries: int = 3,
+                      respect_user: bool = True) -> dict:
         """SZYBKO I PEWNIE: batch akcji + POSTCOND (verify_texts) + retry. Naprawia ciche
         porażki — np. `type` który nie złapał fokusu (contenteditable jeszcze nie gotowy):
         pierwszy raz tekst nie ląduje, verify_texts to wykrywa, retry ląduje. Łączy zysk
-        prędkości (batch+1 OCR) z niezawodnością (verify-before-act). expect: tekst/lista."""
+        prędkości (batch+1 OCR) z niezawodnością (verify-before-act). expect: tekst/lista.
+        respect_user: NIE przejmuj wejścia, gdy na maszynie ktoś aktywnie pracuje."""
+        if respect_user and self.user_active():
+            return {"ok": False, "tries": 0, "reason": "user-active",
+                    "missing": [expect] if isinstance(expect, str) else list(expect)}
         exp = [expect] if isinstance(expect, str) else list(expect)
         last = {}
         for i in range(tries):
@@ -87,19 +104,59 @@ class Screen:
         return bin(a ^ b).count("1")
 
     def anchor(self, text: str) -> bool:
-        """Kotwica: czy oczekiwany tekst JEST na ekranie (celowany OCR)."""
-        return bool(self._run("kvm://host/ui/query/verify", {"text": text}).get("present"))
+        """Kotwica: czy oczekiwany tekst JEST na ekranie. Idzie przez verify_texts
+        (OCR na hoście + cache dhash ~1,5 s; ekran statyczny ~1,1 s) zamiast
+        node-side ui/query/verify (~4,6–6 s)."""
+        return bool(self.verify_texts([text]).get(text))
 
-    def verify_texts(self, texts: list[str], max_width: int = 1600) -> dict:
-        """SZYBKA wielo-kotwica: JEDNO capture + JEDNO OCR (@max_width) + sprawdzenie wielu
-        tekstów lokalnie — zamiast N× ui/query/verify (każdy robi osobny capture+OCR ~6 s).
-        OCR to główny koszt percepcji (tesseract ~5–8 s pełny; ~4,6 s @1600 bez utraty
-        trafności). N kotwic za cenę JEDNEGO OCR. Zwraca {tekst: bool}."""
-        cap = self._run("kvm://host/screen/query/capture", {"base64": False, "max_width": max_width})
-        path = cap.get("path")
+    def ocr_host(self, png: bytes) -> str | None:
+        """OCR zrzutu na HOŚCIE zamiast na węźle — wykorzystuje moc obliczeniową hosta
+        (transport base64 po LAN ~260 KB @1600 to grosze). Zmierzone na lenovo:
+        tesseract host ~0,45 s vs node-side OCR ~4,6 s (10×). None gdy brak tesseracta
+        na hoście (wtedy fallback na ścieżkę node w verify_texts)."""
+        if not shutil.which("tesseract"):
+            return None
+        r = subprocess.run(["tesseract", "stdin", "stdout", "--oem", "1", "--psm", "3"],
+                           input=png, capture_output=True, timeout=30)
+        return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else None
+
+    def verify_texts(self, texts: list[str], max_width: int = 1600,
+                     engine: str = "host", region: tuple | None = None) -> dict:
+        """SZYBKA wielo-kotwica: JEDNO capture + JEDNO OCR + N sprawdzeń. Zwraca {tekst: bool}.
+
+        engine='host' (domyślnie): zrzut wraca base64 po LAN i OCR liczy HOST —
+        ~1,5 s end-to-end (capture 1,1 + OCR 0,45) vs ~4,6+ s node-side. Dodatkowo
+        cache po dhash: gdy ekran się nie zmienił od poprzedniego wywołania, OCR
+        pomijany w całości (percepcja ~= koszt samego capture).
+        engine='node': stara ścieżka (plik na węźle + ocr://host) — gdy host bez tesseracta.
+        region=(cx,cy,w,h): capture TYLKO wycinka wokół spodziewanej kotwicy
+        (mniejszy transfer i OCR); wymaga connectora z obsługą crop (redeploy ≥2026-07-05)."""
+        payload: dict = {"base64": engine == "host", "max_width": max_width}
+        if region:
+            rcx, rcy, rw, rh = region
+            payload.update({"cx": int(rcx), "cy": int(rcy), "crop_w": int(rw), "crop_h": int(rh),
+                            "max_width": 0})
+        cap = self._run("kvm://host/screen/query/capture", payload)
+        if engine == "host" and not cap.get("pngBase64"):
+            cap = self._run("kvm://host/screen/query/capture", payload)  # transient: retry raz
+        if engine == "host" and cap.get("pngBase64"):
+            png = base64.b64decode(cap["pngBase64"])
+            h = self.dhash(png)
+            if self._ocr_cache and self.hamming(h, self._ocr_cache[0]) <= 4:
+                ocr = self._ocr_cache[1]           # ekran bez zmian — OCR z cache
+            else:
+                ocr = (self.ocr_host(png) or "").lower()
+                if ocr:
+                    self._ocr_cache = (h, ocr)
+            if ocr:
+                return {t: (t.lower() in ocr) for t in texts}
+        path = cap.get("path")                      # fallback: OCR na węźle
         if not path:
             return {t: False for t in texts}
-        ocr = (self._run("ocr://host/image/query/text", {"image": path}).get("text") or "").lower()
+        try:
+            ocr = (self._run("ocr://host/image/query/text", {"image": path}).get("text") or "").lower()
+        except Exception:                           # węzeł bez trasy ocr:// — uczciwe "nie wiem" = False
+            return {t: False for t in texts}
         return {t: (t.lower() in ocr) for t in texts}
 
     # --- strażnicy ---
