@@ -156,5 +156,6 @@ def resolve(task: str, service: str, signals: dict) -> dict[str, Any]:
             "chrome_windows": amb,
             "cdp_reachable": bool(signals.get("cdp_reachable")),
             "window_list_degraded": bool(signals.get("window_list_degraded")),
+            "window_backend": signals.get("window_backend"),
         },
     }
