@@ -33,6 +33,7 @@ Helpful optional libraries (install for more platforms): ``mss``, ``pynput``,
 """
 
 import base64 as _b64
+import json as _json
 import os
 import tempfile
 import time
@@ -687,7 +688,6 @@ def window_restore(snapshot: dict | None = None) -> dict[str, Any]:
     form values (dispatching input/change so React/contenteditable register them). Honest
     caveats: sessionStorage set post-load is missed by on-load scripts and back/forward history
     is not reconstructable by a single navigate; fidelity is bounded to the snapshot."""
-    import json as _json
     s = snapshot or {}
     if not s.get("url"):
         return urirun.fail("snapshot.url is required to restore", connector=CONNECTOR_ID, action="window-restore")
@@ -968,6 +968,80 @@ def cdp_ready(timeout: float = 30.0) -> dict[str, Any]:
     r = _cdp_mod().page_ready(timeout=float(timeout))
     return _ok(action="cdp-ready", **_spread(r)) if r.get("ok") else \
         urirun.fail("page not ready within timeout", connector=CONNECTOR_ID, action="cdp-ready", **_spread(r))
+
+
+@conn.handler("cdp/page/query/eval", isolated=True,
+              meta={"label": "Evaluate JS in the CDP page and return the value (DOM read/inspect)"})
+def cdp_eval(expr: str = "") -> dict[str, Any]:
+    """DOM verb: run ``expr`` in the page (returnByValue). The reliable alternative to OCR
+    for web flows — read the real DOM instead of guessing from pixels. Runs on the NODE,
+    where Chrome's debug port is localhost."""
+    if not expr:
+        return urirun.fail("expr is required", connector=CONNECTOR_ID, action="cdp-eval")
+    try:
+        return _ok(action="cdp-eval", value=_cdp_mod().evaluate(expr))
+    except Exception as exc:  # noqa: BLE001
+        return urirun.fail(str(exc), connector=CONNECTOR_ID, action="cdp-eval")
+
+
+@conn.handler("cdp/page/command/dom-fill", isolated=True,
+              meta={"label": "Fill an input/textarea/contenteditable by CSS selector via the DOM"})
+def cdp_dom_fill(selector: str = "", value: str = "") -> dict[str, Any]:
+    """DOM verb: set the value of the first element matching ``selector`` and fire
+    input/change so frameworks (React etc.) notice — no focus race, no keystroke injection.
+    contenteditable uses textContent. Returns matched=False when the selector hits nothing."""
+    if not selector:
+        return urirun.fail("selector is required", connector=CONNECTOR_ID, action="cdp-dom-fill")
+    js = (
+        "(function(sel,val){var e=document.querySelector(sel);if(!e)return{matched:false};"
+        "if(e.isContentEditable){e.focus();e.textContent=val;}"
+        "else{var p=Object.getOwnPropertyDescriptor(e.__proto__,'value');"
+        "e.focus();if(p&&p.set)p.set.call(e,val);else e.value=val;}"
+        "e.dispatchEvent(new Event('input',{bubbles:true}));"
+        "e.dispatchEvent(new Event('change',{bubbles:true}));"
+        "return{matched:true,value:(e.value!==undefined?e.value:e.textContent)};})"
+        "(" + _json.dumps(selector) + "," + _json.dumps(value) + ")"
+    )
+    try:
+        r = _cdp_mod().evaluate(js) or {}
+        if not r.get("matched"):
+            return urirun.fail(f"selector matched nothing: {selector}",
+                               connector=CONNECTOR_ID, action="cdp-dom-fill", matched=False)
+        return _ok(action="cdp-dom-fill", matched=True, value=r.get("value"))
+    except Exception as exc:  # noqa: BLE001
+        return urirun.fail(str(exc), connector=CONNECTOR_ID, action="cdp-dom-fill")
+
+
+@conn.handler("cdp/page/command/dom-click", isolated=True,
+              meta={"label": "Click an element by CSS selector (or visible text) via the DOM"})
+def cdp_dom_click(selector: str = "", text: str = "") -> dict[str, Any]:
+    """DOM verb: click the first element matching ``selector``, or (when ``text`` is given)
+    the first button/link/[role=button] whose visible text contains it. Reliable where a
+    pixel click races a moving layout."""
+    if not selector and not text:
+        return urirun.fail("selector or text is required", connector=CONNECTOR_ID, action="cdp-dom-click")
+    if selector:
+        finder = "document.querySelector(" + _json.dumps(selector) + ")"
+    else:
+        # Prefer an EXACT (trimmed, case-insensitive) text match over a substring one, so
+        # "Sign in" does not click "Sign in with Apple"; fall back to substring if no exact hit.
+        finder = ("(function(t){var els=Array.from("
+                  "document.querySelectorAll('button,a,[role=button]'));"
+                  "var norm=function(e){return (e.innerText||'').trim().toLowerCase();};"
+                  "return els.find(function(e){return norm(e)===t;})"
+                  "||els.find(function(e){return norm(e).includes(t);});})("
+                  + _json.dumps(text.strip().lower()) + ")")
+    js = "(function(){var e=" + finder + ";if(!e)return{matched:false};" \
+         "e.scrollIntoView({block:'center'});e.click();" \
+         "return{matched:true,txt:(e.innerText||'').trim().slice(0,60)};})()"
+    try:
+        r = _cdp_mod().evaluate(js) or {}
+        if not r.get("matched"):
+            return urirun.fail(f"nothing to click for {selector or text!r}",
+                               connector=CONNECTOR_ID, action="cdp-dom-click", matched=False)
+        return _ok(action="cdp-dom-click", matched=True, clicked=r.get("txt"))
+    except Exception as exc:  # noqa: BLE001
+        return urirun.fail(str(exc), connector=CONNECTOR_ID, action="cdp-dom-click")
 
 
 def _resolve_act_app(app: str) -> tuple[str, dict | None]:
