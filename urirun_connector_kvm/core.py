@@ -922,16 +922,26 @@ def ready_resolve(task: str = "", service: str = "") -> dict[str, Any]:
     # not list windows at all — NOT merely that Chrome isn't running — so the resolver trusts
     # the window signal whenever a backend works.
     enum_ok, win_backend = _enumerate_windows()
+    input_ok = B.uinput_available() or bool(shutil.which("ydotool"))
     signals = {
         "browser_sessions": sessions,
         "cdp_reachable": cdp_reachable,
         "cdp_auth_known": any((b.get("sessions") or {}).get(service) for b in running_cdp),
-        "input_available": B.uinput_available() or bool(shutil.which("ydotool")),
+        "input_available": input_ok,
         "window_list_degraded": not enum_ok,
         "window_backend": win_backend,
+        "vision_available": input_ok and _vision_available(),
         "api_connector_available": _api_connector_available(service),
     }
     return _ok(action="ready-resolve", **_readiness_mod().resolve(task or f"{service}.action", service, signals))
+
+
+def _vision_available() -> bool:
+    """Is the VISION grounding path usable — capture + a vql analyser served on this node? It
+    needs no window list, so it is the desktop surface on GNOME-Wayland. Checked via in-node
+    route composition (the vql:// diagnose route), so it reflects what is actually deployed."""
+    r = _call_node_route("vql://host/image/query/diagnose", {"image": "__probe__"})
+    return r is not None            # route reachable (envelope even on the probe path) = vql present
 
 
 def _call_node_route(uri: str, payload: dict, timeout: float = 20) -> "dict | None":

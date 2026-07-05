@@ -20,8 +20,11 @@ from typing import Any
 
 # Preference order for execution surfaces (most reliable / least invasive first).
 # Policy, not hard-coded per task: an official API beats driving an existing logged-in
-# browser, which beats a throwaway, which beats blind HID.
-SURFACE_RANK = ("api", "browser-existing-auth", "browser-cdp", "os-accessibility", "kvm-hid")
+# browser; vision grounding (capture -> analyse -> click) beats BLIND HID because it aims at a
+# pixel it can see rather than guessing — and, crucially, it needs no window enumeration, so it
+# is the safe desktop path on GNOME-Wayland where window listing is OS-blocked.
+SURFACE_RANK = ("api", "browser-existing-auth", "browser-cdp", "os-accessibility",
+                "kvm-vision", "kvm-hid")
 
 # Surfaces a plan may NEVER auto-select without an explicit allow — the exact mistake
 # that broke the LinkedIn run.
@@ -49,47 +52,47 @@ def _chrome_window_ambiguity(browser_sessions: list[dict]) -> dict:
     }
 
 
+def _browser_auth_cand(service: str, authed: list[dict], signals: dict) -> dict:
+    ok = bool(authed) and bool(signals.get("cdp_reachable"))
+    needs = ([] if authed else [f"a browser profile logged in to {service}"]) + (
+        [] if signals.get("cdp_reachable") else ["relaunch that profile with --remote-debugging-port"])
+    return {"surface": "browser-existing-auth",
+            "uri": f"browser://existing/{authed[0]['profile']}" if authed else "browser://existing",
+            "available": ok, "requires": [] if ok else needs,
+            "profile": authed[0]["profile"] if authed else None}
+
+
+def _hid_cand(signals: dict) -> dict:
+    # kvm-hid needs a CONFIRMED focus owner: ambiguous windows OR a degraded window list
+    # (can't even see the app) both make blind typing unsafe.
+    needs = []
+    if signals.get("window_ambiguous"):
+        needs.append("unambiguous focused window")
+    if signals.get("window_list_degraded"):
+        needs.append("working window enumeration (confirm focus owner)")
+    return {"surface": "kvm-hid", "uri": "kvm://host/input",
+            "available": bool(signals.get("input_available")) and not needs, "requires": needs}
+
+
 def _rank_surfaces(service: str, signals: dict) -> list[dict]:
     """Build the ranked candidate list with availability + what each one still needs."""
-    bs = signals.get("browser_sessions") or []
-    authed = _authed_profiles(bs, service)
-    cands: list[dict] = []
-
-    cands.append({
-        "surface": "api", "uri": f"{service}://post/command/publish",
-        "available": bool(signals.get("api_connector_available")),
-        "requires": [] if signals.get("api_connector_available")
-        else [f"install/serve {service} connector", f"secret://keyring/{service}#token"],
-    })
-    cands.append({
-        "surface": "browser-existing-auth",
-        "uri": (f"browser://existing/{authed[0]['profile']}" if authed else "browser://existing"),
-        "available": bool(authed) and bool(signals.get("cdp_reachable")),
-        "requires": ([] if bool(authed) and signals.get("cdp_reachable")
-                     else ([] if authed else [f"a browser profile logged in to {service}"])
-                     + ([] if signals.get("cdp_reachable")
-                        else ["relaunch that profile with --remote-debugging-port"])),
-        "profile": authed[0]["profile"] if authed else None,
-    })
-    cands.append({
-        "surface": "browser-cdp", "uri": "browser://cdp/reachable",
-        "available": bool(signals.get("cdp_reachable")),
-        # a reachable CDP with NO known auth is only the throwaway trap
-        "requires": [] if signals.get("cdp_auth_known") else ["auth unknown for the CDP profile"],
-    })
-    # kvm-hid is only usable when we can CONFIRM which window has focus: an ambiguous set of
-    # windows OR a degraded window list (can't even see Chrome) both make blind typing unsafe.
-    hid_focus_ok = not signals.get("window_ambiguous") and not signals.get("window_list_degraded")
-    hid_needs = []
-    if signals.get("window_ambiguous"):
-        hid_needs.append("unambiguous focused window")
-    if signals.get("window_list_degraded"):
-        hid_needs.append("working window enumeration (confirm focus owner)")
-    cands.append({
-        "surface": "kvm-hid", "uri": "kvm://host/input",
-        "available": bool(signals.get("input_available")) and hid_focus_ok,
-        "requires": hid_needs,
-    })
+    authed = _authed_profiles(signals.get("browser_sessions") or [], service)
+    api_ok = bool(signals.get("api_connector_available"))
+    vision_ok = bool(signals.get("vision_available"))
+    cands = [
+        {"surface": "api", "uri": f"{service}://post/command/publish", "available": api_ok,
+         "requires": [] if api_ok else [f"install/serve {service} connector",
+                                        f"secret://keyring/{service}#token"]},
+        _browser_auth_cand(service, authed, signals),
+        {"surface": "browser-cdp", "uri": "browser://cdp/reachable",
+         "available": bool(signals.get("cdp_reachable")),
+         "requires": [] if signals.get("cdp_auth_known") else ["auth unknown for the CDP profile"]},
+        # kvm-vision: capture -> analyse (vql) -> click a pixel it can SEE. No window list needed,
+        # so it is the honest desktop path on GNOME-Wayland and safer than blind HID.
+        {"surface": "kvm-vision", "uri": "vql://host/image/query/regions", "available": vision_ok,
+         "requires": [] if vision_ok else ["screen capture + a vision analyser (vql) + input"]},
+        _hid_cand(signals),
+    ]
     order = {name: i for i, name in enumerate(SURFACE_RANK)}
     cands.sort(key=lambda c: order.get(c["surface"], 99))
     return cands
@@ -110,36 +113,43 @@ def _collect_blockers(service: str, signals: dict, amb: dict) -> list[str]:
     return blockers
 
 
+def _hard_blockers(blockers: list[str], surfaces: list[dict]) -> list[str]:
+    """Blockers that actually prevent readiness. ``user_active`` is advisory. And
+    ``window_enumeration_degraded`` only blocks WINDOW-based grounding — if a surface that
+    needs no window list (api / kvm-vision / an authed browser) is available, it is advisory,
+    because vision grounds by pixels, not the window manager."""
+    non_window = any(s["available"] and s["surface"] != "kvm-hid" for s in surfaces)
+    advisory = {"user_active"}
+    if non_window:
+        advisory.add("window_enumeration_degraded")
+    return [b for b in blockers if b not in advisory]
+
+
+def _recommend(surfaces: list[dict]) -> dict:
+    """Highest-ranked AVAILABLE surface; else the highest-ranked ACTIONABLE one (an authed
+    profile to relaunch / an API to install) — never blind kvm-hid as a fallback."""
+    available = [s for s in surfaces if s["available"]]
+    if available:
+        return available[0]
+    actionable = [s for s in surfaces
+                  if s["surface"] != "kvm-hid" and (s.get("profile") or s.get("requires"))]
+    return actionable[0] if actionable else surfaces[0]
+
+
 def resolve(task: str, service: str, signals: dict) -> dict[str, Any]:
     """Resolve the execution surface for a task and gate readiness.
 
     ``signals`` (gathered live by the route): ``browser_sessions`` list,
     ``cdp_reachable``/``cdp_auth_known``, ``input_available``, ``window_list_degraded``,
-    ``api_connector_available``, ``user_active``. Returns a ready:// decision:
-    ``ready``, ``blockers``, ``recommended_surface``, ``forbidden``, ranked ``surfaces``.
+    ``vision_available``, ``api_connector_available``, ``user_active``. Returns a ready://
+    decision: ``ready``, ``blockers``, ``recommended_surface``, ``forbidden``, ranked ``surfaces``.
     """
     amb = _chrome_window_ambiguity(signals.get("browser_sessions") or [])
     signals = {**signals, "window_ambiguous": amb["ambiguous"]}
     surfaces = _rank_surfaces(service, signals)
     blockers = _collect_blockers(service, signals, amb)
-
-    # The recommendation is the highest-ranked AVAILABLE surface; if none is available,
-    # recommend the highest-ranked one and surface exactly what it still requires — so the
-    # answer is actionable, not just "no".
-    available = [s for s in surfaces if s["available"]]
-    hard_blockers = [b for b in blockers if b not in ("user_active",)]  # user_active is advisory
-
-    # Recommendation: the highest-ranked AVAILABLE surface. When nothing is cleanly available,
-    # DON'T fall back to blind kvm-hid — recommend the highest-ranked surface that is actually
-    # actionable (an authed profile to relaunch, or an API path), surfacing what it needs, so
-    # the answer is "log in via debug-port / use the API", never "type blindly and hope".
-    if available:
-        recommended = available[0]
-    else:
-        actionable = [s for s in surfaces
-                      if s["surface"] != "kvm-hid" and (s.get("profile") or s.get("requires"))]
-        recommended = actionable[0] if actionable else surfaces[0]
-    ready = bool(available) and not hard_blockers
+    recommended = _recommend(surfaces)
+    ready = any(s["available"] for s in surfaces) and not _hard_blockers(blockers, surfaces)
 
     return {
         "task": task, "service": service,

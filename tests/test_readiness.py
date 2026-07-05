@@ -53,3 +53,15 @@ def test_clean_kvm_when_nothing_else_and_window_ok():
     })
     # no api, no authed browser, single/again no ambiguity -> kvm-hid is the honest last resort
     assert out["recommended_surface"] == "kvm-hid"
+
+
+def test_vision_surface_available_on_wayland():
+    # The Wayland answer: window enumeration is degraded, but VISION grounding (capture->vql->
+    # click) needs no window list, so it is available and beats blind kvm-hid.
+    out = R.resolve("desktop.click", "desktop", {
+        "browser_sessions": [], "cdp_reachable": False, "cdp_auth_known": False,
+        "input_available": True, "window_list_degraded": True,   # Wayland: no window list
+        "vision_available": True, "api_connector_available": False,
+    })
+    assert out["recommended_surface"] == "kvm-vision"
+    assert out["ready"] is True
