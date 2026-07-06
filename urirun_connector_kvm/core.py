@@ -1190,22 +1190,122 @@ def _resolve_act_app(app: str) -> tuple[str, dict | None]:
     return app, surface
 
 
+def _act_intent(do: str, text: str, role: str, app: str, name: str, intent: str) -> str:
+    """Stable action key for ticketing/debugging. Callers can pass their own NL intent;
+    otherwise derive one from the target so repeated failures group together."""
+    if intent:
+        return intent
+    target = text or name or role or "(target)"
+    where = f" in {app}" if app else ""
+    return f"{do} {target}{where}".strip()
+
+
+def _act_attempt_signature(result: dict[str, Any]) -> str:
+    """A compact, comparable failure signature. If the same signature repeats, retry is
+    not progress; it is a blind loop that needs a different surface/strategy."""
+    bits: list[str] = [str(result.get("strategy") or "none"), str(result.get("error") or "")]
+    for a in result.get("attempts") or []:
+        bits.append("|".join(str(a.get(k, "")) for k in ("strategy", "error", "skipped", "found", "verify")))
+    pc = result.get("postcondition") or {}
+    if pc:
+        bits.append(f"post:{pc.get('verified')}:{pc.get('text')}")
+    return " ".join(bits).strip()
+
+
+def _act_verify_expect(expect: str, app: str) -> dict[str, Any]:
+    """Semantic postcondition check for ui/command/act. This is the guard against
+    treating ok:true from an input primitive as task completion."""
+    if not expect:
+        return {"required": False, "verified": None}
+    hit = C.route("locate", text=expect, app=app, cheap=True)
+    present = bool(hit.get("ok") or hit.get("found"))
+    return {"required": True, "text": expect, "verified": present,
+            "strategy": hit.get("strategy"), "attempts": hit.get("attempts")}
+
+
 def _act_retry_loop(op: str, text: str, role: str, app: str, name: str, value: str,
                     cheap: bool, retries: int, settle: float, budget: float,
-                    start: float) -> tuple:
-    """Run the route/retry loop. Returns (tries, last_result)."""
+                    start: float, expect: str = "") -> tuple:
+    """Run the route/retry loop. Returns (tries, last_result).
+
+    Success means the action route worked AND, when ``expect`` is supplied, the
+    postcondition is visible. This prevents ok:true from a click/type primitive from
+    masquerading as a completed task.
+    """
     tries: list = []
     last: dict = {}
     for attempt in range(max(1, int(retries))):
         last = C.route(op, text=text, role=role, app=app, name=name, value=value, cheap=cheap)
         ok = last.get("ok") or last.get("found")
-        tries.append({"attempt": attempt + 1, "ok": bool(ok), "strategy": last.get("strategy")})
-        if ok:
+        post = _act_verify_expect(expect, app) if ok and expect else {"required": False, "verified": None}
+        done = bool(ok) and (not expect or bool(post.get("verified")))
+        if ok and expect:
+            last = {**last, "postcondition": post}
+            if not post.get("verified"):
+                last["ok"] = False
+                last["error"] = f"postcondition not met: {expect!r}"
+        last["_act_done"] = done
+        sig = _act_attempt_signature(last)
+        tries.append({"attempt": attempt + 1, "ok": done, "acted": bool(ok),
+                      "verified": post.get("verified"), "strategy": last.get("strategy"),
+                      "error": last.get("error"), "signature": sig,
+                      "strategyAttempts": last.get("attempts")})
+        if done:
             return tries, last
         if time.monotonic() - start + float(settle) >= budget:
             break
         time.sleep(float(settle))
     return tries, last
+
+
+def _act_stall(tries: list[dict[str, Any]], last: dict[str, Any]) -> dict[str, Any]:
+    failed = [t for t in tries if not t.get("ok")]
+    sigs = [t.get("signature") for t in failed if t.get("signature")]
+    repeated = len(sigs) >= 2 and len(set(sigs)) == 1
+    if repeated:
+        return {"stalled": "blind-loop", "repeatCount": len(sigs), "signature": sigs[-1]}
+    if last.get("postcondition") and not (last.get("postcondition") or {}).get("verified"):
+        return {"stalled": "postcondition-missing", "repeatCount": len(failed),
+                "signature": sigs[-1] if sigs else ""}
+    return {"stalled": None, "repeatCount": len(failed), "signature": sigs[-1] if sigs else ""}
+
+
+def _act_redefine(stall: dict[str, Any], do: str, text: str, role: str, app: str,
+                  name: str, expect: str, last: dict[str, Any]) -> dict[str, Any]:
+    reason = stall.get("stalled") or "failed"
+    attempts = last.get("attempts") or []
+    tried = [a.get("strategy") for a in attempts if a.get("strategy")]
+    target = text or name or role
+    steps = [
+        "stop retrying the same route signature",
+        "resolve a higher-level surface first: api/connector, browser CDP, or AT-SPI",
+        "only fall back to vision/HID when the target is grounded and the postcondition is verifiable",
+    ]
+    if expect:
+        steps.insert(1, f"verify the goal by finding {expect!r}, not by trusting the input primitive")
+    return {"reason": reason, "target": target, "app": app, "tried": tried,
+            "next": steps, "suggestedRoute": "ui/command/act",
+            "suggestedPayload": {"do": do, "text": text, "role": role, "name": name,
+                                 "app": app, "expect": expect, "safe": True}}
+
+
+def _act_ticket_draft(intent: str, ticket: str, stall: dict[str, Any], redefine: dict[str, Any],
+                      tries: list[dict[str, Any]], last: dict[str, Any]) -> dict[str, Any]:
+    """Return a planfile-compatible ticket payload. The KVM connector stays dependency-free;
+    loop/planfile can create this ticket when policy allows."""
+    name = f"[KVM] Redefine stalled UI intent: {intent[:80]}"
+    desc = {
+        "intent": intent,
+        "parent_ticket": ticket,
+        "stall": stall,
+        "redefine": redefine,
+        "tries": tries[-5:],
+        "last_error": last.get("error"),
+    }
+    return {"uri": "task://host/ticket/command/create",
+            "payload": {"name": name, "description": _json.dumps(desc, ensure_ascii=False, indent=2),
+                        "priority": "high",
+                        "labels": "kvm,reliability,blind-loop,self-extension"}}
 
 
 def _act_reject(do: str, text: str, name: str, value: str, safe: bool) -> dict[str, Any] | None:
@@ -1238,7 +1338,7 @@ def _act_ready(ready_timeout: float) -> dict[str, Any] | None:
               meta={"label": "Self-orchestrating UI action: wait-ready → route → retry → verify"})
 def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", value: str = "",
            app: str = "", retries: int = 3, settle: float = 0.7, ready_timeout: float = 6.0,
-           safe: bool = True) -> dict[str, Any]:
+           safe: bool = True, expect: str = "", intent: str = "", ticket: str = "") -> dict[str, Any]:
     """ONE high-level URI an LLM planner can target instead of hand-assembling
     wait+find+click+verify (which it gets wrong: dumb sleeps, OCR label guesses, no verify).
     Internally: (1) if a CDP page is reachable, wait for it to finish loading; (2) route the
@@ -1250,20 +1350,29 @@ def ui_act(do: str = "click", text: str = "", role: str = "", name: str = "", va
     if bad is not None:
         return bad
     app, surface = _resolve_act_app(app)
+    intent_key = _act_intent(do, text, role, app, name, intent)
     budget = _ACT_BUDGET_SECS
     start = time.monotonic()
     ready = _act_ready(ready_timeout)
     op = "locate" if do in ("find", "wait") else do
     cheap = do in ("find", "wait")
-    tries, last = _act_retry_loop(op, text, role, app, name, value, cheap, retries, settle, budget, start)
-    if last.get("ok") or last.get("found"):
-        body = {k: v for k, v in last.items() if k not in ("ok", "error", "attempts")}
+    tries, last = _act_retry_loop(op, text, role, app, name, value, cheap, retries, settle,
+                                  budget, start, expect=expect)
+    if last.get("_act_done"):
+        body = {k: v for k, v in last.items()
+                if k not in ("ok", "error", "attempts", "postcondition", "_act_done")}
         return _ok(action="act", do=do, app=app, surface=surface, ready=ready, tries=tries,
+                   intent=intent_key, ticket=ticket or None, postcondition=last.get("postcondition"),
                    strategyAttempts=last.get("attempts"), **body)
+    stall = _act_stall(tries, last)
+    redefine = _act_redefine(stall, do, text, role, app, name, expect, last)
+    draft = _act_ticket_draft(intent_key, ticket, stall, redefine, tries, last)
     return urirun.fail(last.get("error", f"act:{do} failed after {len(tries)} tries"),
                        connector=CONNECTOR_ID, action="act", do=do, app=app, surface=surface,
+                       intent=intent_key, ticket=ticket or None, postcondition=last.get("postcondition"),
                        ready=ready, tries=tries, waited=round(time.monotonic() - start, 1),
-                       strategyAttempts=last.get("attempts"))
+                       strategyAttempts=last.get("attempts"), stalled=stall.get("stalled"),
+                       stall=stall, redefine=redefine, ticketDraft=draft)
 
 
 @conn.handler("cdp/session/query/status", isolated=True,
