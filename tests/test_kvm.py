@@ -597,6 +597,93 @@ def test_ui_act_retries_then_succeeds(monkeypatch) -> None:
     assert len(r["tries"]) == 2 and r["tries"][-1]["ok"] is True
 
 
+def test_ui_act_requires_postcondition_when_expect_is_given(monkeypatch) -> None:
+    import urirun_connector_kvm.cdp as _cdp
+    monkeypatch.setattr(_cdp, "reachable", lambda: False)
+
+    def _route(op, **k):
+        if op == "click":
+            return {"ok": True, "strategy": "vision", "clicked": True,
+                    "attempts": [{"strategy": "vision", "ok": True}]}
+        if op == "locate" and k.get("text") == "Sent":
+            return {"ok": True, "found": True, "strategy": "atspi",
+                    "attempts": [{"strategy": "atspi", "ok": True}]}
+        return {"ok": False, "error": "not found", "attempts": []}
+
+    monkeypatch.setattr(core.C, "route", _route)
+    monkeypatch.setattr(core.time, "sleep", lambda *_a: None)
+
+    r = core.ui_act(do="click", text="Send", app="Signal", expect="Sent",
+                    intent="send Signal message", safe=False)
+
+    assert r["ok"] is True
+    assert r["intent"] == "send Signal message"
+    assert r["postcondition"]["verified"] is True
+    assert r["tries"][-1]["verified"] is True
+
+
+def test_ui_act_detects_blind_loop_and_returns_ticket_draft(monkeypatch) -> None:
+    import urirun_connector_kvm.cdp as _cdp
+    monkeypatch.setattr(_cdp, "reachable", lambda: False)
+
+    def _route(op, **k):
+        if op == "click":
+            return {"ok": True, "strategy": "vision", "clicked": True,
+                    "attempts": [{"strategy": "vision", "error": "compose not focused"}]}
+        if op == "locate":
+            return {"ok": False, "error": "expect not visible",
+                    "attempts": [{"strategy": "atspi", "found": False}]}
+        raise AssertionError(op)
+
+    monkeypatch.setattr(core.C, "route", _route)
+    monkeypatch.setattr(core.time, "sleep", lambda *_a: None)
+
+    r = core.ui_act(do="click", text="Message", app="Signal", expect="OK, potwierdzam.",
+                    retries=2, intent="reply in Signal", ticket="IFURI-039")
+
+    assert r["ok"] is False
+    assert r["stalled"] == "blind-loop"
+    assert r["stall"]["repeatCount"] == 2
+    assert r["ticket"] == "IFURI-039"
+    assert r["ticketDraft"]["uri"] == "task://host/ticket/command/create"
+    assert "Redefine stalled UI intent" in r["ticketDraft"]["payload"]["name"]
+    assert "stop retrying" in r["redefine"]["next"][0]
+
+
+def test_click_text_scales_capture_point_to_input_space(monkeypatch, tmp_path) -> None:
+    import pytest
+    Image = pytest.importorskip("PIL.Image")
+    shot = tmp_path / "shot.png"
+    Image.new("RGB", (1280, 720), "white").save(shot)
+
+    monkeypatch.setattr(core, "_capture_native", lambda monitor=0: str(shot))
+    monkeypatch.setattr(B, "_screen_wh", lambda: (1920, 1080))
+    monkeypatch.setattr(B, "uinput_available", lambda: True)
+    clicked = {}
+
+    def _dispatch(action, **kw):
+        if action == "locate":
+            return {"matches": [{"center": [640, 360], "box": [600, 340, 80, 40],
+                                  "text": "Message", "conf": 91.0}]}
+        raise AssertionError(action)
+
+    def _abs_click(x, y, sw, sh, **kw):
+        clicked.update({"x": x, "y": y, "sw": sw, "sh": sh, **kw})
+        return {"via": "uinput-absolute", "pixel": [x, y]}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+    monkeypatch.setattr(B, "uinput_abs_click", _abs_click)
+
+    r = core.ui_click_text(text="Message")
+
+    assert r["ok"] is True
+    assert r["clickedInput"] == [960, 540]
+    assert r["coordinateMapping"]["image"] == [1280, 720]
+    assert r["coordinateMapping"]["input"] == [1920, 1080]
+    assert r["coordinateMapping"]["scale"] == [1.5, 1.5]
+    assert clicked["x"] == 960 and clicked["y"] == 540
+
+
 def test_ui_act_rejects_bad_verb() -> None:
     assert core.ui_act(do="frobnicate", text="x")["ok"] is False
 

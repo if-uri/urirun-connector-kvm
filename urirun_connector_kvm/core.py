@@ -1441,6 +1441,47 @@ def _capture_native(monitor: int = 0) -> str:
     return out
 
 
+def _image_wh(path: str) -> list[int] | None:
+    try:
+        from PIL import Image
+        with Image.open(path) as im:
+            return [int(im.size[0]), int(im.size[1])]
+    except Exception:  # noqa: BLE001 - PIL is optional and screenshots can be stale
+        return None
+
+
+def _input_wh() -> list[int] | None:
+    try:
+        sw, sh = B._screen_wh()
+        return [int(sw), int(sh)] if sw and sh else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _map_image_to_input(center: list | tuple, image: str) -> tuple[int, int, dict[str, Any]]:
+    """Map OCR/capture coordinates into the input coordinate space.
+
+    On remote/Wayland paths the rendered capture can be 1280x720 while the input surface is
+    1920x1080. Treating image pixels as input pixels lands in the wrong app. Scaling by the
+    observed frame size and the configured/detected input size makes the mismatch explicit.
+    """
+    x, y = float(center[0]), float(center[1])
+    img = _image_wh(image)
+    inp = _input_wh()
+    mapping: dict[str, Any] = {"from": "image-px", "to": "input-px",
+                               "image": img, "input": inp, "scale": [1.0, 1.0]}
+    if img and inp and img[0] and img[1] and (img[0] != inp[0] or img[1] != inp[1]):
+        sx, sy = inp[0] / img[0], inp[1] / img[1]
+        x, y = x * sx, y * sy
+        mapping["scale"] = [round(sx, 6), round(sy, 6)]
+        mapping["scaled"] = True
+    else:
+        mapping["scaled"] = False
+    mapped = [int(round(x)), int(round(y))]
+    mapping["point"] = mapped
+    return mapped[0], mapped[1], mapping
+
+
 @conn.handler("ui/query/locate", isolated=True,
               meta={"label": "Locate on-screen elements by text (capture + OCR/VQL) → coordinates"})
 def ui_locate(query: str = "", min_conf: int = _LOCATE_MIN_CONF, monitor: int = 0) -> dict[str, Any]:
@@ -1483,13 +1524,12 @@ def ui_click_text(text: str = "", button: str = "left", nth: int = 0, min_conf: 
         return urirun.fail(f"no on-screen text matches {text!r}", connector=CONNECTOR_ID,
                            action="click-text", screenshot=shot, candidates=0)
     target = matches[min(int(nth), len(matches) - 1)]
-    cx, cy = target["center"]
+    cx, cy, coord = _map_image_to_input(target["center"], shot)
     try:
-        B.dispatch("move", x=cx, y=cy)
-        time.sleep(0.15)
-        clicked = B.dispatch("click", button=button)
+        clicked = _positioned_click(button, cx, cy)
         result: dict[str, Any] = {"clicked": target, "via": clicked.get("via"),
-                                  "screenshot": shot, "matchCount": len(matches)}
+                                  "screenshot": shot, "matchCount": len(matches),
+                                  "clickedInput": [cx, cy], "coordinateMapping": coord}
         if then_type:
             time.sleep(0.2)
             B.dispatch("type", text=then_type)
