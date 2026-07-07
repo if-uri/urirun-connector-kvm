@@ -25,6 +25,7 @@ from .core import (
     type_text,
     ui_click_text,
     ui_locate,
+    ui_type_verified,
     urirun_bindings,
     wait,
     window_list,
@@ -34,5 +35,5 @@ __all__ = [
     "CONNECTOR_ID", "a11y_act", "capture", "click", "connector_manifest", "doctor",
     "double_click", "drag_and_drop", "focus", "hover", "key", "launch", "list_apps",
     "main", "middle_click", "move", "right_click", "scroll", "task_run", "triple_click",
-    "type_text", "ui_click_text", "ui_locate", "urirun_bindings", "wait", "window_list",
+    "type_text", "ui_click_text", "ui_locate", "ui_type_verified", "urirun_bindings", "wait", "window_list",
 ]

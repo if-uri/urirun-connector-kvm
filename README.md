@@ -33,6 +33,7 @@ Catalog: <https://connect.ifuri.com/connectors/kvm>
 | `kvm://host/ui/command/click-text` | find on-screen text and click it (optionally type + submit) |
 | `kvm://host/ui/command/click` | find a target and click it (a11y action or centre click) |
 | `kvm://host/ui/command/fill` | find a field, focus it, type a value (+verify) |
+| `kvm://host/ui/command/type-verified` | click a visible field in screenshot coordinates, type a draft, verify it on screen, then optionally submit |
 | `kvm://host/ui/query/wait` | poll until a target appears (or timeout) — closed-loop |
 | `kvm://host/ui/query/verify` | assert a string is present on screen |
 | `kvm://host/a11y/command/act` | find a UI element by role/name and focus/click/set-text it (AT-SPI, resolution-independent) |

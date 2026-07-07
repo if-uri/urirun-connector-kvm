@@ -13,8 +13,74 @@
 # limitations under the License.
 
 import unittest
+import sys
+import types
 from unittest.mock import patch, MagicMock
+
+if "google" not in sys.modules:
+    google_mod = types.ModuleType("google")
+    genai_mod = types.ModuleType("google.genai")
+    types_mod = types.ModuleType("google.genai.types")
+
+    class _DummyPart:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    class _DummyContent:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    class _DummySchema:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    class _DummyType:
+        OBJECT = "OBJECT"
+        STRING = "STRING"
+        NUMBER = "NUMBER"
+        INTEGER = "INTEGER"
+        BOOLEAN = "BOOLEAN"
+        ARRAY = "ARRAY"
+
+    class _DummyFunctionDeclaration:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    class _DummyTool:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    class _DummyGenerateContentConfig:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    class _DummyClient:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    types_mod.Part = _DummyPart
+    types_mod.Content = _DummyContent
+    types_mod.Schema = _DummySchema
+    types_mod.Type = _DummyType
+    types_mod.FunctionDeclaration = _DummyFunctionDeclaration
+    types_mod.Tool = _DummyTool
+    types_mod.GenerateContentConfig = _DummyGenerateContentConfig
+    genai_mod.types = types_mod
+    genai_mod.Client = _DummyClient
+    google_mod.genai = genai_mod
+    sys.modules["google"] = google_mod
+    sys.modules["google.genai"] = genai_mod
+    sys.modules["google.genai.types"] = types_mod
+
 import main
+from computers.kvm.kvm import KvmComputer
 
 class TestMain(unittest.TestCase):
 
@@ -64,6 +130,48 @@ class TestMain(unittest.TestCase):
         )
         mock_browser_agent.assert_called_once()
         mock_browser_agent.return_value.agent_loop.assert_called_once()
+
+
+class TestKvmComputer(unittest.TestCase):
+
+    def test_click_uses_abs_route_with_full_screen_geometry(self):
+        computer = KvmComputer(node_url="http://node", screen_size=(1920, 1080))
+        calls = []
+
+        def fake_run(route, payload, scheme="kvm", timeout=60):
+            calls.append((route, payload, scheme, timeout))
+            if route == "screen/query/capture":
+                return {"pngBase64": ""}
+            return {"ok": True}
+
+        computer._run = fake_run
+
+        computer.click_at(1254, 400)
+
+        self.assertEqual(calls[0][0], "abs/command/click")
+        self.assertEqual(
+            calls[0][1],
+            {"x": 1254, "y": 400, "sw": 1920, "sh": 1080, "button": "left", "do_click": True},
+        )
+
+    def test_hover_uses_abs_route_without_click(self):
+        computer = KvmComputer(node_url="http://node", screen_size=(1920, 1080))
+        calls = []
+
+        def fake_run(route, payload, scheme="kvm", timeout=60):
+            calls.append((route, payload, scheme, timeout))
+            if route == "screen/query/capture":
+                return {"pngBase64": ""}
+            return {"ok": True}
+
+        computer._run = fake_run
+
+        computer.hover_at(700, 300)
+
+        self.assertEqual(calls[0][0], "abs/command/click")
+        self.assertEqual(calls[0][1]["do_click"], False)
+        self.assertEqual(calls[0][1]["sw"], 1920)
+        self.assertEqual(calls[0][1]["sh"], 1080)
 
 if __name__ == '__main__':
     unittest.main()

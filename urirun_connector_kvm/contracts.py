@@ -114,8 +114,9 @@ CONTRACTS: dict[str, Contract] = {
         version="v1",
         effect="command",
         inp={"x": "int", "y": "int", "sw": "?int", "sh": "?int",
-             "button": "?str", "do_click": "?bool"},
-        out={"action": "const:click-abs", "screen": ["int"]},
+             "button": "?str", "do_click": "?bool", "expect": "?str", "monitor": "?int"},
+        out={"action": "const:click-abs", "screen": ["int"],
+             "effect": "?bool", "verified": "?bool"},
         errors=("degraded-backend",),
         examples=(
             {"payload": {"x": 840, "y": 612, "sw": 2560, "sh": 1440},

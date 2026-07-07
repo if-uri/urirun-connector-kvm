@@ -571,16 +571,169 @@ def drag_and_drop(x: int, y: int, destination_x: int, destination_y: int) -> dic
 
 @conn.handler("abs/command/click", isolated=True, meta={"label": "Pixel-accurate click via a uinput absolute device"})
 def click_abs(x: int = 0, y: int = 0, sw: int = 0, sh: int = 0, button: str = "left",
-              do_click: bool = True) -> dict[str, Any]:
+              do_click: bool = True, expect: str = "", monitor: int = 0) -> dict[str, Any]:
     """Click pixel (x,y) of a screenshot sized (sw,sh) using a raw uinput ABSOLUTE
     device. Coordinates map by FRACTION onto the desktop, so HiDPI/multi-monitor scaling
     and pointer acceleration (which break ydotool here) are bypassed — a screenshot pixel
-    maps straight to a click point. Linux only."""
+    maps straight to a click point. Linux only.
+
+    Honest ``effect`` reporting (anti ``runtime-lies-ok``): a bare ``ok:true`` only ever
+    meant "the event was dispatched", never "the UI reacted". So the envelope now always
+    carries an explicit ``effect``:
+      • ``do_click=False`` (pure positioning) → ``effect:true`` — the move IS the effect.
+      • ``expect=""`` (default click) → ``effect:null, verified:false`` — dispatched but the
+        UI outcome is unverified AT THIS LAYER; pass ``expect`` or follow with a capture.
+      • ``expect="<text>"`` → capture after the click and confirm ``<text>`` is on screen;
+        the envelope is ``ok/effect:true`` only when verified, else ``ok:false/effect:false``.
+    """
     try:
-        return _ok(action="click-abs", screen=[sw, sh],
-                   **B.uinput_abs_click(int(x), int(y), int(sw), int(sh), button, bool(do_click)))
+        did = B.uinput_abs_click(int(x), int(y), int(sw), int(sh), button, bool(do_click))
     except B.BackendError as exc:
         return _fail_from("click-abs", exc)
+    base = dict(action="click-abs", screen=[sw, sh], **_spread(did))
+    if not do_click:  # pure positioning — the move is the whole effect
+        return _ok(effect=True, verified=None, **base)
+    if not expect:  # dispatched, but this layer cannot confirm the UI reacted
+        return _ok(effect=None, verified=False,
+                   note="click dispatched; UI effect unverified at this layer — "
+                        "pass expect=<text> or follow with a capture to confirm",
+                   **base)
+    try:
+        shot = _fresh_capture("abs-click-verify", monitor)
+    except Exception as exc:  # noqa: BLE001
+        return _ok(effect=None, verified=False,
+                   note=f"click dispatched; post-click capture failed: {str(exc)[:120]}",
+                   **base)
+    check = _verify_text_in_image(shot["path"], expect)
+    if check.get("verified"):
+        return _ok(effect=True, verified=True, expect=expect, verify=check, **base)
+    return urirun.fail(f"click dispatched but expected text not found: {expect!r}",
+                       connector=CONNECTOR_ID, action="click-abs", effect=False,
+                       verified=False, expect=expect, verify=check, screen=[sw, sh])
+
+
+def _shot_tag(label: str) -> str:
+    return f"urirun-kvm-{label}-{os.getpid()}-{int(time.time() * 1000)}.png"
+
+
+def _fresh_capture(label: str, monitor: int = 0) -> dict[str, Any]:
+    path = _capture_native(monitor, _shot_tag(label))
+    return {"label": label, "path": path, "screen": _image_wh(path)}
+
+
+def _verify_text_in_image(image: str, text: str, min_conf: int = 35) -> dict[str, Any]:
+    if not text:
+        return {"required": False, "verified": None}
+    try:
+        hit = B.dispatch("locate", image=image, query=text, min_conf=int(min_conf))
+    except B.BackendError as exc:
+        return {"required": True, "verified": False, "error": str(exc)[:200]}
+    found = bool(hit.get("found") or hit.get("matches"))
+    return {"required": True, "verified": found, "via": hit.get("source") or hit.get("via"),
+            "matches": len(hit.get("matches") or [])}
+
+
+def _abs_click_from_frame(x: int, y: int, screen: list[int] | None, button: str = "left") -> dict[str, Any]:
+    sw = int((screen or [0, 0])[0] or 0)
+    sh = int((screen or [0, 0])[1] or 0)
+    return B.uinput_abs_click(int(x), int(y), sw, sh, button=button, do_click=True)
+
+
+@conn.handler("ui/command/type-verified", isolated=True,
+              meta={"label": "Grounded click→type→verify draft→optional submit"})
+def ui_type_verified(
+    text: str = "",
+    x: int = -1,
+    y: int = -1,
+    screen_w: int = 0,
+    screen_h: int = 0,
+    submit: bool = False,
+    submit_key: str = "Enter",
+    draft_expect: str = "",
+    sent_expect: str = "",
+    require_draft_verify: bool = True,
+    require_sent_verify: bool = False,
+    stabilize_key: str = "",
+    settle: float = 0.8,
+    monitor: int = 0,
+) -> dict[str, Any]:
+    """Type into a visible field with explicit grounding and postconditions.
+
+    This route is the reusable version of the successful Signal workflow:
+    stabilize state if needed, capture the frame, click coordinates in that exact
+    frame's geometry, type, capture again, verify the draft, and only then optionally
+    submit. ``ok`` means the requested postcondition passed; primitive command
+    success is reported separately in ``steps``.
+    """
+    if not text:
+        return urirun.fail("text is required", connector=CONNECTOR_ID, action="type-verified")
+    if x < 0 or y < 0:
+        return urirun.fail("x/y are required", connector=CONNECTOR_ID, action="type-verified")
+
+    started = time.time()
+    steps: list[dict[str, Any]] = []
+    commentary: list[str] = []
+    try:
+        if stabilize_key:
+            key_res = B.dispatch("key", keys=stabilize_key)
+            steps.append({"op": "stabilize", "key": stabilize_key, "via": key_res.get("via"), "ok": True})
+            commentary.append(f"stabilized with {stabilize_key}")
+            time.sleep(min(max(float(settle), 0.1), 5.0))
+
+        before = _fresh_capture("before-type-verified", monitor)
+        screen = [int(screen_w), int(screen_h)] if screen_w and screen_h else before.get("screen")
+        clicked = _abs_click_from_frame(x, y, screen)
+        steps.append({"op": "click", "at": [int(x), int(y)], "screen": screen,
+                      "via": clicked.get("via"), "ok": True})
+        commentary.append(f"clicked target at {[int(x), int(y)]} in frame {screen}")
+        time.sleep(min(max(float(settle), 0.1), 5.0))
+
+        typed = B.dispatch("type", text=text)
+        steps.append({"op": "type", "chars": len(text), "via": typed.get("via"), "ok": True})
+        commentary.append(f"typed {len(text)} chars")
+        time.sleep(min(max(float(settle), 0.1), 5.0))
+
+        draft = _fresh_capture("draft-type-verified", monitor)
+        draft_check = _verify_text_in_image(draft["path"], draft_expect or text)
+        steps.append({"op": "verify-draft", **draft_check})
+        if require_draft_verify and draft_check.get("verified") is not True:
+            commentary.append("draft verification failed; stopped before submit")
+            return urirun.fail("draft verification failed; stopped before submit",
+                               connector=CONNECTOR_ID, action="type-verified",
+                               verified=False, submitted=False, stopped="draft-not-verified",
+                               elapsedMs=round((time.time() - started) * 1000),
+                               screenshots={"before": before, "draft": draft},
+                               steps=steps, commentary=commentary)
+
+        sent = None
+        sent_check = {"required": False, "verified": None}
+        if submit:
+            key_res = B.dispatch("key", keys=submit_key)
+            steps.append({"op": "submit", "key": submit_key, "via": key_res.get("via"), "ok": True})
+            commentary.append(f"submitted with {submit_key}")
+            time.sleep(min(max(float(settle), 0.1), 5.0))
+            sent = _fresh_capture("sent-type-verified", monitor)
+            if sent_expect or require_sent_verify:
+                sent_check = _verify_text_in_image(sent["path"], sent_expect or text)
+                steps.append({"op": "verify-sent", **sent_check})
+                if require_sent_verify and sent_check.get("verified") is not True:
+                    commentary.append("sent verification failed after submit")
+                    return urirun.fail("sent verification failed after submit",
+                                       connector=CONNECTOR_ID, action="type-verified",
+                                       verified=False, submitted=True, stopped="sent-not-verified",
+                                       elapsedMs=round((time.time() - started) * 1000),
+                                       screenshots={"before": before, "draft": draft, "sent": sent},
+                                       steps=steps, commentary=commentary)
+
+        verified = (draft_check.get("verified") is True) and (
+            not submit or not require_sent_verify or sent_check.get("verified") is True
+        )
+        return _ok(action="type-verified", verified=verified, submitted=bool(submit),
+                   elapsedMs=round((time.time() - started) * 1000),
+                   screenshots={"before": before, "draft": draft, **({"sent": sent} if sent else {})},
+                   steps=steps, commentary=commentary)
+    except B.BackendError as exc:
+        return _fail_from("type-verified", exc)
 
 
 # --------------------------------------------------------------------------- #
@@ -1235,7 +1388,10 @@ def _act_retry_loop(op: str, text: str, role: str, app: str, name: str, value: s
     tries: list = []
     last: dict = {}
     for attempt in range(max(1, int(retries))):
-        last = C.route(op, text=text, role=role, app=app, name=name, value=value, cheap=cheap)
+        # For find/wait, keep the first probe cheap (cdp/atspi) and escalate retries
+        # to full locate so vision can recover from cheap-mode false negatives.
+        cheap_now = cheap and attempt == 0
+        last = C.route(op, text=text, role=role, app=app, name=name, value=value, cheap=cheap_now)
         ok = last.get("ok") or last.get("found")
         post = _act_verify_expect(expect, app) if ok and expect else {"required": False, "verified": None}
         done = bool(ok) and (not expect or bool(post.get("verified")))
@@ -1434,9 +1590,9 @@ def ui_verify(expect: str = "", text: str = "", app: str = "", required: bool = 
 # The "specialized commands wired to libraries" layer: a caller asks for a label,
 # not pixels. Coordinates from locate map 1:1 to a native-resolution capture.
 # --------------------------------------------------------------------------- #
-def _capture_native(monitor: int = 0) -> str:
+def _capture_native(monitor: int = 0, output: str = "") -> str:
     """Capture at native resolution (no downscale) so OCR boxes are screen pixels."""
-    out = os.path.join(tempfile.gettempdir(), f"urirun-kvm-ui-{os.getpid()}.png")
+    out = _resolve_output_path(output) if output else os.path.join(tempfile.gettempdir(), f"urirun-kvm-ui-{os.getpid()}.png")
     B.dispatch("capture", output=out, monitor=monitor)
     return out
 

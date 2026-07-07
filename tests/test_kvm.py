@@ -37,6 +37,7 @@ EXPECTED_ROUTES = {
     "kvm://host/ui/query/locate", "kvm://host/ui/command/click-text",
     "kvm://host/ui/query/find", "kvm://host/ui/command/click", "kvm://host/ui/command/fill",
     "kvm://host/ui/query/wait", "kvm://host/ui/query/verify", "kvm://host/ui/query/strategies",
+    "kvm://host/ui/command/type-verified",
     "kvm://host/cdp/session/command/ensure", "kvm://host/cdp/session/query/status",
     "kvm://host/cdp/session/query/ready",
     "kvm://host/cdp/page/command/navigate", "kvm://host/cdp/page/query/ready",
@@ -650,6 +651,29 @@ def test_ui_act_detects_blind_loop_and_returns_ticket_draft(monkeypatch) -> None
     assert "stop retrying" in r["redefine"]["next"][0]
 
 
+def test_ui_act_wait_escalates_from_cheap_to_full_locate(monkeypatch) -> None:
+    import urirun_connector_kvm.cdp as _cdp
+    monkeypatch.setattr(_cdp, "reachable", lambda: False)
+
+    seen_cheap: list[bool] = []
+
+    def _route(op, **k):
+        if op != "locate":
+            raise AssertionError(op)
+        seen_cheap.append(bool(k.get("cheap")))
+        if len(seen_cheap) == 1:
+            return {"ok": False, "found": False, "error": "not yet", "attempts": []}
+        return {"ok": True, "found": True, "strategy": "vision", "attempts": []}
+
+    monkeypatch.setattr(core.C, "route", _route)
+    monkeypatch.setattr(core.time, "sleep", lambda *_a: None)
+
+    r = core.ui_act(do="wait", text="LinkedIn", retries=3)
+
+    assert r["ok"] is True
+    assert seen_cheap == [True, False]
+
+
 def test_click_text_scales_capture_point_to_input_space(monkeypatch, tmp_path) -> None:
     import pytest
     Image = pytest.importorskip("PIL.Image")
@@ -682,6 +706,104 @@ def test_click_text_scales_capture_point_to_input_space(monkeypatch, tmp_path) -
     assert r["coordinateMapping"]["input"] == [1920, 1080]
     assert r["coordinateMapping"]["scale"] == [1.5, 1.5]
     assert clicked["x"] == 960 and clicked["y"] == 540
+
+
+def test_click_abs_reports_honest_effect(monkeypatch) -> None:
+    """IFURI-065 (runtime-lies-ok): abs/command/click must not claim an effect it
+    hasn't confirmed. Three branches: pure move → effect True; bare click → effect
+    None/unverified; click+expect → verified only when the text appears."""
+    monkeypatch.setattr(B, "uinput_abs_click",
+                        lambda x, y, sw, sh, button="left", do_click=True:
+                        {"via": "uinput-absolute", "abs": [1, 2], "pixel": [x, y],
+                         "clicked": bool(do_click), "clicks": 1 if do_click else 0})
+
+    # pure positioning: the move IS the whole effect
+    moved = core.click_abs(x=10, y=20, sw=100, sh=200, do_click=False)
+    assert moved["ok"] is True and moved["effect"] is True
+
+    # bare click: dispatched but unverified at this layer — must NOT claim effect
+    bare = core.click_abs(x=10, y=20, sw=100, sh=200)
+    assert bare["ok"] is True
+    assert bare["effect"] is None and bare["verified"] is False
+    assert "unverified" in bare["note"]
+
+    # click + expect satisfied → verified True / effect True
+    monkeypatch.setattr(core, "_fresh_capture",
+                        lambda label, monitor=0: {"label": label, "path": "/tmp/v.png", "screen": [100, 200]})
+    monkeypatch.setattr(core, "_verify_text_in_image",
+                        lambda image, text, min_conf=35: {"required": True, "verified": True, "matches": 1})
+    good = core.click_abs(x=10, y=20, sw=100, sh=200, expect="Saved")
+    assert good["ok"] is True and good["effect"] is True and good["verified"] is True
+
+    # click + expect NOT found → fail envelope, effect False (no false success)
+    monkeypatch.setattr(core, "_verify_text_in_image",
+                        lambda image, text, min_conf=35: {"required": True, "verified": False, "matches": 0})
+    bad = core.click_abs(x=10, y=20, sw=100, sh=200, expect="Saved")
+    assert bad["ok"] is False and bad["effect"] is False and bad["verified"] is False
+
+
+def test_ui_type_verified_submits_only_after_draft_verify(monkeypatch) -> None:
+    shots = iter([
+        {"label": "before", "path": "/tmp/before.png", "screen": [1100, 618]},
+        {"label": "draft", "path": "/tmp/draft.png", "screen": [1100, 618]},
+        {"label": "sent", "path": "/tmp/sent.png", "screen": [1100, 618]},
+    ])
+    events = []
+
+    monkeypatch.setattr(core, "_fresh_capture", lambda label, monitor=0: next(shots))
+    monkeypatch.setattr(core, "_abs_click_from_frame",
+                        lambda x, y, screen, button="left": events.append(("click", x, y, screen)) or
+                        {"via": "uinput-absolute"})
+    monkeypatch.setattr(core, "_verify_text_in_image",
+                        lambda image, text, min_conf=35: {"required": True, "verified": True,
+                                                          "via": "tesseract", "matches": 1})
+
+    def _dispatch(action, **kw):
+        events.append((action, kw))
+        if action == "type":
+            return {"via": "uinput-keyboard", "chars": len(kw["text"])}
+        if action == "key":
+            return {"via": "uinput-keyboard", "combo": kw["keys"]}
+        raise AssertionError(action)
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.ui_type_verified(text="hello", x=10, y=20, submit=True,
+                              sent_expect="hello", require_sent_verify=True)
+
+    assert r["ok"] is True
+    assert r["submitted"] is True
+    assert r["verified"] is True
+    assert [e[0] for e in events] == ["click", "type", "key"]
+
+
+def test_ui_type_verified_stops_before_submit_when_draft_unverified(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_fresh_capture", lambda label, monitor=0: {
+        "label": label, "path": f"/tmp/{label}.png", "screen": [1100, 618]
+    })
+    monkeypatch.setattr(core, "_abs_click_from_frame",
+                        lambda x, y, screen, button="left": {"via": "uinput-absolute"})
+    monkeypatch.setattr(core, "_verify_text_in_image",
+                        lambda image, text, min_conf=35: {"required": True, "verified": False,
+                                                          "via": "tesseract", "matches": 0})
+    calls = []
+
+    def _dispatch(action, **kw):
+        calls.append(action)
+        if action == "type":
+            return {"via": "uinput-keyboard", "chars": len(kw["text"])}
+        if action == "key":
+            raise AssertionError("submit key must not be sent when draft verification fails")
+        raise AssertionError(action)
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.ui_type_verified(text="hello", x=10, y=20, submit=True)
+
+    assert r["ok"] is False
+    assert r["stopped"] == "draft-not-verified"
+    assert r["submitted"] is False
+    assert calls == ["type"]
 
 
 def test_ui_act_rejects_bad_verb() -> None:

@@ -61,6 +61,17 @@ class KvmComputer(Computer):
         png = base64.b64decode(res.get("pngBase64", "")) if res.get("pngBase64") else b""
         return EnvState(screenshot=png, url="")
 
+    def _abs_payload(self, x: int, y: int, button: str = "left", do_click: bool = True) -> dict:
+        width, height = self.screen_size()
+        return {
+            "x": int(x),
+            "y": int(y),
+            "sw": int(width),
+            "sh": int(height),
+            "button": button,
+            "do_click": do_click,
+        }
+
     def screen_size(self) -> tuple[int, int]:
         return self._size
 
@@ -72,7 +83,7 @@ class KvmComputer(Computer):
 
     # -- mouse ---------------------------------------------------------------
     def _click(self, x, y, button="left") -> EnvState:
-        self._run("input/command/click", {"x": int(x), "y": int(y), "button": button})
+        self._run("abs/command/click", self._abs_payload(x, y, button=button))
         return self._state()
 
     def click_at(self, x, y) -> EnvState:
@@ -95,7 +106,7 @@ class KvmComputer(Computer):
         return self._state()
 
     def hover_at(self, x, y) -> EnvState:
-        self._run("input/command/hover", {"x": int(x), "y": int(y)})
+        self._run("abs/command/click", self._abs_payload(x, y, do_click=False))
         return self._state()
 
     def mouse_down(self, x, y) -> EnvState:
@@ -120,7 +131,7 @@ class KvmComputer(Computer):
         return self._state()
 
     def type_text_at(self, x, y, text, press_enter, clear_before_typing) -> EnvState:
-        self._run("input/command/click", {"x": int(x), "y": int(y)}); time.sleep(0.1)
+        self._run("abs/command/click", self._abs_payload(x, y)); time.sleep(0.1)
         if clear_before_typing:
             self._run("input/command/key", {"keys": "ctrl+a"})
             self._run("input/command/key", {"keys": "BackSpace"})
@@ -149,7 +160,7 @@ class KvmComputer(Computer):
         return self.scroll_at(self._size[0] // 2, self._size[1] // 2, direction, 600)
 
     def scroll_at(self, x, y, direction, magnitude) -> EnvState:
-        self._run("input/command/move", {"x": int(x), "y": int(y)})
+        self._run("abs/command/click", self._abs_payload(x, y, do_click=False))
         dy = magnitude if direction == "down" else -magnitude if direction == "up" else 0
         self._run("input/command/scroll", {"dy": int(dy)})
         return self._state()
