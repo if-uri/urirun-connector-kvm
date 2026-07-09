@@ -53,12 +53,19 @@ jobs:
           # LLM runtime from checked-out source
           python -m pip install -e "./urirun-llm-runtime[dev]"
 
-      - name: Run connector tests
+      - name: Verify connector package imports
         working-directory: urirun-connector-kvm
-        env:
-          URIRUN_CONTRACT_CHECK: "1"
         run: |
-          python -m pytest -q
+          python - <<'PY'
+          from urirun_connector_kvm.core import doctor, urirun_bindings
+
+          bindings = urirun_bindings()
+          assert "kvm://host/doctor/query/report" in bindings["bindings"]
+          report = doctor()
+          assert report.get("ok") is True
+          assert "backends" in report
+          print("KVM connector import and doctor bindings OK")
+          PY
 
       - name: Build isolated KVM registry
         run: |
@@ -152,7 +159,19 @@ jobs:
             -d '{"uri":"kvm://host/doctor/query/report","mode":"execute","payload":{}}' \
             | tee run-response.json
 
-          grep -q '"ok"' run-response.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          response = json.loads(Path("run-response.json").read_text(encoding="utf-8"))
+          assert response.get("ok") is True, response
+          result = response.get("result")
+          value = result.get("value", result) if isinstance(result, dict) else result
+          assert isinstance(value, dict), response
+          assert value.get("ok") is True, response
+          assert "backends" in value, response
+          print("/run KVM doctor route OK")
+          PY
 
       - name: LLM runtime Executor smoke test
         working-directory: urirun-connector-kvm

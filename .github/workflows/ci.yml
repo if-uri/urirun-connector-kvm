@@ -4,8 +4,65 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   connector-ci:
-    uses: if-uri/urirun/.github/workflows/connector-ci.yml@main
-    with:
-      lang: python
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout urirun-connector-kvm
+        uses: actions/checkout@v4
+        with:
+          path: urirun-connector-kvm
+
+      - name: Checkout urirun
+        uses: actions/checkout@v4
+        with:
+          repository: if-uri/urirun
+          path: urirun
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install urirun and current connector from source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "./urirun/adapters/python"
+          python -m pip install -e "./urirun-connector-kvm[test]"
+
+      - name: Run connector unit tests
+        working-directory: urirun-connector-kvm
+        run: |
+          python -m pytest -q
+
+      - name: Build and run safe KVM doctor route
+        working-directory: urirun-connector-kvm
+        run: |
+          mkdir -p .urirun
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from urirun_connector_kvm.core import urirun_bindings
+
+          bindings = urirun_bindings()
+          text = json.dumps(bindings)
+          assert "kvm://host/doctor/query/report" in text, "KVM doctor route missing"
+          Path(".urirun/kvm.bindings.v2.json").write_text(
+              json.dumps(bindings, indent=2, sort_keys=True),
+              encoding="utf-8",
+          )
+          PY
+
+          urirun compile .urirun/kvm.bindings.v2.json --out .urirun/kvm.registry.json
+          urirun run \
+            'kvm://host/doctor/query/report' \
+            .urirun/kvm.registry.json \
+            --execute \
+            --allow 'kvm://**' \
+            --allow 'app://**'

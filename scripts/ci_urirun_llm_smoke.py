@@ -58,8 +58,20 @@ def main() -> None:
     if not isinstance(result, dict):
         fail(f"Executor returned non-dict response: {result!r}")
 
-    if result.get("ok") is False:
+    if result.get("ok") is not True:
         fail(f"Executor returned failed response: {result!r}")
+
+    route_result = result.get("result")
+    value = route_result.get("value", route_result) if isinstance(route_result, dict) else route_result
+
+    if not isinstance(value, dict):
+        fail(f"Executor returned response without dict result value: {result!r}")
+
+    if value.get("ok") is not True:
+        fail(f"KVM doctor route returned failed response: {result!r}")
+
+    if "backends" not in value:
+        fail(f"KVM doctor route response is missing backends: {result!r}")
 
     print("OK: urirun-llm-runtime -> urirun node -> KVM connector smoke test passed")
 
