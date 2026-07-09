@@ -454,23 +454,63 @@ def display_info() -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 # input
 # --------------------------------------------------------------------------- #
+def _verify_focus(expect: str) -> dict[str, Any]:
+    """Foreground-window title probe compared against ``expect`` (case-insensitive substring),
+    so a caller can refuse to type into the wrong window BEFORE the keys go out instead of
+    only noticing afterward via a screenshot OCR check. ``trusted:false`` means the OS/session
+    gave no answer at all (pure Wayland has no public active-window query, see
+    ``surface._active_window``) — that is neither a match nor a mismatch, so callers must treat
+    it as unverifiable rather than as a pass."""
+    win = _surface_mod()._active_window()
+    title = win.get("title", "")
+    if not title:
+        return {"trusted": False, "verified": None, "title": "", "expect": expect}
+    return {"trusted": True, "verified": expect.lower() in title.lower(),
+            "title": title, "expect": expect, "via": win.get("via")}
+
+
 @conn.handler("input/command/type", isolated=True, meta={"label": "Type a whole string"})
-def type_text(text: str = "") -> dict[str, Any]:
+def type_text(text: str = "", expect_window: str = "") -> dict[str, Any]:
+    """Type ``text`` into whatever currently has focus. Pass ``expect_window`` (a substring of
+    the expected window title) to ground the target BEFORE typing — a trusted probe that shows
+    a different window refuses the call instead of typing blind. Leave empty to keep today's
+    blind behaviour (e.g. when the caller already grounded via ``task/command/run``'s ``focus``
+    step, or verifies after the fact via ``ui/command/type-verified``)."""
     if not text:
         return urirun.fail("text is required", connector=CONNECTOR_ID)
+    focus_check = _verify_focus(expect_window) if expect_window else None
+    if focus_check is not None and focus_check["verified"] is False:
+        return urirun.fail(
+            f"active window {focus_check['title']!r} does not match "
+            f"expect_window={expect_window!r}; refused to type blind",
+            connector=CONNECTOR_ID, action="type", focus=focus_check)
     try:
-        return _ok(action="type", **B.dispatch("type", text=text))
+        r = _ok(action="type", **B.dispatch("type", text=text))
+        if focus_check is not None:
+            r["focus"] = focus_check
+        return r
     except B.BackendError as exc:
         return _fail_from("type", exc)
 
 
 @conn.handler("input/command/key", isolated=True, meta={"label": "Send a key or hotkey combo"})
-def key(key: str = "", keys: str = "") -> dict[str, Any]:
+def key(key: str = "", keys: str = "", expect_window: str = "") -> dict[str, Any]:
+    """Send ``keys``/``key``. Pass ``expect_window`` to refuse the call (same grounding as
+    ``type_text``) when a trusted foreground-window probe shows a different window."""
     combo = keys or key
     if not combo:
         return urirun.fail("key/keys is required", connector=CONNECTOR_ID)
+    focus_check = _verify_focus(expect_window) if expect_window else None
+    if focus_check is not None and focus_check["verified"] is False:
+        return urirun.fail(
+            f"active window {focus_check['title']!r} does not match "
+            f"expect_window={expect_window!r}; refused to send key blind",
+            connector=CONNECTOR_ID, action="key", focus=focus_check)
     try:
-        return _ok(action="key", **B.dispatch("key", keys=combo))
+        r = _ok(action="key", **B.dispatch("key", keys=combo))
+        if focus_check is not None:
+            r["focus"] = focus_check
+        return r
     except B.BackendError as exc:
         return _fail_from("key", exc)
 
@@ -739,12 +779,39 @@ def ui_type_verified(
 # --------------------------------------------------------------------------- #
 # batched task — one bounded sequence (move/click/type/key/scroll/focus/sleep)
 # --------------------------------------------------------------------------- #
+def _refuse_if_wrong_window(op: str, expected_title: str, log: list[dict]) -> "dict[str, Any] | None":
+    """task_run guard: before a type/key step, refuse the WHOLE task (nothing typed) if a
+    TRUSTED foreground-window probe shows a window other than the one the batch's own
+    ``focus`` step targeted. Returns a fail envelope to return immediately, or ``None`` to
+    let the step proceed (including when the probe is untrusted — see ``_verify_focus``)."""
+    if op not in ("type", "key") or not expected_title:
+        return None
+    check = _verify_focus(expected_title)
+    if check["verified"] is False:
+        log.append({"op": op, "ok": False, "focus": check,
+                    "error": f"active window {check['title']!r} != expected {expected_title!r}"})
+        return urirun.fail(
+            f"step {op!r} refused: wrong window focused ({check['title']!r} != {expected_title!r})",
+            connector=CONNECTOR_ID, steps=log)
+    return None
+
+
 @conn.handler("task/command/run", isolated=True, meta={"label": "Run a bounded input sequence"})
 def task_run(steps: list | None = None) -> dict[str, Any]:
     """Execute an ordered list of ``{op, ...}`` steps in one call (so a focus→click→
     type→submit flow shares the same ydotoold session). ops: focus, move, click, type,
-    key, scroll, sleep. Input is structured data — never arbitrary code."""
+    key, scroll, sleep. Input is structured data — never arbitrary code.
+
+    A ``focus`` step records the window this task targets. Every ``type``/``key`` step that
+    follows it re-probes the foreground window FIRST and refuses to fire (the task fails,
+    nothing is typed) if a TRUSTED probe shows a different window is active — grounding
+    before injection instead of discovering the wrong-window mistake only after the text
+    already landed. When the probe can't answer at all (pure Wayland has no public
+    active-window query), that is honestly unverifiable, not a pass, and the step proceeds
+    best-effort exactly as before — callers on those sessions still want
+    ``ui/command/type-verified`` for a post-hoc check."""
     log: list[dict] = []
+    expected_title = ""
     for st in (steps or []):
         op = str(st.get("op", ""))
         try:
@@ -752,8 +819,13 @@ def task_run(steps: list | None = None) -> dict[str, Any]:
                 time.sleep(min(float(st.get("seconds", 0.2)), 5.0))
                 log.append({"op": op})
                 continue
+            guard = _refuse_if_wrong_window(op, expected_title, log)
+            if guard is not None:
+                return guard
             if op == "focus":
-                r = B.dispatch("focus", title=str(st.get("title", "")))
+                title = str(st.get("title", ""))
+                r = B.dispatch("focus", title=title)
+                expected_title = title
             elif op == "move":
                 r = B.dispatch("move", x=int(st["x"]), y=int(st["y"]))
             elif op == "click":
@@ -783,10 +855,19 @@ def task_run(steps: list | None = None) -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 @conn.handler("window/command/focus", isolated=True, meta={"label": "Activate a window by title"})
 def focus(title: str = "") -> dict[str, Any]:
+    """Activate a window by title. ``wmctrl -a``/atspi are fire-and-forget — they don't error
+    when the title matches nothing — so the response includes ``verify``: a foreground-window
+    re-probe against ``title``, honest about whether the activation actually landed
+    (``verify.verified``) or couldn't be checked at all (``verify.trusted:false`` on pure
+    Wayland). Callers who need to act on the result, not just log it, should use
+    ``task/command/run`` with a ``focus`` step, which enforces this before any ``type``/``key``
+    step that follows."""
     if not title:
         return urirun.fail("title is required", connector=CONNECTOR_ID)
     try:
-        return _ok(action="focus", **B.dispatch("focus", title=title))
+        r = _ok(action="focus", **B.dispatch("focus", title=title))
+        r["verify"] = _verify_focus(title)
+        return r
     except B.BackendError as exc:
         # Degrade instead of fail — focus is best-effort; CDP flows don't need it,
         # and Wayland wmctrl/atspi are unreliable on pre-navigation pages.

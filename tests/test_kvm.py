@@ -349,6 +349,95 @@ def test_window_list_passes_app_title_selector(monkeypatch) -> None:
     assert r["selected"]["monitor"] == 2
 
 
+def _fake_surface(title: str):
+    class _Surface:
+        @staticmethod
+        def _active_window():
+            return {"title": title, "via": "xdotool"} if title else {}
+    return _Surface
+
+
+def test_type_text_refuses_wrong_window(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Mail Client — Inbox"))
+    monkeypatch.setattr(B, "dispatch", lambda *a, **kw: (_ for _ in ()).throw(
+        AssertionError("must not type when the wrong window is focused")))
+
+    r = core.type_text(text="hello", expect_window="Signal")
+
+    assert r["ok"] is False
+    assert r["focus"]["verified"] is False
+    assert r["focus"]["title"] == "Mail Client — Inbox"
+
+
+def test_type_text_proceeds_when_window_matches(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Signal"))
+    monkeypatch.setattr(B, "dispatch", lambda action, **kw: {"via": "ydotool"})
+
+    r = core.type_text(text="hello", expect_window="Signal")
+
+    assert r["ok"] is True
+    assert r["focus"]["verified"] is True
+
+
+def test_type_text_stays_blind_without_expect_window(monkeypatch) -> None:
+    seen = {}
+
+    def _dispatch(action, **kw):
+        seen["called"] = True
+        return {"via": "ydotool"}
+
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface(""))
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.type_text(text="hello")
+
+    assert r["ok"] is True
+    assert "focus" not in r
+    assert seen["called"] is True
+
+
+def test_task_run_refuses_type_after_focus_lands_elsewhere(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Wrong App"))
+    monkeypatch.setattr(B, "dispatch", lambda action, **kw: {"via": "wmctrl"})
+
+    r = core.task_run(steps=[
+        {"op": "focus", "title": "Signal"},
+        {"op": "type", "text": "should not land"},
+    ])
+
+    assert r["ok"] is False
+    assert r["steps"][-1]["op"] == "type"
+    assert r["steps"][-1]["ok"] is False
+    assert r["steps"][-1]["focus"]["title"] == "Wrong App"
+
+
+def test_task_run_types_when_focused_window_matches(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Signal"))
+    monkeypatch.setattr(B, "dispatch", lambda action, **kw: {"via": "wmctrl" if action == "focus" else "ydotool"})
+
+    r = core.task_run(steps=[
+        {"op": "focus", "title": "Signal"},
+        {"op": "type", "text": "ok to land"},
+    ])
+
+    assert r["ok"] is True
+    assert [s["op"] for s in r["steps"]] == ["focus", "type"]
+
+
+def test_task_run_untrusted_probe_does_not_block_type(monkeypatch) -> None:
+    # Pure-Wayland sessions where the active window can't be probed at all: honestly
+    # unverifiable, not a mismatch, so the step still proceeds best-effort.
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface(""))
+    monkeypatch.setattr(B, "dispatch", lambda action, **kw: {"via": "ydotool"})
+
+    r = core.task_run(steps=[
+        {"op": "focus", "title": "Signal"},
+        {"op": "type", "text": "best effort"},
+    ])
+
+    assert r["ok"] is True
+
+
 def test_atspi_window_list_uses_long_timeout_and_monitor_inventory(monkeypatch) -> None:
     seen = {}
 
