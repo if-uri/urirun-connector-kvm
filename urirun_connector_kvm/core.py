@@ -60,7 +60,7 @@ def _adopt_flat_siblings() -> None:
     pkg = _types.ModuleType("urirun_connector_kvm")
     pkg.__path__ = [here]  # type: ignore[attr-defined]
     _sys.modules["urirun_connector_kvm"] = pkg
-    for name in ("backends", "_backends_uinput", "_backends_surface", "launch_backends",
+    for name in ("_urirun_compat", "backends", "_backends_uinput", "_backends_surface", "launch_backends",
                  "cdp", "_cdp_impl", "control", "environment", "strategies", "surface",
                  "vnc", "contracts", "capture_worker", "readiness"):
         if not os.path.exists(os.path.join(here, name + ".py")):
@@ -75,6 +75,14 @@ def _adopt_flat_siblings() -> None:
 
 if not __package__:  # running as a flat module pushed by `host deploy --code`
     _adopt_flat_siblings()
+
+try:  # normal package import
+    from urirun_connector_kvm import _urirun_compat
+except ImportError as _e:  # flat-module deploy
+    _missing = getattr(_e, "name", None) or ""
+    if _missing and not _missing.startswith("urirun_connector_kvm"):
+        raise
+    import _urirun_compat  # type: ignore
 
 try:  # normal package import
     from urirun_connector_kvm import backends as B
@@ -111,7 +119,7 @@ except ImportError as _e:  # flat-module deploy
         _cdp = None  # type: ignore
 
 CONNECTOR_ID = "kvm"
-conn = urirun.connector(CONNECTOR_ID, scheme="kvm")
+conn = _urirun_compat.connector(CONNECTOR_ID, scheme="kvm")
 
 try:  # wrap conn.handler BEFORE the decorators below so every contracted route is guarded
     from urirun_connectors_toolkit.contract_gate import enforce as _enforce
@@ -2109,7 +2117,7 @@ def urirun_bindings() -> dict[str, Any]:
 
 
 def connector_manifest() -> dict[str, Any]:
-    m = conn.manifest(urirun.load_manifest(__package__))
+    m = conn.manifest(_urirun_compat.load_manifest(__package__))
     try:  # GENERATED per-URI capability list (URI_COMMAND_STANDARD.md §6)
         from urirun_connectors_toolkit.connector_sdk import manifest_routes
         m["routes"] = manifest_routes(urirun_bindings())
@@ -2119,7 +2127,7 @@ def connector_manifest() -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    return conn.cli(argv, manifest_prose=urirun.load_manifest(__package__))
+    return conn.cli(argv, manifest_prose=_urirun_compat.load_manifest(__package__))
 
 
 if __name__ == "__main__":

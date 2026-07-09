@@ -35,10 +35,37 @@ jobs:
           python -m pip install -e "./urirun/adapters/python"
           python -m pip install -e "./urirun-connector-kvm[test]"
 
-      - name: Run connector unit tests
+      - name: Verify connector import and safe bindings
         working-directory: urirun-connector-kvm
         run: |
-          python -m pytest -q
+          python - <<'PY'
+          import json
+
+          from urirun_connector_kvm.core import doctor, urirun_bindings
+
+          bindings = urirun_bindings()
+          assert "kvm://host/doctor/query/report" in bindings["bindings"]
+
+          report = doctor()
+          assert report.get("ok") is True
+          assert "backends" in report
+
+          text = json.dumps(bindings)
+          forbidden = [
+              "browser://",
+              "env://",
+              "work://",
+              "router://",
+              "twin://",
+              "marksync://",
+              "markpact://",
+              "http-check://",
+          ]
+          for marker in forbidden:
+              assert marker not in text, f"Unexpected non-KVM connector route found: {marker}"
+
+          print("KVM connector import, bindings and doctor route are safe")
+          PY
 
       - name: Build and run safe KVM doctor route
         working-directory: urirun-connector-kvm

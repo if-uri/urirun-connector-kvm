@@ -766,8 +766,12 @@ def test_router_prefers_cdp_when_reachable(monkeypatch) -> None:
 def test_router_falls_through_cdp_to_vision(monkeypatch) -> None:
     # cdp reachable but the element is not in the DOM -> raises -> vision takes over
     monkeypatch.setattr(cdp, "reachable", lambda: True)
+    monkeypatch.setattr(C._env, "atspi_ready", lambda: False)
+    monkeypatch.setattr(C._env, "profile", lambda: {"controlStrategies": {"vision": True}})
+
     def _boom(*a, **k):
         raise B.BackendError("cdp: element not found")
+
     monkeypatch.setattr(cdp, "act", _boom)
     monkeypatch.setattr(B, "dispatch", lambda action, **k:
                         {"source": "tesseract", "found": True, "center": [120, 240],
