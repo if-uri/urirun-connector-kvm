@@ -1,0 +1,168 @@
+name: integration-urirun-llm
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-urirun-llm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kvm-through-urirun-and-llm-runtime:
+    name: KVM connector -> urirun -> urirun-llm-runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout urirun-connector-kvm
+        uses: actions/checkout@v4
+        with:
+          path: urirun-connector-kvm
+
+      - name: Checkout urirun
+        uses: actions/checkout@v4
+        with:
+          repository: if-uri/urirun
+          path: urirun
+
+      - name: Checkout urirun-llm-runtime
+        uses: actions/checkout@v4
+        with:
+          repository: if-uri/urirun-llm-runtime
+          path: urirun-llm-runtime
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install urirun, current connector and llm runtime from source
+        run: |
+          python -m pip install --upgrade pip
+
+          # urirun from checked-out source
+          python -m pip install -e "./urirun/adapters/python"
+
+          # current connector commit being tested
+          python -m pip install -e "./urirun-connector-kvm[test]"
+
+          # LLM runtime from checked-out source
+          python -m pip install -e "./urirun-llm-runtime[dev]"
+
+      - name: Run connector tests
+        working-directory: urirun-connector-kvm
+        env:
+          URIRUN_CONTRACT_CHECK: "1"
+        run: |
+          python -m pytest -q
+
+      - name: Build isolated KVM registry
+        run: |
+          mkdir -p .urirun
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from urirun_connector_kvm.core import urirun_bindings
+
+          bindings = urirun_bindings()
+          out = Path(".urirun/kvm.bindings.v2.json")
+          out.write_text(json.dumps(bindings, indent=2, sort_keys=True), encoding="utf-8")
+
+          text = json.dumps(bindings)
+          assert "kvm://" in text, "KVM bindings do not contain kvm:// routes"
+          assert "kvm://host/doctor/query/report" in text, "KVM doctor route missing"
+          print("Wrote isolated KVM bindings:", out)
+          PY
+
+          urirun compile .urirun/kvm.bindings.v2.json --out .urirun/kvm.registry.json
+
+          test -s .urirun/kvm.registry.json
+
+      - name: Assert registry contains KVM connector only
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          registry = json.loads(Path(".urirun/kvm.registry.json").read_text(encoding="utf-8"))
+          text = json.dumps(registry)
+
+          assert "kvm://" in text, "Registry does not contain kvm:// routes"
+          assert "kvm://host/doctor/query/report" in text, "KVM doctor route missing from registry"
+
+          # KVM connector also owns app:// desktop routes, so these are allowed.
+          forbidden = [
+              "browser://",
+              "env://",
+              "work://",
+              "router://",
+              "twin://",
+              "marksync://",
+              "markpact://",
+              "http-check://",
+          ]
+
+          for marker in forbidden:
+              assert marker not in text, f"Unexpected non-KVM connector route found: {marker}"
+
+          print("Registry isolation OK: only KVM/app desktop routes are present.")
+          PY
+
+      - name: Run KVM route directly through urirun
+        run: |
+          urirun run \
+            'kvm://host/doctor/query/report' \
+            .urirun/kvm.registry.json \
+            --execute \
+            --allow 'kvm://**' \
+            --allow 'app://**'
+
+      - name: Start urirun node
+        run: |
+          nohup urirun node serve \
+            --execute \
+            --host 127.0.0.1 \
+            --port 18765 \
+            --registry .urirun/kvm.registry.json \
+            --allow 'kvm://**' \
+            --allow 'app://**' \
+            > urirun-node.log 2>&1 &
+
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:18765/health; then
+              echo "urirun node is healthy"
+              break
+            fi
+            sleep 2
+          done
+
+          curl -sf http://127.0.0.1:18765/health
+          curl -sf http://127.0.0.1:18765/routes | tee routes.json
+          grep -q 'kvm://host/doctor/query/report' routes.json
+
+      - name: POST /run smoke test
+        run: |
+          curl -sf -X POST http://127.0.0.1:18765/run \
+            -H 'Content-Type: application/json' \
+            -d '{"uri":"kvm://host/doctor/query/report","mode":"execute","payload":{}}' \
+            | tee run-response.json
+
+          grep -q '"ok"' run-response.json
+
+      - name: LLM runtime Executor smoke test
+        working-directory: urirun-connector-kvm
+        env:
+          URIRUN_NODE_URL: http://127.0.0.1:18765
+        run: |
+          python scripts/ci_urirun_llm_smoke.py
+
+      - name: Dump urirun node log on failure
+        if: failure()
+        run: |
+          echo "===== urirun-node.log ====="
+          cat urirun-node.log || true
