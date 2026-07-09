@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: if-uri/urirun
-          path: urirun
+          path: _deps/urirun
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -32,7 +32,7 @@ jobs:
       - name: Install urirun and current connector from source
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e "./urirun/adapters/python"
+          python -m pip install -e "./_deps/urirun/adapters/python"
           python -m pip install -e "./urirun-connector-kvm[test]"
 
       - name: Verify connector import and safe bindings

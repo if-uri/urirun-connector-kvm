@@ -27,13 +27,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: if-uri/urirun
-          path: urirun
+          path: _deps/urirun
 
       - name: Checkout urirun-llm-runtime
         uses: actions/checkout@v4
         with:
           repository: if-uri/urirun-llm-runtime
-          path: urirun-llm-runtime
+          path: _deps/urirun-llm-runtime
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -45,13 +45,13 @@ jobs:
           python -m pip install --upgrade pip
 
           # urirun from checked-out source
-          python -m pip install -e "./urirun/adapters/python"
+          python -m pip install -e "./_deps/urirun/adapters/python"
 
           # current connector commit being tested
           python -m pip install -e "./urirun-connector-kvm[test]"
 
           # LLM runtime from checked-out source
-          python -m pip install -e "./urirun-llm-runtime[dev]"
+          python -m pip install -e "./_deps/urirun-llm-runtime[dev]"
 
       - name: Verify connector package imports
         working-directory: urirun-connector-kvm
