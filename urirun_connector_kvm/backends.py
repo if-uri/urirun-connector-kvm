@@ -890,6 +890,30 @@ def _focus_pgw(title: str, **_: Any) -> dict:
     return {"via": "pygetwindow", "title": title}
 
 
+@backend("maximize", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
+def _maximize_wmctrl(title: str, **_: Any) -> dict:
+    _run(["wmctrl", "-r", title, "-b", "add,maximized_vert,maximized_horz"])
+    return {"via": "wmctrl", "title": title}
+
+
+@backend("window_geometry", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
+def _geometry_wmctrl(title: str, **_: Any) -> dict:
+    """``wmctrl -lG`` columns: id desktop x y w h client_machine title... — title is whatever
+    is left after the first 7 whitespace-separated fields, so split with a maxsplit to keep
+    multi-word titles intact. XWayland/X11 only, same visibility limit as focus/window_list:
+    NO tool here sees Wayland-native app windows (see ``_enumerate_windows`` in core.py)."""
+    p = _run(["wmctrl", "-lG"])
+    for line in p.stdout.splitlines():
+        parts = line.split(None, 7)
+        if len(parts) < 8:
+            continue
+        _id, _desktop, x, y, w, h, _host, wtitle = parts
+        if title.lower() in wtitle.lower():
+            return {"via": "wmctrl", "title": wtitle,
+                    "x": int(x), "y": int(y), "w": int(w), "h": int(h)}
+    raise BackendError(f"no window matching {title!r}")
+
+
 @backend("window_list", "wmctrl", priority=70, platforms=("linux-x11", "linux-wayland"), needs_bin=("wmctrl",))
 def _winlist_wmctrl(app: str = "", title: str = "", **_: Any) -> dict:
     p = _run(["wmctrl", "-l"])

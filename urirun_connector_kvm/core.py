@@ -20,6 +20,7 @@ registry-portable through ``python -m urirun.exec``):
 * ``kvm://{host}/input/command/scroll``      — scroll wheel
 * ``kvm://{host}/task/command/run``          — a bounded sequence of the above
 * ``kvm://{host}/window/command/focus``      — activate a window by title
+* ``kvm://{host}/window/command/maximize``   — maximize a window so it fills the screen
 * ``kvm://{host}/window/query/list``         — list windows
 * ``kvm://{host}/doctor/query/report``       — which backend serves each action
 
@@ -469,47 +470,109 @@ def _verify_focus(expect: str) -> dict[str, Any]:
             "title": title, "expect": expect, "via": win.get("via")}
 
 
-@conn.handler("input/command/type", isolated=True, meta={"label": "Type a whole string"})
-def type_text(text: str = "", expect_window: str = "") -> dict[str, Any]:
-    """Type ``text`` into whatever currently has focus. Pass ``expect_window`` (a substring of
-    the expected window title) to ground the target BEFORE typing — a trusted probe that shows
-    a different window refuses the call instead of typing blind. Leave empty to keep today's
-    blind behaviour (e.g. when the caller already grounded via ``task/command/run``'s ``focus``
-    step, or verifies after the fact via ``ui/command/type-verified``)."""
-    if not text:
-        return urirun.fail("text is required", connector=CONNECTOR_ID)
+def _window_geometry(title: str) -> "dict[str, Any] | None":
+    try:
+        return B.dispatch("window_geometry", title=title)
+    except B.BackendError:
+        return None
+
+
+def _verify_fullscreen(title: str) -> dict[str, Any]:
+    """Does the window matching ``title`` fill the screen? Compares its ``wmctrl`` geometry
+    against the display size (X11/XWayland only — same trust boundary as ``_verify_focus``:
+    wmctrl can't see Wayland-native windows). A tolerance accounts for panels/title bars, so a
+    plain maximize (not literal edge-to-edge fullscreen) counts. This matters because absolute
+    click/type coordinates are computed against a full-screen frame — a partially-visible or
+    tiled window silently breaks that mapping without ever raising an error."""
+    geo = _window_geometry(title)
+    if not geo:
+        return {"trusted": False, "fullscreen": None, "title": title}
+    try:
+        sw, sh = B._screen_wh()
+    except Exception:  # noqa: BLE001
+        return {"trusted": False, "fullscreen": None, "title": title}
+    covers = geo["w"] >= sw * 0.92 and geo["h"] >= sh * 0.85
+    return {"trusted": True, "fullscreen": covers, "title": geo.get("title", title),
+            "geometry": {"x": geo["x"], "y": geo["y"], "w": geo["w"], "h": geo["h"]},
+            "screen": [sw, sh]}
+
+
+def _ensure_fullscreen(title: str) -> dict[str, Any]:
+    """check→satisfy→retry: verify the window fills the screen; if a TRUSTED probe says it
+    doesn't, maximize it once and verify again. Never raises — degrades honestly (unchanged
+    ``trusted:false``) when the geometry probe can't answer at all."""
+    check = _verify_fullscreen(title)
+    if check["trusted"] is False or check["fullscreen"] is True:
+        return check
+    try:
+        B.dispatch("maximize", title=title)
+        time.sleep(0.3)
+    except B.BackendError:
+        pass
+    return _verify_fullscreen(title)
+
+
+def _grounding_checks(action: str, expect_window: str, require_fullscreen: bool
+                       ) -> "tuple[dict | None, dict | None, dict | None]":
+    """Shared pre-flight for type_text/key: ``(focus_check, fullscreen_check, fail_envelope)``.
+    A non-``None`` ``fail_envelope`` means the caller must return it immediately without
+    dispatching the input event."""
     focus_check = _verify_focus(expect_window) if expect_window else None
     if focus_check is not None and focus_check["verified"] is False:
-        return urirun.fail(
+        return focus_check, None, urirun.fail(
             f"active window {focus_check['title']!r} does not match "
-            f"expect_window={expect_window!r}; refused to type blind",
-            connector=CONNECTOR_ID, action="type", focus=focus_check)
+            f"expect_window={expect_window!r}; refused to {action} blind",
+            connector=CONNECTOR_ID, action=action, focus=focus_check)
+    fullscreen_check = _verify_fullscreen(expect_window) if (expect_window and require_fullscreen) else None
+    if fullscreen_check is not None and fullscreen_check["trusted"] and fullscreen_check["fullscreen"] is False:
+        return focus_check, fullscreen_check, urirun.fail(
+            f"window {expect_window!r} is not maximized/fullscreen; refused to {action} blind",
+            connector=CONNECTOR_ID, action=action, fullscreen=fullscreen_check)
+    return focus_check, fullscreen_check, None
+
+
+@conn.handler("input/command/type", isolated=True, meta={"label": "Type a whole string"})
+def type_text(text: str = "", expect_window: str = "", require_fullscreen: bool = False) -> dict[str, Any]:
+    """Type ``text`` into whatever currently has focus. Pass ``expect_window`` (a substring of
+    the expected window title) to ground the target BEFORE typing — a trusted probe that shows
+    a different window refuses the call instead of typing blind. Add ``require_fullscreen=True``
+    to also refuse when a trusted probe shows that window isn't maximized. Leave both empty to
+    keep today's blind behaviour (e.g. when the caller already grounded via
+    ``task/command/run``'s ``focus`` step, or verifies after the fact via
+    ``ui/command/type-verified``)."""
+    if not text:
+        return urirun.fail("text is required", connector=CONNECTOR_ID)
+    focus_check, fullscreen_check, fail = _grounding_checks("type", expect_window, require_fullscreen)
+    if fail is not None:
+        return fail
     try:
         r = _ok(action="type", **B.dispatch("type", text=text))
         if focus_check is not None:
             r["focus"] = focus_check
+        if fullscreen_check is not None:
+            r["fullscreen"] = fullscreen_check
         return r
     except B.BackendError as exc:
         return _fail_from("type", exc)
 
 
 @conn.handler("input/command/key", isolated=True, meta={"label": "Send a key or hotkey combo"})
-def key(key: str = "", keys: str = "", expect_window: str = "") -> dict[str, Any]:
-    """Send ``keys``/``key``. Pass ``expect_window`` to refuse the call (same grounding as
-    ``type_text``) when a trusted foreground-window probe shows a different window."""
+def key(key: str = "", keys: str = "", expect_window: str = "", require_fullscreen: bool = False) -> dict[str, Any]:
+    """Send ``keys``/``key``. Pass ``expect_window``/``require_fullscreen`` to refuse the call
+    (same grounding as ``type_text``) when a trusted probe shows the wrong window, or a window
+    that isn't maximized."""
     combo = keys or key
     if not combo:
         return urirun.fail("key/keys is required", connector=CONNECTOR_ID)
-    focus_check = _verify_focus(expect_window) if expect_window else None
-    if focus_check is not None and focus_check["verified"] is False:
-        return urirun.fail(
-            f"active window {focus_check['title']!r} does not match "
-            f"expect_window={expect_window!r}; refused to send key blind",
-            connector=CONNECTOR_ID, action="key", focus=focus_check)
+    focus_check, fullscreen_check, fail = _grounding_checks("key", expect_window, require_fullscreen)
+    if fail is not None:
+        return fail
     try:
         r = _ok(action="key", **B.dispatch("key", keys=combo))
         if focus_check is not None:
             r["focus"] = focus_check
+        if fullscreen_check is not None:
+            r["fullscreen"] = fullscreen_check
         return r
     except B.BackendError as exc:
         return _fail_from("key", exc)
@@ -796,36 +859,76 @@ def _refuse_if_wrong_window(op: str, expected_title: str, log: list[dict]) -> "d
     return None
 
 
+def _refuse_if_not_fullscreen(op: str, expected_title: str, require_fullscreen: bool,
+                               log: list[dict]) -> "dict[str, Any] | None":
+    """task_run guard: before any action step, refuse the WHOLE task if a TRUSTED geometry
+    probe shows the batch's targeted window no longer fills the screen (resized, un-maximized,
+    tiled by the WM after focus). Absolute click/type coordinates are computed against a
+    full-screen frame, so this catches the same class of silent-wrong-target mistake as
+    ``_refuse_if_wrong_window``, just for window STATE instead of window IDENTITY."""
+    if op not in ("type", "key", "click", "move", "scroll") or not expected_title or not require_fullscreen:
+        return None
+    check = _verify_fullscreen(expected_title)
+    if check["trusted"] and check["fullscreen"] is False:
+        log.append({"op": op, "ok": False, "fullscreen": check,
+                    "error": f"window {expected_title!r} is not maximized/fullscreen"})
+        return urirun.fail(
+            f"step {op!r} refused: {expected_title!r} is not maximized/fullscreen",
+            connector=CONNECTOR_ID, steps=log)
+    return None
+
+
+def _guard_step(op: str, expected_title: str, require_fullscreen: bool,
+                 log: list[dict]) -> "dict[str, Any] | None":
+    """Combined task_run pre-flight: refuse the step (and the whole task) if a TRUSTED probe
+    shows the wrong window focused OR the right window no longer filling the screen."""
+    return (_refuse_if_wrong_window(op, expected_title, log)
+            or _refuse_if_not_fullscreen(op, expected_title, require_fullscreen, log))
+
+
+def _task_focus_step(st: dict) -> "tuple[dict, str, bool, dict]":
+    """Runs a task_run ``focus`` step: activate the window, and — unless the step passes
+    ``fullscreen: false`` — ensure (check→satisfy→retry) it fills the screen. Returns
+    ``(dispatch result, new expected_title, new require_fullscreen, extra log fields)``."""
+    title = str(st.get("title", ""))
+    r = B.dispatch("focus", title=title)
+    require_fullscreen = bool(st.get("fullscreen", True))
+    extra = {"fullscreen": _ensure_fullscreen(title)} if require_fullscreen else {}
+    return r, title, require_fullscreen, extra
+
+
 @conn.handler("task/command/run", isolated=True, meta={"label": "Run a bounded input sequence"})
 def task_run(steps: list | None = None) -> dict[str, Any]:
     """Execute an ordered list of ``{op, ...}`` steps in one call (so a focus→click→
     type→submit flow shares the same ydotoold session). ops: focus, move, click, type,
     key, scroll, sleep. Input is structured data — never arbitrary code.
 
-    A ``focus`` step records the window this task targets. Every ``type``/``key`` step that
-    follows it re-probes the foreground window FIRST and refuses to fire (the task fails,
-    nothing is typed) if a TRUSTED probe shows a different window is active — grounding
-    before injection instead of discovering the wrong-window mistake only after the text
-    already landed. When the probe can't answer at all (pure Wayland has no public
-    active-window query), that is honestly unverifiable, not a pass, and the step proceeds
-    best-effort exactly as before — callers on those sessions still want
-    ``ui/command/type-verified`` for a post-hoc check."""
+    A ``focus`` step records the window this task targets and — unless it passes
+    ``fullscreen: false`` — maximizes it (check→satisfy→retry: verify, and only maximize if a
+    trusted probe says it isn't already filling the screen). Every action step that follows a
+    ``focus`` step re-probes BOTH the foreground window and its geometry FIRST and refuses to
+    fire (the task fails, nothing is sent) if a TRUSTED probe shows the wrong window active or
+    the right window no longer filling the screen — grounding before injection instead of
+    discovering a wrong-window/wrong-layout mistake only after input already landed. When a
+    probe can't answer at all (pure Wayland has no public active-window/geometry query), that
+    is honestly unverifiable, not a pass, and the step proceeds best-effort exactly as before —
+    callers on those sessions still want ``ui/command/type-verified`` for a post-hoc check."""
     log: list[dict] = []
     expected_title = ""
+    require_fullscreen = True
     for st in (steps or []):
         op = str(st.get("op", ""))
+        extra: dict[str, Any] = {}
         try:
             if op == "sleep":
                 time.sleep(min(float(st.get("seconds", 0.2)), 5.0))
                 log.append({"op": op})
                 continue
-            guard = _refuse_if_wrong_window(op, expected_title, log)
+            guard = _guard_step(op, expected_title, require_fullscreen, log)
             if guard is not None:
                 return guard
             if op == "focus":
-                title = str(st.get("title", ""))
-                r = B.dispatch("focus", title=title)
-                expected_title = title
+                r, expected_title, require_fullscreen, extra = _task_focus_step(st)
             elif op == "move":
                 r = B.dispatch("move", x=int(st["x"]), y=int(st["y"]))
             elif op == "click":
@@ -842,7 +945,7 @@ def task_run(steps: list | None = None) -> dict[str, Any]:
             else:
                 log.append({"op": op, "skipped": "unknown op"})
                 continue
-            log.append({"op": op, "via": r.get("via"), "ok": True})
+            log.append({"op": op, "via": r.get("via"), "ok": True, **extra})
             time.sleep(float(st.get("after", 0.25)))
         except (B.BackendError, KeyError, ValueError) as exc:
             log.append({"op": op, "ok": False, "error": str(exc)[:160]})
@@ -876,6 +979,22 @@ def focus(title: str = "") -> dict[str, Any]:
             degraded=True, degradedReason=str(exc),
             platform=B.platform_tag(),
         )
+
+
+@conn.handler("window/command/maximize", isolated=True,
+              meta={"label": "Maximize a window by title so it fills the screen"})
+def window_maximize(title: str = "") -> dict[str, Any]:
+    """Maximize a window by title, then re-probe its geometry (same fire-and-forget caveat as
+    ``focus``: the WM call doesn't error on a non-matching title, so ``verify`` is the honest
+    signal). ``task/command/run``'s ``focus`` step calls this automatically before any
+    subsequent action step — this route is for a standalone check/fix."""
+    if not title:
+        return urirun.fail("title is required", connector=CONNECTOR_ID)
+    try:
+        B.dispatch("maximize", title=title)
+    except B.BackendError as exc:
+        return _fail_from("maximize", exc)
+    return _ok(action="maximize", verify=_verify_fullscreen(title))
 
 
 @conn.handler("window/query/list", isolated=True, meta={"label": "List open windows"})

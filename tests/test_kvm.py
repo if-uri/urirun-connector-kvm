@@ -32,6 +32,7 @@ EXPECTED_ROUTES = {
     "kvm://host/input/command/hover", "kvm://host/input/command/drag-and-drop",
     "kvm://host/input/command/wait", "kvm://host/proc/command/kill",
     "kvm://host/task/command/run", "kvm://host/window/command/focus",
+    "kvm://host/window/command/maximize",
     "kvm://host/window/command/close", "kvm://host/window/command/restore",
     "kvm://host/window/query/list", "kvm://host/a11y/command/act", "kvm://host/abs/command/click",
     "kvm://host/ui/query/locate", "kvm://host/ui/command/click-text",
@@ -396,9 +397,18 @@ def test_type_text_stays_blind_without_expect_window(monkeypatch) -> None:
     assert seen["called"] is True
 
 
+def _dispatch_no_geometry(action, **kw):
+    """Stand-in B.dispatch for tests exercising the window-IDENTITY guard only: the
+    window_geometry/maximize backend is unavailable (BackendError), so the fullscreen guard
+    stays honestly untrusted and never interferes."""
+    if action in ("window_geometry", "maximize"):
+        raise B.BackendError("geometry probe unavailable in test")
+    return {"via": "wmctrl" if action == "focus" else "ydotool"}
+
+
 def test_task_run_refuses_type_after_focus_lands_elsewhere(monkeypatch) -> None:
     monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Wrong App"))
-    monkeypatch.setattr(B, "dispatch", lambda action, **kw: {"via": "wmctrl"})
+    monkeypatch.setattr(B, "dispatch", _dispatch_no_geometry)
 
     r = core.task_run(steps=[
         {"op": "focus", "title": "Signal"},
@@ -413,7 +423,7 @@ def test_task_run_refuses_type_after_focus_lands_elsewhere(monkeypatch) -> None:
 
 def test_task_run_types_when_focused_window_matches(monkeypatch) -> None:
     monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Signal"))
-    monkeypatch.setattr(B, "dispatch", lambda action, **kw: {"via": "wmctrl" if action == "focus" else "ydotool"})
+    monkeypatch.setattr(B, "dispatch", _dispatch_no_geometry)
 
     r = core.task_run(steps=[
         {"op": "focus", "title": "Signal"},
@@ -428,7 +438,7 @@ def test_task_run_untrusted_probe_does_not_block_type(monkeypatch) -> None:
     # Pure-Wayland sessions where the active window can't be probed at all: honestly
     # unverifiable, not a mismatch, so the step still proceeds best-effort.
     monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface(""))
-    monkeypatch.setattr(B, "dispatch", lambda action, **kw: {"via": "ydotool"})
+    monkeypatch.setattr(B, "dispatch", _dispatch_no_geometry)
 
     r = core.task_run(steps=[
         {"op": "focus", "title": "Signal"},
@@ -436,6 +446,111 @@ def test_task_run_untrusted_probe_does_not_block_type(monkeypatch) -> None:
     ])
 
     assert r["ok"] is True
+
+
+def test_task_run_focus_step_maximizes_a_small_window(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Signal"))
+    monkeypatch.setattr(B, "_screen_wh", lambda: (1920, 1080))
+    state = {"small": True}
+
+    def _dispatch(action, **kw):
+        if action == "maximize":
+            state["small"] = False
+            return {"via": "wmctrl"}
+        if action == "window_geometry":
+            geo = {"x": 100, "y": 100, "w": 800, "h": 600} if state["small"] \
+                else {"x": 0, "y": 0, "w": 1920, "h": 1080}
+            return {"title": "Signal", **geo}
+        return {"via": "wmctrl" if action == "focus" else "ydotool"}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.task_run(steps=[
+        {"op": "focus", "title": "Signal"},
+        {"op": "type", "text": "hello"},
+    ])
+
+    assert r["ok"] is True
+    assert r["steps"][0]["fullscreen"]["fullscreen"] is True
+    assert state["small"] is False  # the guard's maximize call actually ran
+
+
+def test_task_run_refuses_action_when_window_never_fills_screen(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Signal"))
+    monkeypatch.setattr(B, "_screen_wh", lambda: (1920, 1080))
+
+    def _dispatch(action, **kw):
+        if action == "window_geometry":
+            return {"title": "Signal", "x": 100, "y": 100, "w": 800, "h": 600}
+        return {"via": "wmctrl" if action == "focus" else "ydotool"}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.task_run(steps=[
+        {"op": "focus", "title": "Signal"},
+        {"op": "type", "text": "should not land"},
+    ])
+
+    assert r["ok"] is False
+    assert r["steps"][-1]["op"] == "type"
+    assert r["steps"][-1]["fullscreen"]["fullscreen"] is False
+
+
+def test_task_run_fullscreen_false_opts_out(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Signal"))
+    monkeypatch.setattr(B, "_screen_wh", lambda: (1920, 1080))
+
+    def _dispatch(action, **kw):
+        if action == "maximize":
+            raise AssertionError("must not attempt to maximize when fullscreen=False")
+        if action == "window_geometry":
+            return {"title": "Signal", "x": 100, "y": 100, "w": 800, "h": 600}
+        return {"via": "wmctrl" if action == "focus" else "ydotool"}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.task_run(steps=[
+        {"op": "focus", "title": "Signal", "fullscreen": False},
+        {"op": "type", "text": "small dialog ok"},
+    ])
+
+    assert r["ok"] is True
+
+
+def test_window_maximize_route(monkeypatch) -> None:
+    seen = {}
+
+    def _dispatch(action, **kw):
+        seen[action] = kw
+        if action == "window_geometry":
+            return {"title": "Signal", "x": 0, "y": 0, "w": 1920, "h": 1080}
+        return {"via": "wmctrl"}
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+    monkeypatch.setattr(B, "_screen_wh", lambda: (1920, 1080))
+
+    r = core.window_maximize(title="Signal")
+
+    assert r["ok"] is True
+    assert seen["maximize"]["title"] == "Signal"
+    assert r["verify"]["fullscreen"] is True
+
+
+def test_type_text_refuses_when_window_not_fullscreen(monkeypatch) -> None:
+    monkeypatch.setattr(core, "_surface_mod", lambda: _fake_surface("Signal"))
+    monkeypatch.setattr(B, "_screen_wh", lambda: (1920, 1080))
+
+    def _dispatch(action, **kw):
+        if action == "window_geometry":
+            return {"title": "Signal", "x": 100, "y": 100, "w": 800, "h": 600}
+        raise AssertionError("must not type when not fullscreen")
+
+    monkeypatch.setattr(B, "dispatch", _dispatch)
+
+    r = core.type_text(text="hello", expect_window="Signal", require_fullscreen=True)
+
+    assert r["ok"] is False
+    assert r["fullscreen"]["fullscreen"] is False
 
 
 def test_atspi_window_list_uses_long_timeout_and_monitor_inventory(monkeypatch) -> None:
